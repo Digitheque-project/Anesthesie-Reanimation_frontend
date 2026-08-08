@@ -1,0 +1,236 @@
+'use client'
+
+import { useState, useEffect, useRef } from 'react'
+import HeaderNotification from '@/components/bloc/notification-cpa/HeaderNotification'
+import StatsNotification from '@/components/bloc/notification-cpa/StatsNotification'
+import TableauNotifications from '@/components/bloc/notification-cpa/TableauNotifications'
+import ModalPlanifierRDV from '@/components/bloc/notification-cpa/ModalPlanifierRDV'
+import { useRouter } from 'next/navigation'
+import { notificationService, planningService } from '@/lib/api'
+import { apiClient } from '@/lib/api/client'
+import { obtenirSessionValide } from '@/lib/auth/central-session'
+import { useRole } from '@/lib/hooks/useRole'
+import { dedupeParPatient } from '@/lib/notifications/dedupe'
+import { normaliserDemandeExterne } from '@/lib/notifications/normaliser-demande-externe'
+import { jouerSonNotification, type TypeNotificationSon } from '@/lib/notifications/sound'
+import { formaterNomPatient } from '@/lib/patient'
+import RoleGate from '@/components/bloc/auth/RoleGate'
+import { RoleClinique } from '@/lib/auth/role-clinique'
+
+export default function NotificationCPAPage() {
+  const [notifications, setNotifications] = useState<any[]>([])
+  const router = useRouter()
+  const { peutPlanifierCpa, roleName } = useRole()
+  const [loading, setLoading] = useState(true)
+  const [showFiltres, setShowFiltres] = useState(false)
+  // Le fil de prescription ne doit montrer que les prescriptions pas encore traitées : une fois
+  // le RDV CPA planifié, le patient bascule vers la liste "Rendez-vous CPA" et ne doit plus
+  // réapparaître ici par défaut (les autres filtres restent disponibles pour l'historique).
+  const [filtreActif, setFiltreActif] = useState('EN_ATTENTE')
+  const [showModal, setShowModal] = useState(false)
+  const [selectedNotif, setSelectedNotif] = useState<any>(null)
+  const [stats, setStats] = useState({ total: 0, enAttente: 0, prioriteHaute: 0, rdvFixes24h: 0 })
+  // IDs déjà vus, pour ne jouer un son que sur une VRAIE nouvelle arrivée détectée entre deux
+  // rafraîchissements — jamais au premier chargement de la page (sinon un carillon à chaque
+  // ouverture, même quand rien de nouveau ne s'est passé depuis la dernière visite).
+  const idsConnus = useRef<Set<string> | null>(null)
+
+  // Pas d'actualisation automatique périodique : chargement au montage seulement, et via le
+  // bouton "Actualiser" du header (onActualiser={charger} ci-dessous) ou en revenant sur la
+  // page — un rafraîchissement toutes les 20s réordonnait/faisait clignoter la liste sans que
+  // l'utilisateur l'ait demandé.
+  useEffect(() => {
+    charger()
+  }, [])
+
+  const determinerSon = (n: any): TypeNotificationSon =>
+    (n.estUrgent || n.urgence === 3) ? 'PATIENT_URGENT' : n.origineExterne ? 'CPA_NORMALE' : 'PRESCRIPTION_NORMALE'
+
+  // Priorité d'affichage si plusieurs nouvelles notifications arrivent dans le même cycle : un
+  // patient urgent prime toujours, puis une demande CPA externe, puis une prescription normale.
+  const PRIORITE_SON: Record<TypeNotificationSon, number> = { PATIENT_URGENT: 3, CPA_NORMALE: 2, PRESCRIPTION_NORMALE: 1 }
+
+  const charger = async () => {
+    try {
+      setLoading(true)
+      const [data, demandesExternesRes] = await Promise.all([
+        notificationService.getAll(1, 100),
+        apiClient.get('/demandes-cpa-externes', { params: { statut: 'EN_ATTENTE' } }).catch(() => ({ data: [] })),
+      ])
+      const notifs = data.data || []
+      const demandesExternes = (Array.isArray(demandesExternesRes.data) ? demandesExternesRes.data : []).map(normaliserDemandeExterne)
+      // Un même patient peut apparaître plusieurs fois (plusieurs cycles d'ingestion, demande
+      // interne + externe pour le même évènement...) — on ne garde qu'une entrée par patient.
+      const toutes = dedupeParPatient([...notifs, ...demandesExternes])
+
+      if (idsConnus.current) {
+        const nouvelles = toutes.filter((n: any) => n.id && !idsConnus.current!.has(n.id))
+        if (nouvelles.length > 0) {
+          const son = nouvelles.map(determinerSon).sort((a, b) => PRIORITE_SON[b] - PRIORITE_SON[a])[0]
+          jouerSonNotification(son)
+        }
+      }
+      idsConnus.current = new Set(toutes.map((n: any) => n.id).filter(Boolean))
+
+      setNotifications(toutes)
+      setStats({
+        total: toutes.length,
+        enAttente: toutes.filter((n: any) => n.statut === 'EN_ATTENTE').length,
+        prioriteHaute: toutes.filter((n: any) => n.estUrgent).length,
+        rdvFixes24h: notifs.filter((n: any) => n.statut === 'RDV_PLANIFIE').length,
+      })
+    } catch (err) { console.error(err) }
+    finally { setLoading(false) }
+  }
+
+  const handlePlanifier = (notif: any) => {
+    if (!peutPlanifierCpa) { alert('❌ Planification réservée au Responsable CPA, au Major ou à l\'Anesthésiste'); return }
+    setSelectedNotif(notif)
+    setShowModal(true)
+  }
+
+  // 🟢 FONCTION AJOUTÉE : Valider la planification
+  const handleValiderPlanification = async (formData: any) => {
+    try {
+      if (!selectedNotif) return
+
+      const patientId = selectedNotif.patientId || selectedNotif.patient?.id
+      if (!patientId) {
+        alert('❌ ID patient manquant')
+        return
+      }
+
+      // Calculer l'heure de fin (30 min plus tard)
+      const [h, m] = (formData.heureRDV || '09:00').split(':').map(Number)
+      const fin = new Date()
+      fin.setHours(h, m + 30)
+      const heureFin = fin.toTimeString().split(' ')[0].substring(0, 5)
+
+      if (selectedNotif.origineExterne) {
+        // Demande émise par un service externe : planification via l'endpoint dédié, qui crée
+        // le créneau et fait avancer le statut de la demande (voir DemandeCpaExterneService.planifier).
+        await apiClient.patch(`/demandes-cpa-externes/${selectedNotif.id}/planifier`, {
+          type: formData.typeRDV || 'CPA',
+          date: formData.dateRDV,
+          heureDebut: formData.heureRDV,
+          heureFin,
+          salle: formData.lieuRDV,
+        })
+      } else {
+        const session = obtenirSessionValide()
+        const responsable = session ? `${session.payload.firstname} ${session.payload.name}`.trim() : undefined
+
+        await planningService.reserverCreneau({
+          patientId: patientId,
+          date: formData.dateRDV || new Date().toISOString().split('T')[0],
+          heureDebut: formData.heureRDV || '09:00',
+          heureFin: heureFin,
+          salle: formData.lieuRDV || 'Salle CPA',
+          estUrgence: selectedNotif.estUrgent || false,
+          type: formData.typeRDV || 'CPA',
+          responsable,
+        })
+
+        // Bascule la notification en RDV_PLANIFIE et notifie automatiquement le service d'origine
+        if (selectedNotif.id) {
+          await notificationService.planifierRDV(selectedNotif.id)
+        }
+      }
+
+      alert('✅ Rendez-vous CPA planifié avec succès !')
+      setShowModal(false)
+      setSelectedNotif(null)
+      charger()
+    } catch (err: any) {
+      console.error(err)
+      alert('❌ Erreur : ' + (err.response?.data?.message || err.message || 'Erreur inconnue'))
+    }
+  }
+
+  // 🟢 FONCTION MODIFIÉE : Vérifier si patient STAT
+  const estPatientStat = (notif: any) => Boolean(notif.estUrgent || notif.urgence === 3)
+
+  // 🟢 FONCTION MODIFIÉE : Action selon type
+  const handleActionPrescription = (notif: any) => {
+    if (!estPatientStat(notif)) {
+      handlePlanifier(notif)
+      return
+    }
+
+    const patientId = notif.patientId || notif.patient?.id
+    const patientNom = notif.patientNom || formaterNomPatient(notif.patient)
+    const intervention = notif.intervention || notif.motif || ''
+
+    // Patient urgent : pas de CPA planifiée à l'avance, la consultation a lieu immédiatement —
+    // même interface que la CPA, étiquetée VPA le temps de la consultation. Le statut VPA est
+    // déterminé côté page par patient.niveauUrgence (pas par un paramètre d'URL) : voir
+    // consultation-cpa/page.tsx.
+    router.push(
+      `/bloc/consultation-cpa?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`
+    )
+  }
+
+  const notificationsFiltrees = filtreActif === 'tous' ? notifications
+    : filtreActif === 'urgent' ? notifications.filter(n => n.estUrgent)
+    : notifications.filter(n => n.statut === filtreActif)
+
+  return (
+    <RoleGate
+      allowedRoles={[RoleClinique.ANESTHESISTE, RoleClinique.RESPONSABLE_CPA, RoleClinique.MAJOR]}
+      message="Les notifications de CPA ne sont pas accessibles pour votre rôle."
+    >
+    <div className="p-8 flex flex-col gap-6">
+      <HeaderNotification onActualiser={charger} onToggleFiltres={() => setShowFiltres(!showFiltres)} />
+
+      {showFiltres && (
+        <div className="bg-white border rounded-xl shadow-lg p-4 w-64 space-y-2">
+          {['tous','urgent','EN_ATTENTE','RDV_PLANIFIE','REALISE'].map(f => (
+            <button key={f} onClick={() => { setFiltreActif(f); setShowFiltres(false) }}
+              className={`block w-full text-left px-3 py-2 rounded-lg text-sm font-semibold ${filtreActif===f ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}>
+              {f==='tous'?'Tous':f==='urgent'?'Priorité':f==='EN_ATTENTE'?'En attente':f==='RDV_PLANIFIE'?'RDV Planifiés':'Réalisés'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <StatsNotification stats={stats} />
+
+      {!peutPlanifierCpa && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+          La planification d'un RDV CPA est réservée au Responsable CPA, au Major ou à l'Anesthésiste{roleName ? ` (votre rôle : ${roleName})` : ''}. Vous pouvez consulter la liste et ouvrir les dossiers.
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-12 text-gray-500">Chargement des notifications...</div>
+      ) : (
+        <TableauNotifications
+          notifications={notificationsFiltrees}
+          peutPlanifier={peutPlanifierCpa}
+          onPlanifier={handlePlanifier}
+          onActionUrgent={handleActionPrescription}
+          onVoirDossier={(n: any) => {
+            if (n.origineExterne && n.id) {
+              router.push(`/bloc/demande-cpa-externe/${n.id}`)
+              return
+            }
+            const id = (n.patient as any)?.id || n.patientId
+            if (id) router.push(`/bloc/dossier-patient/${id}?notifId=${n.id || ''}`)
+          }}
+        />
+      )}
+
+      {selectedNotif && (
+        <ModalPlanifierRDV
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onValider={handleValiderPlanification}
+          patientNom={selectedNotif.patientNom || formaterNomPatient(selectedNotif.patient)}
+          intervention={selectedNotif.intervention}
+          estUrgent={selectedNotif.estUrgent}
+        />
+      )}
+    </div>
+    </RoleGate>
+  )
+}

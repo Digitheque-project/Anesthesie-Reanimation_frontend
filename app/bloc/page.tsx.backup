@@ -1,0 +1,61 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { rapportsService, patientService } from '@/lib/api'
+
+export default function DashboardPage() {
+  const router = useRouter()
+  const [stats, setStats] = useState<any>({ totalPatients: 0, totalOperations: 0, totalUrgences: 0, totalMedecins: 0 })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => { chargerStats() }, [])
+
+  const chargerStats = async () => {
+    try {
+      const data = await rapportsService.getStatistiques()
+      setStats(data)
+    } catch (err) {
+      console.error('Erreur stats:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="p-8 flex flex-col gap-6">
+      <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <h1 className="text-xl font-extrabold text-primary">🏥 Tableau de bord</h1>
+        <p className="text-sm text-gray-500 mt-1">Vue d'ensemble du Bloc Opératoire</p>
+      </div>
+
+      {/* Stats - 4 cartes */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl p-4 shadow-sm border"><p className="text-xs font-bold text-gray-500 uppercase">Patients</p><p className="text-2xl font-extrabold text-blue-700">{stats.totalPatients}</p></div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border"><p className="text-xs font-bold text-gray-500 uppercase">Opérations</p><p className="text-2xl font-extrabold text-green-700">{stats.totalOperations}</p></div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border"><p className="text-xs font-bold text-gray-500 uppercase">Urgences</p><p className="text-2xl font-extrabold text-red-700">{stats.totalUrgences}</p></div>
+        <div className="bg-white rounded-xl p-4 shadow-sm border"><p className="text-xs font-bold text-gray-500 uppercase">Médecins</p><p className="text-2xl font-extrabold text-gray-700">{stats.totalMedecins}</p></div>
+      </div>
+
+      {/* Options restantes (sans Checklist, Rapports, Archives) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        <button onClick={() => router.push('/bloc/notification-cpa')} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all border text-left">
+          <h3 className="font-bold text-blue-700">📋 Notifications CPA</h3>
+          <p className="text-xs text-gray-500 mt-2">Prescriptions et RDV CPA</p>
+        </button>
+        <button onClick={() => router.push('/bloc/rendez-vous')} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all border text-left">
+          <h3 className="font-bold text-blue-700">📅 Rendez-vous</h3>
+          <p className="text-xs text-gray-500 mt-2">Planning CPA et VPA</p>
+        </button>
+        <button onClick={() => router.push('/bloc/patient-du-jour')} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all border text-left">
+          <h3 className="font-bold text-blue-700">👤 Patients du jour</h3>
+          <p className="text-xs text-gray-500 mt-2">Liste des patients à opérer</p>
+        </button>
+        <button onClick={() => router.push('/bloc/salle-de-reveil')} className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all border text-left">
+          <h3 className="font-bold text-blue-700">🛏️ Salle de réveil</h3>
+          <p className="text-xs text-gray-500 mt-2">Suivi des patients en réveil</p>
+        </button>
+      </div>
+    </div>
+  )
+}

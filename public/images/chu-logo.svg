@@ -1,0 +1,15 @@
+<svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
+  <rect width="320" height="180" rx="30" fill="#111214" />
+  <path d="M40 40C20 40 20 80 40 80H80C100 80 100 40 80 40H40Z" fill="#ffffff" opacity=".05" />
+  <path d="M40 90C20 90 20 130 40 130H80C100 130 100 90 80 90H40Z" fill="#ffffff" opacity=".05" />
+  <path d="M100 18L186 18C214 18 224 68 224 110C224 152 214 162 186 162H100C72 162 60 140 60 110C60 80 72 18 100 18Z" fill="#f16527" />
+  <path d="M108 28C94 28 88 40 88 54C88 70 96 82 108 82H178C190 82 198 70 198 54C198 40 188 28 178 28H108Z" fill="#ffffff" />
+  <path d="M118 32H168V46H118V32ZM118 54H168V68H118V54Z" fill="#111214" opacity=".75" />
+  <path d="M200 40H246C254 40 260 46 260 54V126C260 134 254 140 246 140H200V40Z" fill="#ffffff" opacity=".08" />
+  <path d="M102 110C120 98 148 94 178 104" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity=".2" />
+  <text x="42" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="72" font-weight="700" fill="#1e70c3">CHU</text>
+  <path d="M40 150C68 150 80 128 80 112C80 96 72 86 64 86C56 86 48 96 48 110C48 126 52 150 40 150Z" fill="#1e70c3" opacity=".22" />
+  <path d="M160 118C164 114 174 112 184 112C194 112 206 116 214 124" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity=".7" />
+  <path d="M284 26C280 20 270 18 264 22L224 46C216 52 212 64 216 74L240 136C244 146 256 152 266 148L296 124C304 118 308 106 304 96L284 26Z" fill="#ffffff" opacity=".08" />
+  <path d="M86 64L90 54L114 74" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".8" />
+</svg>

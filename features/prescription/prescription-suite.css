@@ -1,0 +1,237 @@
+/* ============================================================================
+ * prescription-suite.css
+ * ----------------------------------------------------------------------------
+ * The clinique design system (src/app/globals.css) already defines the great
+ * majority of the classes used by the prescription forms (.card, .bp, .badd,
+ * .bok, .bca, .bdel, .mb/.mbox, .tog, .togr, .rxi, .active-rx, .lbl, .hint,
+ * .iw/.ico, .sh, .cr, .af, .ah, .tst, .conditionnel, form controls, ...).
+ *
+ * This supplement only adds:
+ *   1. The few classes the forms use that clinique does NOT define
+ *      (the urgency selector + a small option grid).
+ *   2. Fallback CSS variables for the handful of legacy tokens the ported
+ *      code references, mapped onto the clinique (ehr) palette.
+ *   3. A light "hospital readability" bump to the type scale.
+ *   4. (Refonte visuelle) A purely cosmetic polish pass: sharper text,
+ *      comfortable padding/margins and larger, easier-to-fill inputs.
+ *      NO logic / markup change — CSS only, scoped under `.psx`.
+ *
+ * Everything is scoped under `.psx` so it can never leak into the rest of the
+ * clinical app.
+ * ========================================================================== */
+
+.psx {
+	/* Legacy token fallbacks -> clinique ehr palette */
+	--navy-dk: var(--navy-hover, #04556f);
+	--navy-mid: #b8d4e3;
+	--bg: var(--card, #ffffff);
+	--inp: var(--input, #f2f4f8);
+	--shadow: 0 2px 8px rgba(5, 102, 141, 0.06);
+	--amber: #d97706;
+}
+
+/* ── Hospital readability: slightly larger, high-legibility type ───────── */
+.psx {
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--txt, #1e293b);
+	/* Netteté du texte (anti-aliasing) */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+.psx input,
+.psx select,
+.psx textarea,
+.psx .urgs {
+	font-size: 15px;
+}
+.psx .lbl {
+	font-size: 12px;
+}
+.psx .hint {
+	font-size: 12px;
+}
+.psx .bp,
+.psx .bok,
+.psx .badd,
+.psx .bca {
+	font-size: 14px;
+}
+.psx .rxi-m h4 {
+	font-size: 14px;
+}
+.psx .rxi-m p {
+	font-size: 12px;
+}
+
+/* ── Option / radio grid ────────────────────────────────────── */
+.psx .rg {
+	display: grid;
+	gap: 7px;
+}
+
+/* ── Urgency selector (degré d'urgence) ─────────────────────────── */
+.psx .urgr {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 11px 13px;
+	border-radius: 10px;
+	background: var(--inp);
+	border: 1.5px solid transparent;
+	transition: all 0.2s;
+}
+.psx .urgd {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	transition: background 0.2s;
+}
+.psx .urgs {
+	flex: 1;
+	background: none;
+	border: none;
+	font-weight: 600;
+	color: var(--txt, #1e293b);
+	cursor: pointer;
+	outline: none;
+	font-family: inherit;
+	appearance: none;
+	padding: 0;
+}
+.psx .urgs:focus {
+	box-shadow: none;
+}
+.psx .un {
+	border-color: #bbf7d0;
+}
+.psx .un .urgd {
+	background: #16a34a;
+}
+.psx .uu {
+	border-color: #fde68a;
+	background: #fffbeb;
+}
+.psx .uu .urgd {
+	background: #d97706;
+}
+.psx .utu {
+	border-color: #fca5a5;
+	background: #fef2f2;
+}
+.psx .utu .urgd {
+	background: #dc2626;
+}
+
+/* ============================================================================
+ * REFONTE VISUELLE (cosmétique uniquement — aucune logique modifiée)
+ * Taille de police, netteté, padding, margin, taille des inputs / textarea.
+ * ========================================================================== */
+
+/* ── Labels : plus lisibles, meilleur espacement ────────────────────── */
+.psx .lbl {
+	font-weight: 700;
+	color: var(--txt, #1e293b);
+	letter-spacing: 0.01em;
+	margin-bottom: 6px;
+	display: inline-block;
+}
+.psx .req {
+	color: var(--red, #dc2626);
+	font-weight: 700;
+}
+
+/* ── Champs de saisie : plus grands, plus aérés, focus net ───────────── */
+.psx input:not([type='checkbox']):not([type='radio']),
+.psx select,
+.psx textarea {
+	width: 100%;
+	padding: 10px 13px;
+	border: 1.5px solid var(--bdr, #d9e2ec);
+	border-radius: 10px;
+	background: var(--card, #ffffff);
+	color: var(--txt, #1e293b);
+	line-height: 1.45;
+	transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.psx input:not([type='checkbox']):not([type='radio'])::placeholder,
+.psx textarea::placeholder {
+	color: var(--txt3, #94a3b8);
+	opacity: 1;
+}
+.psx input:not([type='checkbox']):not([type='radio']):hover,
+.psx select:hover,
+.psx textarea:hover {
+	border-color: var(--navy-mid, #b8d4e3);
+}
+.psx input:not([type='checkbox']):not([type='radio']):focus,
+.psx select:focus,
+.psx textarea:focus {
+	outline: none;
+	border-color: var(--navy, #05668d);
+	box-shadow: 0 0 0 3px rgba(5, 102, 141, 0.14);
+	background: #fff;
+}
+
+/* Textareas : hauteur mini confortable + redimensionnement vertical */
+.psx textarea {
+	min-height: 70px;
+	resize: vertical;
+}
+
+/* Cases à cocher / radios : cibles plus grandes et couleur d'accent */
+.psx input[type='checkbox'],
+.psx input[type='radio'] {
+	width: 16px;
+	height: 16px;
+	accent-color: var(--navy, #05668d);
+	cursor: pointer;
+	/* Espacement entre la case / le bouton radio et son libellé */
+	margin-right: 8px;
+}
+
+/* ── Cartes : padding / marge / ombrage plus doux ──────────────────── */
+.psx .card {
+	padding: 14px;
+	border-radius: 14px;
+	box-shadow: var(--shadow);
+}
+.psx .mb8 {
+	margin-bottom: 10px;
+}
+.psx .mb12 {
+	margin-bottom: 14px;
+}
+
+/* ── Boutons : plus de confort de clic, transition nette ─────────────── */
+.psx .bp,
+.psx .bok,
+.psx .badd,
+.psx .bca {
+	padding: 10px 16px;
+	border-radius: 10px;
+	font-weight: 700;
+	letter-spacing: 0.01em;
+	transition: transform 0.06s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.psx .bp:active,
+.psx .bok:active,
+.psx .badd:active,
+.psx .bca:active {
+	transform: translateY(1px);
+}
+
+/* ── Item d'analyse (checklist labo) : ligne nette, case avant le texte ── */
+.psx .cr {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 4px;
+	border-radius: 6px;
+	transition: background 0.12s ease;
+}
+.psx .cr:hover {
+	background: rgba(5, 102, 141, 0.06);
+}

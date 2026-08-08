@@ -1,0 +1,18 @@
+<svg viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo CHU Andrainjato">
+  <rect width="360" height="220" rx="28" fill="#111214" />
+  <path d="M16 16H344V204H16V16Z" fill="none" stroke="#ffffff" stroke-width="6" rx="28" />
+  <path d="M64 72C40 72 40 126 64 126H104C128 126 128 72 104 72H64Z" fill="#ffffff" opacity="0.12" />
+  <path d="M64 136C40 136 40 190 64 190H104C128 190 128 136 104 136H64Z" fill="#ffffff" opacity="0.12" />
+  <path d="M156 28C186 28 202 66 202 112C202 158 186 188 156 188H116C86 188 74 154 74 112C74 82 86 28 116 28Z" fill="#0e4dad" />
+  <path d="M130 50H190C210 50 218 70 218 92C218 114 210 134 190 134H130C110 134 102 114 102 92C102 70 110 50 130 50Z" fill="#ffffff" />
+  <path d="M132 58H186V78H132V58Z" fill="#0e4dad" />
+  <path d="M132 88H186V108H132V88Z" fill="#0e4dad" />
+  <path d="M212 44H292C302 44 310 52 310 62V158C310 168 302 176 292 176H212V44Z" fill="#ffffff" opacity="0.08" />
+  <path d="M104 170C118 158 150 154 182 164" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.22" />
+  <text x="34" y="154" font-family="Segoe UI, Arial, sans-serif" font-size="80" font-weight="700" fill="#1976d2">CHU</text>
+  <path d="M40 146C62 146 76 132 76 118C76 104 68 94 60 94C52 94 44 104 44 118C44 132 48 146 40 146Z" fill="#1976d2" opacity="0.16" />
+  <path d="M134 52L144 44L172 70" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" />
+  <path d="M210 80C215 70 230 64 242 68L294 92C306 96 312 112 308 124L292 160C288 172 272 178 260 174L214 150C202 146 196 132 200 120L210 80Z" fill="#ffffff" opacity="0.08" />
+  <text x="44" y="190" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" fill="#ffffff">CENTRE HOSPITALIER UNIVERSITAIRE</text>
+  <text x="44" y="210" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="800" fill="#f16527">ANDRAINJATO</text>
+</svg>
