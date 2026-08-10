@@ -16,6 +16,8 @@ import { jouerSonNotification, type TypeNotificationSon } from '@/lib/notificati
 import { formaterNomPatient } from '@/lib/patient'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
+import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus'
+import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate'
 
 export default function NotificationCPAPage() {
   const [notifications, setNotifications] = useState<any[]>([])
@@ -82,6 +84,14 @@ export default function NotificationCPAPage() {
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
   }
+
+  // Un patient traité (CPA validée, RDV planifié...) depuis un autre onglet, ou une page
+  // restaurée depuis le cache de navigation du routeur (retour arrière sans réel remontage),
+  // pouvait rester affiché ici indéfiniment sans ce filet — voir useRefetchOnFocus.
+  useRefetchOnFocus(charger)
+  // Rafraîchissement en temps réel (sans recharger la page) dès qu'une action est traitée,
+  // ici ou depuis un autre poste connecté — voir useRefetchOnRealtimeUpdate.
+  useRefetchOnRealtimeUpdate(charger)
 
   const handlePlanifier = (notif: any) => {
     if (!peutPlanifierCpa) { alert('❌ Planification réservée au Responsable CPA, au Major ou à l\'Anesthésiste'); return }

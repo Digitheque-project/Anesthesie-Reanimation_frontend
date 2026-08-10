@@ -1,6 +1,6 @@
 'use client'
 
-import { formaterNomPatient } from '@/lib/patient'
+import { formaterNomPatient, formaterIdDossier } from '@/lib/patient'
 import { libelleUrgence, styleUrgence } from '@/lib/urgence'
 import VoirDossierButton from './VoirDossierButton'
 
@@ -36,6 +36,7 @@ const calculerAge = (dateNaissance?: string | null): number | null => {
 export default function PatientIdentityHeader({ patient, intervention, loading, patientId }: PatientIdentityHeaderProps) {
   const age = calculerAge(patient?.dateNaissance)
   const urgence = patient?.niveauUrgence
+  const idDossier = formaterIdDossier(patient?.idDossier)
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border mb-3">
@@ -50,7 +51,7 @@ export default function PatientIdentityHeader({ patient, intervention, loading, 
             </h2>
             <p className="text-sm text-on-surface-variant">
               {age != null ? `${age} ans` : '—'} • {patient?.sexe || '—'}
-              {patient?.idDossier ? ` • #${patient.idDossier}` : ''}
+              {idDossier ? ` • #${idDossier}` : ''}
             </p>
             {intervention && <p className="text-sm font-semibold text-primary mt-0.5">{intervention}</p>}
           </div>
@@ -66,7 +67,10 @@ export default function PatientIdentityHeader({ patient, intervention, loading, 
               {libelleUrgence(urgence)}
             </span>
           )}
-          {patientId && <VoirDossierButton patientId={patientId} variant="link" />}
+          {/* Bouton clé pour la réalisation de la CPA (accès rapide au dossier partagé) — variante
+              pleine (pastille colorée), pas le lien discret utilisé ailleurs, pour qu'il saute
+              aux yeux plutôt que de se perdre parmi les badges. */}
+          {patientId && <VoirDossierButton patientId={patientId} variant="button" />}
         </div>
       </div>
     </div>

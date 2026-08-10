@@ -106,23 +106,11 @@ export default function ResultatsParacliniquesTab({ patientId }: Props) {
     }
   };
 
-  const handleMarquerLu = async (id: string) => {
-    try {
-      await api.patch(`/patients/${patientId}/resultats/${id}/lu`);
-      await fetchResultats();
-      if (selectedResult?.id === id) {
-        setSelectedResult({ ...selectedResult, statut: 'lu' });
-      }
-    } catch (err) {
-      console.error('Erreur mise à jour statut:', err);
-    }
-  };
-
+  // Le dossier patient est un dossier PARTAGÉ (propriété du service Dossier Patient) : le Bloc
+  // n'a que le droit de le consulter, jamais d'y écrire — pas même le statut "lu" d'un résultat.
+  // Sélectionner un résultat ne fait donc plus de PATCH, seulement de l'affichage local.
   const selectResult = (result: ResultatParaclinique) => {
     setSelectedResult(result);
-    if (result.statut !== 'lu') {
-      handleMarquerLu(result.id);
-    }
   };
 
   const filteredResultats = resultats.filter(r => {

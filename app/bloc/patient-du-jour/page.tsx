@@ -7,6 +7,8 @@ import PatientsListTable from '@/components/bloc/patient-du-jour/PatientsListTab
 import { patientService, notificationService } from '@/lib/api'
 import type { FiltresPatient } from '@/types/bloc'
 import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire'
+import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus'
+import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate'
 
 export default function PatientDuJourPage() {
   const [patients, setPatients] = useState<any[]>([])
@@ -63,6 +65,14 @@ export default function PatientDuJourPage() {
       setLoading(false)
     }
   }
+
+  // Un patient dont l'opération vient d'être traitée (statut avancé depuis un autre onglet, ou
+  // page restaurée depuis le cache de navigation) pouvait rester affiché ici — voir
+  // useRefetchOnFocus.
+  useRefetchOnFocus(charger)
+  // Rafraîchissement en temps réel (sans recharger la page) dès qu'une action est traitée,
+  // ici ou depuis un autre poste connecté — voir useRefetchOnRealtimeUpdate.
+  useRefetchOnRealtimeUpdate(charger)
 
   // Tous les filtres (urgence, spécialité, recherche nom, sexe, plage horaire) s'appliquent
   // côté client : le paramètre `recherche` du backend ne filtre que l'idDossier

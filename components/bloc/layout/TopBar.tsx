@@ -114,7 +114,6 @@ export default function TopBar() {
   };
 
   return (
-    <>
     <header className="fixed top-0 right-0 left-64 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant/30 px-8 py-4 flex justify-between items-center shadow-sm">
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-primary/10">
@@ -127,23 +126,36 @@ export default function TopBar() {
       </div>
 
       <div className="flex items-center gap-6">
-        <button
-          onClick={handleClocheClick}
-          className="relative flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40"
-          aria-label="Voir les notifications"
-        >
-          <span
-            className={`material-symbols-outlined text-primary text-2xl ${unreadCount > 0 ? 'animate-pulse' : ''}`}
-            style={{ fontVariationSettings: "'FILL' 1" }}
+        {/* Wrapper `relative` : ancre la pop-up de notifications juste sous la cloche
+            (NotificationModal se positionne en `absolute right-0 top-full`), au lieu d'un
+            tiroir plein écran indépendant du bouton qui l'ouvre. */}
+        <div className="relative">
+          <button
+            onClick={handleClocheClick}
+            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40"
+            aria-label="Voir les notifications"
           >
-            {unreadCount > 0 ? 'notifications_active' : 'notifications'}
-          </span>
-          {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center ring-2 ring-white">
-              {unreadCount > 99 ? '99+' : unreadCount}
+            <span
+              className={`material-symbols-outlined text-primary text-2xl ${unreadCount > 0 ? 'animate-pulse' : ''}`}
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              {unreadCount > 0 ? 'notifications_active' : 'notifications'}
             </span>
-          )}
-        </button>
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center ring-2 ring-white">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          <NotificationModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            notifications={notifications}
+            onMarkAsRead={handleMarkAsRead}
+            onNotificationRead={handleNotificationRead}
+          />
+        </div>
 
         <div className="flex items-center gap-3 pl-2 border-l border-outline-variant/30">
           <div className="text-right hidden sm:block">
@@ -154,20 +166,16 @@ export default function TopBar() {
               {session?.acces.roleName || ''}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-full bg-primary-container overflow-hidden ring-2 ring-primary/10">
-            <Image src="/images/avatar-default.png" alt="Avatar" width={40} height={40} className="object-cover" />
+          {/* Avatar par initiales — /images/avatar-default.png n'a jamais existé dans public/images/
+              (fichier manquant, jamais commité), ce qui faisait échouer l'optimiseur d'image
+              Next.js sur CHAQUE page (erreur 400) et laissait un mot tronqué "Avata" à la place.
+              Même langage visuel que les initiales patient de PatientsListTable, sans dépendance
+              à un fichier qui peut manquer. */}
+          <div className="w-10 h-10 rounded-full bg-primary-container overflow-hidden ring-2 ring-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+            {session ? `${session.payload.firstname?.charAt(0) || ''}${session.payload.name?.charAt(0) || ''}`.toUpperCase() : ''}
           </div>
         </div>
       </div>
     </header>
-
-    <NotificationModal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      notifications={notifications}
-      onMarkAsRead={handleMarkAsRead}
-      onNotificationRead={handleNotificationRead}
-    />
-    </>
   );
 }

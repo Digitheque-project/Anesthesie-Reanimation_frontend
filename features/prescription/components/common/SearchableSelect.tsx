@@ -74,11 +74,11 @@ export default function SearchableSelect({
           cursor: 'pointer', textAlign: 'left',
         }}
       >
-        {selected?.icon && <span className="ms" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>{selected.icon}</span>}
+        {selected?.icon && <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>{selected.icon}</span>}
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {selected ? selected.label : placeholder}
         </span>
-        <span className="ms" style={{ fontSize: 18, color: 'var(--txt3, #9ca3af)' }}>{open ? 'expand_less' : 'expand_more'}</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--txt3, #9ca3af)' }}>{open ? 'expand_less' : 'expand_more'}</span>
       </button>
 
       {open && (
@@ -117,9 +117,9 @@ export default function SearchableSelect({
                       cursor: 'pointer', textAlign: 'left',
                     }}
                   >
-                    {o.icon && <span className="ms" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>{o.icon}</span>}
+                    {o.icon && <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>{o.icon}</span>}
                     <span style={{ flex: 1 }}>{o.label}</span>
-                    {active && <span className="ms" style={{ fontSize: 16, color: 'var(--navy, #1e3a5f)' }}>check</span>}
+                    {active && <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy, #1e3a5f)' }}>check</span>}
                   </button>
                 );
               })

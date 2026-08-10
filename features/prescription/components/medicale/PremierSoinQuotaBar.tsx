@@ -38,7 +38,7 @@ export default function PremierSoinQuotaBar({ patientId, refreshKey }: Props) {
   if (error || !quota) {
     return (
       <div style={{ background: '#fef2f2', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#991b1b', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span className="ms" style={{ fontSize: 16 }}>warning</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>warning</span>
         {error || 'Quota indisponible'}
       </div>
     );
@@ -59,7 +59,7 @@ export default function PremierSoinQuotaBar({ patientId, refreshKey }: Props) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="ms" style={{ fontSize: 16, color }}>local_hospital</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, color }}>local_hospital</span>
           <span style={{ fontSize: 12, fontWeight: 700, color: textColor }}>Premier Soin</span>
         </div>
         <span style={{ fontSize: 11, color: textColor, fontWeight: 600 }}>

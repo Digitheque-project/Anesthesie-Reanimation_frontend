@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { History, Thermometer, Activity, Heart, Wind, Stethoscope, Plus, Check, Calendar, User, ChevronRight, AlertCircle } from 'lucide-react';
+import { History, Thermometer, Activity, Heart, Wind, Stethoscope, Calendar, User, ChevronRight, AlertCircle } from 'lucide-react';
 import { dossierPatientApi as api } from '@/lib/clinical/dossier-patient-api';
 import { ehr } from '@/lib/clinical/ehr-theme';
-import { usePermissions } from '@/lib/clinical-auth/use-permissions';
 import { getDirectoryUser, formatDirectoryUserName, type DirectoryUser } from '@/lib/clinical/user-directory-api';
-import { getActiveUserId } from '@/lib/clinical-auth/token';
 
 interface Suivi {
   id: string;
@@ -29,20 +27,6 @@ interface Suivi {
   createdAt: string;
 }
 
-const emptyForm = {
-  temperature: '',
-  taSystolique: '',
-  taDiastolique: '',
-  frequenceCardiaque: '',
-  frequenceRespiratoire: '',
-  evaDouleur: 0,
-  glasgow: '',
-  etatGeneral: 'Stable',
-  examenClinique: '',
-  evolution: '',
-  signesAlerte: false,
-};
-
 const etatColors: Record<string, { bg: string; color: string; label: string }> = {
   Stable: { bg: '#dcfce7', color: '#16a34a', label: 'STABLE' },
   Amélioré: { bg: '#fef9c3', color: '#ca8a04', label: 'AMÉLIORÉ' },
@@ -51,20 +35,12 @@ const etatColors: Record<string, { bg: string; color: string; label: string }> =
   Guéri: { bg: '#dcfce7', color: '#16a34a', label: 'GUÉRI' },
 };
 
-// Classes Tailwind réutilisées pour les libellés et champs de saisie du formulaire.
+// Classe Tailwind réutilisée pour les libellés en lecture seule.
 const labelClass = 'block text-[11px] font-extrabold text-[#64748b] uppercase tracking-[0.05em] mb-0.5';
-const inputClass = 'w-full h-9 border border-[#e2e8f0] rounded-lg px-3 py-1.5 text-[13px] text-[#1e293b] outline-none box-border bg-[#F8FAFC] transition-all';
-const selectClass = 'w-full h-9 border border-[#e2e8f0] rounded-lg px-3 py-1.5 text-[13px] text-[#1e293b] outline-none box-border bg-[#F8FAFC] transition-all cursor-pointer';
-
 
 export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; chuId?: string; serviceId?: string }) {
-  const { canDo } = usePermissions();
-  const canCreateSuivi = canDo('suivi', 'create');
   const [suivis, setSuivis] = useState<Suivi[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState<any>({ ...emptyForm });
-  const [showForm, setShowForm] = useState(false);
   const [filterDate, setFilterDate] = useState<string>('');
   const [pageSize, setPageSize] = useState<number>(5);
   const [authors, setAuthors] = useState<Record<string, DirectoryUser>>({});
@@ -112,28 +88,6 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
     }
   };
 
-  const handleSubmit = async () => {
-    setSaving(true);
-    try {
-      await api.post(`/patients/${patientId}/suivis`, {
-        ...form,
-        // L'auteur de l'observation = l'utilisateur connecté (son id devient
-        // le prescripteur). Le nom/prénom + poste sont résolus à l'affichage.
-        createdBy: getActiveUserId(),
-        chuId,
-        serviceId,
-        temperature: form.temperature ? parseFloat(form.temperature) : undefined,
-        evaDouleur: parseInt(form.evaDouleur),
-        jourHospitalisation: `J${suivis.length + 1}`,
-      });
-      setForm({ ...emptyForm });
-      setShowForm(false);
-      load();
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -157,8 +111,6 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
     return ehr.primary;
   };
 
-  const formEvaStyle = { color: getEvaColor(form.evaDouleur) };
-  const signesTextStyle = { color: form.signesAlerte ? ehr.danger : ehr.text };
   const suivisFiltres = suivis.filter(s => !filterDate || s.createdAt.startsWith(filterDate));
 
   return (
@@ -220,17 +172,6 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
               )}
             </div>
 
-            {!showForm && (
-              <button
-                type="button"
-                onClick={() => setShowForm(true)}
-                disabled={!canCreateSuivi}
-                title={!canCreateSuivi ? "Vous n'avez pas la permission d'ajouter un suivi" : undefined}
-                className="flex items-center gap-2 bg-[#05668D] text-white border-none rounded-[10px] py-3 px-6 text-sm font-bold cursor-pointer shadow-[0_4px_12px_rgba(5,102,141,0.15)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Plus size={18} /> Ajouter une observation
-              </button>
-            )}
           </div>
         </div>
 
@@ -411,163 +352,6 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
         </div>
         </div>
       </div>
-
-      {/* Side Panel: Formulaire d'ajout */}
-      {showForm && (
-        <div className="w-[340px] shrink-0 max-h-full overflow-y-auto">
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-[0_10px_30px_rgba(0,0,0,0.05)] sticky top-5 overflow-hidden">
-            <div className="px-5 pt-3 pb-0 border-b border-[#e2e8f0] bg-[#EBF5FB]">
-              <h3 className="text-base font-extrabold m-0">Nouvelle observation</h3>
-              <p className="text-xs text-[#64748b] mt-0.5 mb-2 font-medium">Saisie des constantes et notes</p>
-            </div>
-
-            <div className="px-5 -mt-8 pt-0 pb-3 flex flex-col gap-1.5">
-
-              {/* Température */}
-              <div>
-                <label className={labelClass}>Température (°C)</label>
-                <input
-                  type="number" step="0.1" placeholder="Ex: 37.2"
-                  value={form.temperature}
-                  onChange={e => setForm({ ...form, temperature: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-
-              {/* TA Grid */}
-              <div>
-                <label className={labelClass}>Tension Artérielle (Syst/Diast)</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="text" placeholder="120"
-                    value={form.taSystolique}
-                    onChange={e => setForm({ ...form, taSystolique: e.target.value })}
-                    className={inputClass}
-                  />
-                  <input
-                    type="text" placeholder="80"
-                    value={form.taDiastolique}
-                    onChange={e => setForm({ ...form, taDiastolique: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              {/* FC + FR Grid */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className={labelClass}>FC (bpm)</label>
-                  <input
-                    type="text" placeholder="75"
-                    value={form.frequenceCardiaque}
-                    onChange={e => setForm({ ...form, frequenceCardiaque: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>FR (m/m)</label>
-                  <input
-                    type="text" placeholder="16"
-                    value={form.frequenceRespiratoire}
-                    onChange={e => setForm({ ...form, frequenceRespiratoire: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              {/* Glasgow */}
-              <div>
-                <label className={labelClass}>Glasgow (GCS)</label>
-                <input
-                  type="text"
-                  placeholder="Ex: 15/15"
-                  value={form.glasgow}
-                  onChange={e => setForm({ ...form, glasgow: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
-
-              {/* EVA Slider */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-[11px] font-extrabold text-[#64748b] uppercase tracking-[0.05em]">Douleur (EVA)</label>
-                  <span className="text-sm font-extrabold" style={formEvaStyle}>{form.evaDouleur}/10</span>
-                </div>
-                <input
-                  type="range" min="0" max="10"
-                  value={form.evaDouleur}
-                  onChange={e => setForm({ ...form, evaDouleur: parseInt(e.target.value) })}
-                  className="w-full cursor-pointer accent-[#05668D]"
-                />
-              </div>
-
-              {/* État Général */}
-              <div>
-                <label className={labelClass}>État Général</label>
-                <select
-                  value={form.etatGeneral}
-                  onChange={e => setForm({ ...form, etatGeneral: e.target.value })}
-                  className={selectClass}
-                >
-                  <option value="Stable">Stable</option>
-                  <option value="Amélioré">Amélioré</option>
-                  <option value="Aggravé">Aggravé</option>
-                  <option value="Critique">Critique</option>
-                  <option value="Guéri">Guéri</option>
-                </select>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <label className={labelClass}>Évolution / Commentaires</label>
-                <textarea
-                  placeholder="Observations sur l'état du patient..."
-                  value={form.evolution}
-                  onChange={e => setForm({ ...form, evolution: e.target.value })}
-                  className={`${inputClass} h-20 resize-none`}
-                />
-              </div>
-
-              {/* Signes Alerte */}
-              <label
-                className="flex items-center gap-2 p-2 rounded-[10px] cursor-pointer transition-all"
-                style={{
-                  backgroundColor: form.signesAlerte ? '#fee2e2' : '#F8FAFC',
-                  border: `1px solid ${form.signesAlerte ? ehr.danger : ehr.borderSoft}`,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.signesAlerte}
-                  onChange={e => setForm({ ...form, signesAlerte: e.target.checked })}
-                  className="w-[18px] h-[18px] accent-[#E74C3C]"
-                />
-                <span className="text-[13px] font-bold" style={signesTextStyle}>Signes d&apos;alerte détectés</span>
-              </label>
-
-              {/* Actions Button */}
-              <div className="flex gap-2 mt-0.5 mb-6">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 bg-white text-[#64748b] border border-[#e2e8f0] rounded-[10px] py-2 px-3 text-sm font-bold cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={saving || !canCreateSuivi}
-                  title={!canCreateSuivi ? "Vous n'avez pas la permission d'enregistrer un suivi" : undefined}
-                  className="flex-1 bg-[#05668D] text-white border-none rounded-[10px] py-2 px-3 text-sm font-bold cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? '...' : <><Check size={18} /> Enregistrer</>}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

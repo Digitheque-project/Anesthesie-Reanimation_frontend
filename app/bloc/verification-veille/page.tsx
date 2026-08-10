@@ -12,6 +12,7 @@ import { RoleClinique } from '@/lib/auth/role-clinique'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
 import BackButton from '@/components/bloc/layout/BackButton'
 import { libelleAnesthesie } from '@/lib/export/dossier-patient'
+import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 
 export default function VerificationVeillePage() {
   return (
@@ -61,6 +62,33 @@ function VerificationVeillePageContent() {
     }
   }, [patientId])
 
+  // Filet de sécurité coupure de courant / fermeture accidentelle — même mécanique que la CPA
+  // (voir consultation-cpa/page.tsx) : sauvegarde locale debouncée, restauration sur confirmation
+  // uniquement, effacée dès la validation réussie.
+  const brouillonKey = patientId ? `verif-veille-brouillon:${patientId}` : null
+  const brouillonSnapshot = { form, medicamentsVerifies }
+  useDraftAutosave(brouillonKey, brouillonSnapshot)
+
+  const [brouillonTrouve, setBrouillonTrouve] = useState<Brouillon<typeof brouillonSnapshot> | null>(null)
+  useEffect(() => {
+    if (!brouillonKey) return
+    const brouillon = chargerBrouillon<typeof brouillonSnapshot>(brouillonKey)
+    if (brouillon) setBrouillonTrouve(brouillon)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brouillonKey])
+
+  const restaurerBrouillon = () => {
+    if (!brouillonTrouve) return
+    setForm(brouillonTrouve.data.form)
+    setMedicamentsVerifies(brouillonTrouve.data.medicamentsVerifies)
+    setBrouillonTrouve(null)
+  }
+
+  const ignorerBrouillon = () => {
+    if (brouillonKey) effacerBrouillon(brouillonKey)
+    setBrouillonTrouve(null)
+  }
+
   const cpaId = cpa?.id || ''
   const medicamentsAnesthesie: { categorie: string; nom: string; mode?: string; dosage?: string; nombre?: number }[] =
     cpa?.medicamentsAnesthesieReanimation || []
@@ -93,6 +121,7 @@ function VerificationVeillePageContent() {
         ...form,
         medicamentsVerifies,
       })
+      if (brouillonKey) effacerBrouillon(brouillonKey)
       alert('✅ Vérification veille validée avec succès ! Le patient est basculé dans la liste des patients à opérer.')
       router.push('/bloc/rendez-vous')
     } catch (err: any) {
@@ -119,6 +148,25 @@ function VerificationVeillePageContent() {
       {!estAnesthesiste && (
         <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
           La validation de la vérification veille est réservée à l'anesthésiste{roleName ? ` (votre rôle : ${roleName})` : ''}. Vous pouvez consulter les informations, mais pas valider.
+        </div>
+      )}
+
+      {/* Saisie non enregistrée retrouvée localement (coupure de courant, fermeture accidentelle
+          de l'onglet...) — jamais appliquée automatiquement, uniquement sur confirmation. */}
+      {brouillonTrouve && (
+        <div className="mt-3 rounded-xl px-4 py-3 text-sm font-bold flex flex-wrap items-center gap-3 bg-amber-50 text-amber-900 border border-amber-200">
+          <span className="material-symbols-outlined text-lg">restore</span>
+          <span className="flex-1 min-w-[220px]">
+            Une saisie non enregistrée du {new Date(brouillonTrouve.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} a été retrouvée pour ce patient.
+          </span>
+          <button type="button" onClick={restaurerBrouillon}
+            className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700 transition-colors">
+            Restaurer
+          </button>
+          <button type="button" onClick={ignorerBrouillon}
+            className="px-3 py-1.5 bg-white text-amber-800 border border-amber-300 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
+            Ignorer
+          </button>
         </div>
       )}
 

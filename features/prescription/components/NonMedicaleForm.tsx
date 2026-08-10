@@ -246,7 +246,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {TABS.map(t => (
           <button key={t.key} style={chipStyle(activeTab === t.key)} onClick={() => setActiveTab(t.key)}>
-            <span className="ms" style={{ fontSize: 16 }}>{t.icon}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{t.icon}</span>
             {t.label}
             {t.key === 'encours' && prescriptionsEnCours.length > 0 && (
               <span style={{
@@ -344,7 +344,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
                 <div><label className="lbl">Heure de début</label><input type="time" value={heureDebut} onChange={e => setHeureDebut(e.target.value)} /></div>
               </div>
               <button className="badd" onClick={handleAdd} style={{ opacity: isAddValid ? 1 : 0.5 }}>
-                <span className="ms" style={{ fontSize: 17 }}>add</span> Ajouter
+                <span className="material-symbols-outlined" style={{ fontSize: 17 }}>add</span> Ajouter
               </button>
             </div>
             <div className="sh mb12">Prescriptions non médicamenteuses ajoutées</div>
@@ -353,14 +353,14 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
                 <div style={{ textAlign: 'center', padding: 20, color: 'var(--txt3)', fontSize: 13 }}>Aucune prescription ajoutée</div>
               ) : items.map(item => (
                 <div key={item.id} className="rxi">
-                  <div className="rxi-ic"><span className="ms">{TYPE_ICON[item.type] ?? 'self_care'}</span></div>
+                  <div className="rxi-ic"><span className="material-symbols-outlined">{TYPE_ICON[item.type] ?? 'self_care'}</span></div>
                   <div className="rxi-m">
                     <h4>{item.typeLabel}</h4><p>{item.description}</p>
                     {item.dureeJours && <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 3 }}>{item.dureeJours} jours{item.frequenceType ? ` · ${getFrequenceText(item.frequenceType, item.frequenceValeur)}` : ''}</p>}
                     {(item.dateDebut || item.heureDebut) && <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 2 }}>{item.dateDebut && `Début : ${item.dateDebut}`}{item.heureDebut && ` à ${item.heureDebut}`}</p>}
                     {item.instructions && <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 2 }}>{item.instructions}</p>}
                   </div>
-                  <button className="bdel" onClick={() => handleDelete(item.id)}><span className="ms">delete</span></button>
+                  <button className="bdel" onClick={() => handleDelete(item.id)}><span className="material-symbols-outlined">delete</span></button>
                 </div>
               ))}
             </div>
@@ -377,7 +377,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
                 <div className="togr-l"><p>Notifier les infirmiers</p><span>Envoyer une notification au service</span></div>
                 <label className="tog"><input type="checkbox" checked={notifOn} onChange={e => setNotifOn(e.target.checked)}/><span className="tog-t"></span></label>
               </div>
-              {notifOn && <div className="hint"><span className="ms" style={{ fontSize: 13, verticalAlign: 'middle', color: 'var(--navy)' }}>notifications_active</span> Notification envoyée aux infirmiers de garde.</div>}
+              {notifOn && <div className="hint"><span className="material-symbols-outlined" style={{ fontSize: 13, verticalAlign: 'middle', color: 'var(--navy)' }}>notifications_active</span> Notification envoyée aux infirmiers de garde.</div>}
             </div>
 
             {!canValidate && (
@@ -387,7 +387,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
             )}
             <button className="bp" onClick={handleValidate}
               style={{ opacity: canValidate && !loading ? 1 : 0.5, pointerEvents: canValidate && !loading ? "auto" : "none" }}>
-              <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider"}
+              <span className="material-symbols-outlined">check_circle</span>{loading ? "Envoi..." : "Valider"}
             </button>
           </div>
         </div>
@@ -397,7 +397,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
       {activeTab === 'encours' && (
         <div style={{ maxWidth: 700 }}>
           <div className="active-rx">
-            <div className="active-rx-header"><span className="ms">pending_actions</span><span>Prescriptions en cours</span></div>
+            <div className="active-rx-header"><span className="material-symbols-outlined">pending_actions</span><span>Prescriptions en cours</span></div>
             {prescriptionsEnCours.length > 0 ? prescriptionsEnCours.map(p => (
               <div key={p.id} style={{ position: 'relative' }}>
                 {p.items?.map((item, idx) => (
@@ -416,7 +416,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
                     color: 'var(--txt3)', fontSize: 16, lineHeight: 1,
                   }}
                 >
-                  <span className="ms">check_circle</span>
+                  <span className="material-symbols-outlined">check_circle</span>
                 </button>
               </div>
             )) : (
@@ -436,7 +436,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
         }}
         isSending={isSending}
       />
-      {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
+      {toast && <div className="tst on"><span className="material-symbols-outlined">check_circle</span>{toast}</div>}
     </div>
   );
 }

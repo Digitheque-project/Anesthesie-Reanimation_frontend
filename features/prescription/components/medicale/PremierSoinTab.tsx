@@ -56,7 +56,7 @@ export default function PremierSoinTab({ patientId }: Props) {
           borderRadius: 12, padding: 16, marginBottom: 16,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <span className="ms" style={{ fontSize: 22, color: quota.used >= quota.max ? '#dc2626' : '#2563eb' }}>local_hospital</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 22, color: quota.used >= quota.max ? '#dc2626' : '#2563eb' }}>local_hospital</span>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: quota.used >= quota.max ? '#991b1b' : '#1e40af' }}>
                 Quota Premier Soin
@@ -92,7 +92,7 @@ export default function PremierSoinTab({ patientId }: Props) {
       {/* Historique */}
       <div className="card" style={{ padding: 16 }}>
         <div className="sh mb12">
-          <span className="ms" style={{ fontSize: 18, marginRight: 6, verticalAlign: 'middle' }}>history</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 18, marginRight: 6, verticalAlign: 'middle' }}>history</span>
           Historique des premiers soins
           <span style={{ background: 'var(--navy)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10, marginLeft: 5 }}>
             {historique.length}

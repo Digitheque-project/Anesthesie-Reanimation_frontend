@@ -266,7 +266,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {TABS.map(t => (
           <button key={t.key} style={chipStyle(activeTab === t.key)} onClick={() => setActiveTab(t.key)}>
-            <span className="ms" style={{ fontSize: 16 }}>{t.icon}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{t.icon}</span>
             {t.label}
             {t.key === 'encours' && prescriptionsEnCours.length > 0 && (
               <span style={{
@@ -347,7 +347,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                 </div>
               </div>
               <div className="mb12"><label className="lbl">Valeurs cibles / Seuils d&apos;alerte</label><input type="text" value={seuil} onChange={e => setSeuil(e.target.value)} placeholder="Ex : TA > 160/90 → alerter médecin..." /></div>
-              <button className="badd" onClick={handleAdd} style={{ opacity: isAddValid ? 1 : 0.5 }}><span className="ms" style={{ fontSize: 17 }}>add</span> Ajouter la surveillance</button>
+              <button className="badd" onClick={handleAdd} style={{ opacity: isAddValid ? 1 : 0.5 }}><span className="material-symbols-outlined" style={{ fontSize: 17 }}>add</span> Ajouter la surveillance</button>
             </div>
 
             <div className="sh">Surveillances ajoutées</div>
@@ -355,7 +355,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
               {items.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 20, color: 'var(--txt3)', fontSize: 13 }}>Aucune surveillance ajoutée</div>
               ) : items.map(item => (
-                <div key={item.id} className="rxi"><div className="rxi-ic"><span className="ms">monitor_heart</span></div><div className="rxi-m"><h4>{item.parametreLabel}</h4><p>{getFrequenceText(item.frequenceType, item.frequenceValeur)}{item.dureeJours && ` · ${item.dureeJours} jours`}</p>{item.seuil && <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 3 }}>{item.seuil}</p>}</div><button className="bdel" onClick={() => handleDelete(item.id)}><span className="ms">delete</span></button></div>
+                <div key={item.id} className="rxi"><div className="rxi-ic"><span className="material-symbols-outlined">monitor_heart</span></div><div className="rxi-m"><h4>{item.parametreLabel}</h4><p>{getFrequenceText(item.frequenceType, item.frequenceValeur)}{item.dureeJours && ` · ${item.dureeJours} jours`}</p>{item.seuil && <p style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 3 }}>{item.seuil}</p>}</div><button className="bdel" onClick={() => handleDelete(item.id)}><span className="material-symbols-outlined">delete</span></button></div>
               ))}
             </div>
           </div>
@@ -373,7 +373,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                 </select>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                <span className="ms" style={{ fontSize: 16, color: "var(--red)" }}>warning</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: "var(--red)" }}>warning</span>
                 <span className="lbl" style={{ margin: 0 }}>Précautions &amp; Alertes</span>
               </div>
               <textarea rows={1} value={alertes} onChange={e => setAlertes(e.target.value)}
@@ -401,7 +401,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                 <div className="togr-l"><p>Notifier les infirmiers</p><span>Notifier uniquement les infirmiers du service concerné</span></div>
                 <label className="tog"><input type="checkbox" checked={notifOn} onChange={e => setNotifOn(e.target.checked)}/><span className="tog-t"></span></label>
               </div>
-              {notifOn && <div className="hint"><span className="ms" style={{ fontSize: 13, verticalAlign: 'middle', color: 'var(--navy)' }}>notifications_active</span> Notification envoyée aux infirmiers de garde du service.</div>}
+              {notifOn && <div className="hint"><span className="material-symbols-outlined" style={{ fontSize: 13, verticalAlign: 'middle', color: 'var(--navy)' }}>notifications_active</span> Notification envoyée aux infirmiers de garde du service.</div>}
             </div>
 
             {!canValidate && (
@@ -411,7 +411,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
             )}
             <button className="bp" onClick={() => setShowModal(true)}
               style={{ opacity: canValidate && !loading ? 1 : 0.5, pointerEvents: canValidate && !loading ? "auto" : "none", marginTop: 0 }}>
-              <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider"}
+              <span className="material-symbols-outlined">check_circle</span>{loading ? "Envoi..." : "Valider"}
             </button>
           </div>
         </div>
@@ -421,7 +421,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
       {activeTab === 'encours' && (
         <div style={{ maxWidth: 700 }}>
           <div className="active-rx">
-            <div className="active-rx-header"><span className="ms">pending_actions</span><span>Surveillances en cours</span></div>
+            <div className="active-rx-header"><span className="material-symbols-outlined">pending_actions</span><span>Surveillances en cours</span></div>
             {prescriptionsEnCours.length > 0 ? prescriptionsEnCours.map(p => (
               <div key={p.id} style={{ position: 'relative' }}>
                 {p.parametres?.map((param, idx) => (
@@ -440,7 +440,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                     color: 'var(--txt3)', fontSize: 16, lineHeight: 1,
                   }}
                 >
-                  <span className="ms">check_circle</span>
+                  <span className="material-symbols-outlined">check_circle</span>
                 </button>
               </div>
             )) : (
@@ -457,7 +457,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
         <div className="mb op" onClick={e => { if (e.target === e.currentTarget) setShowValidationModal(false); }}>
           <div className="mbox" style={{ maxWidth: 600, width: '95%', maxHeight: '85vh', overflowY: 'auto' }}>
             <div style={{ background: 'var(--navy)', color: '#fff', padding: '16px 20px', borderRadius: '20px 20px 0 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span className="ms" style={{ fontSize: 24 }}>check_circle</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>check_circle</span>
               <div>
                 <h3 style={{ fontFamily: '"Manrope", sans-serif', fontSize: 18, fontWeight: 800, margin: 0 }}>Prescription de surveillance validée</h3>
                 <p style={{ fontSize: 12, opacity: 0.9, margin: '4px 0 0 0' }}>{validatedPrescription.date}</p>
@@ -467,7 +467,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
               <div style={{ background: 'var(--navy-lt)', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
                   <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--navy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span className="ms" style={{ fontSize: 22, color: '#fff' }}>person</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff' }}>person</span>
                   </div>
                   <div>
                     <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--txt3)', marginBottom: 2 }}>Patient</div>
@@ -481,7 +481,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                 </div>
                 {validatedPrescription.patient.allergies && validatedPrescription.patient.allergies.length > 0 && (
                   <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef3c7', border: '1px solid #fbbf24', borderRadius: 8, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span className="ms" style={{ fontSize: 14 }}>warning</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>warning</span>
                     <strong>Allergies:</strong> {validatedPrescription.patient.allergies.join(', ')}
                   </div>
                 )}
@@ -489,7 +489,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
 
               <div style={{ background: 'var(--bg)', borderRadius: 12, padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--txt2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span className="ms" style={{ fontSize: 22, color: '#fff' }}>medical_services</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff' }}>medical_services</span>
                 </div>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--txt3)', marginBottom: 2 }}>Prescripteur</div>
@@ -503,7 +503,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                 {validatedPrescription.items.map((item: SvItem, idx: number) => (
                   <div key={idx} style={{ background: '#fff', border: '1px solid var(--bdr)', borderRadius: 10, padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                     <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--navy-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span className="ms" style={{ fontSize: 18, color: 'var(--navy)' }}>monitor_heart</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--navy)' }}>monitor_heart</span>
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--txt)', marginBottom: 4 }}>{PARAM_LABEL[item.parametre] || item.parametreLabel}</div>
@@ -525,7 +525,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
 
               {validatedPrescription.notifier && (
                 <div style={{ background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span className="ms" style={{ fontSize: 20, color: '#16a34a' }}>check_circle</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#16a34a' }}>check_circle</span>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>Infirmiers notifiés</div>
                     <div style={{ fontSize: 11, color: '#15803d' }}>Notification envoyée au service clinique</div>
@@ -552,7 +552,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
         isSending={isSending}
       />
 
-      {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
+      {toast && <div className="tst on"><span className="material-symbols-outlined">check_circle</span>{toast}</div>}
     </div>
   );
 }

@@ -3,6 +3,8 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { patientService, notificationService, planningService } from '@/lib/api'
+import { hospitalisationService } from '@/lib/clinical/hospitalisation-service'
+import { apiClient } from '@/lib/api/client'
 import ModalPlanifierRDV from '@/components/bloc/notification-cpa/ModalPlanifierRDV'
 import DossierPatientTabs from '@/components/bloc/dossier-patient/DossierPatientTabs'
 import { useRole } from '@/lib/hooks/useRole'
@@ -37,6 +39,58 @@ function DossierPatientPageContent() {
   const [notification, setNotification] = useState<any>(null)
   const { peutPlanifierCpa, estResponsableCpa, roleName } = useRole()
   const [reprisEnCours, setReprisEnCours] = useState(false)
+
+  // Chambre réelle : PatientBloc.chambre n'est jamais renseignée en base (voir page dossier
+  // "complet" — même constat). Même résolution ici : épisode d'hospitalisation actif le plus
+  // récent → lit occupé → numéro de chambre via le plan de lits du service. Rien n'est affiché si
+  // le patient n'est pas hospitalisé.
+  const [numeroChambreReel, setNumeroChambreReel] = useState<string | number | null>(null)
+
+  // Groupe sanguin réellement fiable : PatientBloc.groupeSanguin vaut le texte littéral
+  // "INCONNU" pour tout patient fraîchement ingéré (jamais une vraie valeur) — l'afficher tel
+  // quel montrerait "INCONNU" au médecin. Seule source clinique réelle : le groupage saisi par
+  // l'anesthésiste pendant la CPA elle-même.
+  const [groupeSanguinCpa, setGroupeSanguinCpa] = useState<string | null>(null)
+  useEffect(() => {
+    if (!patientId) { setGroupeSanguinCpa(null); return }
+    let active = true
+    apiClient.get('/cpa', { params: { patientId, limite: 1 } })
+      .then(({ data }) => { if (active) setGroupeSanguinCpa(data?.data?.[0]?.groupeSanguinCpa?.groupe || null) })
+      .catch(() => { if (active) setGroupeSanguinCpa(null) })
+    return () => { active = false }
+  }, [patientId])
+
+  useEffect(() => {
+    const chuId = patient?.chuId
+    const serviceId = obtenirSessionValide()?.acces.serviceId
+    if (!patientId || !chuId || !serviceId) { setNumeroChambreReel(null); return }
+    let active = true
+    hospitalisationService.getByPatient(patientId, serviceId, chuId)
+      .then(async (response: any) => {
+        if (!active) return
+        const episodes = Array.isArray(response) ? response : (response?.data ?? [])
+        const actifs = episodes
+          .filter((ep: any) => ['ADMIS', 'EN_COURS'].includes(ep.statut))
+          .sort((a: any, b: any) => {
+            const da = new Date(a.dateAdmission ?? a.dateEntrer ?? 0).getTime()
+            const db = new Date(b.dateAdmission ?? b.dateEntrer ?? 0).getTime()
+            return db - da
+          })
+        const episode = actifs[0]
+        if (!episode?.litCode) { setNumeroChambreReel(null); return }
+        try {
+          const plan: any = await hospitalisationService.planLits(serviceId, chuId)
+          const chambres = Array.isArray(plan?.chambres) ? plan.chambres : (plan?.data?.chambres ?? [])
+          const chambre = chambres.find((c: any) => c.lits?.some((l: any) => l.codeLit === episode.litCode))
+          if (!active) return
+          setNumeroChambreReel(chambre?.numeroChambre ?? episode.litCode)
+        } catch {
+          if (active) setNumeroChambreReel(episode.litCode)
+        }
+      })
+      .catch(() => { if (active) setNumeroChambreReel(null) })
+    return () => { active = false }
+  }, [patientId, patient?.chuId])
 
   const charger = () => {
     setLoading(true)
@@ -133,12 +187,14 @@ function DossierPatientPageContent() {
           <div>
             <h2 className="text-2xl font-extrabold text-primary">{formaterNomPatient(p)}</h2>
             <p className="text-sm text-on-surface-variant">
-              {p.dateNaissance ? `${new Date().getFullYear() - new Date(p.dateNaissance).getFullYear()} ans` : ''} • {p.sexe} • {p.groupeSanguin}
+              {p.dateNaissance ? `${new Date().getFullYear() - new Date(p.dateNaissance).getFullYear()} ans` : ''} • {p.sexe} • {groupeSanguinCpa || '—'}
             </p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-          <div><span className="text-xs font-bold text-gray-500 uppercase">Chambre</span><p>{p.chambre || '—'}</p></div>
+          {numeroChambreReel != null && (
+            <div><span className="text-xs font-bold text-gray-500 uppercase">Chambre</span><p>{numeroChambreReel}</p></div>
+          )}
           <div><span className="text-xs font-bold text-gray-500 uppercase">Urgence</span><p className={`font-bold uppercase ${styleUrgence(p.niveauUrgence).texte}`}>{libelleUrgence(p.niveauUrgence)}</p></div>
           <div><span className="text-xs font-bold text-gray-500 uppercase">Statut</span><p className={`font-bold ${styleStatutPatient(p.statut).texte}`}>{libelleStatutPatient(p.statut)}</p></div>
         </div>
@@ -184,7 +240,13 @@ function DossierPatientPageContent() {
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
             <span className="text-xs font-bold text-gray-500 uppercase">Service source</span>
-            <p className="font-bold">{notification?.sourceServiceName || notification?.serviceSourceNom || notification?.serviceSourceId || '—'}</p>
+            {/* p.serviceOrigine et notification.serviceSourceNom sont résolus par le même appel
+                ServiceRegistryClient côté backend au moment de l'ingestion — p.serviceOrigine
+                d'abord car disponible même si la notification exacte n'a pas été retrouvée
+                (notifId absent, ou patient avec plus de 100 notifications). Jamais de repli sur
+                l'id brut du service (serviceSourceId) : un identifiant technique n'a rien à faire
+                à l'écran. */}
+            <p className="font-bold">{p.serviceOrigine || notification?.serviceSourceNom || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
             <span className="text-xs font-bold text-gray-500 uppercase">Date de réception</span>

@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { patientService, planningService, medecinService } from '@/lib/api';
+import { patientService, planningService } from '@/lib/api';
 import { apiClient } from '@/lib/api/client';
 import { useRole } from '@/lib/hooks/useRole';
 import { obtenirSessionValide } from '@/lib/auth/central-session';
@@ -14,10 +14,10 @@ import { RoleClinique } from '@/lib/auth/role-clinique';
 import PrescriptionCpaModal from '@/components/bloc/prescription/PrescriptionCpaModal';
 import BackButton from '@/components/bloc/layout/BackButton';
 import { exporterFichePdf } from '@/lib/export/export';
-import PiecesJointesUploader from '@/components/bloc/pieces-jointes/PiecesJointesUploader';
-import { formaterNomPatient } from '@/lib/patient';
+import { formaterNomPatient, formaterIdDossier } from '@/lib/patient';
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader';
-import CalendrierAgenda from '@/components/bloc/planning/CalendrierAgenda';
+import SommaireCpa from '@/components/bloc/consultation-cpa/SommaireCpa';
+import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave';
 
 export default function ConsultationCpaPage() {
   return (
@@ -150,7 +150,6 @@ function ConsultationCpaPageContent() {
   // source dès la validation (voir handleValider).
   const [dateOperationReportee, setDateOperationReportee] = useState('');
   const [heureOperationReportee, setHeureOperationReportee] = useState('09:00');
-  const [validationProfInformelle, setValidationProfInformelle] = useState('');
   const [dateVPA, setDateVPA] = useState('');
   const [heureVPA, setHeureVPA] = useState('08:00');
   const [loading, setLoading] = useState(false);
@@ -175,9 +174,6 @@ function ConsultationCpaPageContent() {
     } catch { /* localStorage indisponible ou valeur corrompue : on repart d'un destinataire vide */ }
   }, []);
   const { peutDeciderAptitudeCpa, estAnesthesisteConnecte, estResponsableCpa, estMajor, roleName } = useRole();
-  const [nomAnesthesiste, setNomAnesthesiste] = useState('');
-  const [anesthesistes, setAnesthesistes] = useState<any[]>([]);
-  const [anesthesisteId, setAnesthesisteId] = useState('');
   const [dateInterventionInput, setDateInterventionInput] = useState('');
   const [savingDateIntervention, setSavingDateIntervention] = useState(false);
   const [cpaExistante, setCpaExistante] = useState<any>(null);
@@ -191,19 +187,6 @@ function ConsultationCpaPageContent() {
   const [termine, setTermine] = useState(false);
 
   const estResponsableOuMajor = estResponsableCpa || estMajor;
-
-  useEffect(() => {
-    const session = obtenirSessionValide();
-    if (session) setNomAnesthesiste(`${session.payload.firstname} ${session.payload.name}`.trim());
-  }, []);
-
-  // Responsable CPA / Major n'ont pas de fiche Médecin propre : l'anesthésiste ayant réalisé
-  // la consultation doit être désigné explicitement dans un sélecteur.
-  useEffect(() => {
-    if (!estAnesthesisteConnecte) {
-      medecinService.getAll({ role: 'ANESTHESISTE' }).then(res => setAnesthesistes(res?.data || [])).catch(console.error);
-    }
-  }, [estAnesthesisteConnecte]);
 
   useEffect(() => {
     if (patientId) {
@@ -238,8 +221,20 @@ function ConsultationCpaPageContent() {
 
   // Pré-remplit tout le formulaire avec la CPA déjà enregistrée, pour que l'anesthésiste voie
   // exactement ce que le Major/Responsable CPA a saisi.
+  // Même garde-fou que `cpaDejaRemplie` ci-dessus : `cpaExistante` peut être la CPA d'un épisode
+  // chirurgical précédent, déjà close, pour un patient revenu avec une nouvelle prescription
+  // (statut remis à EN_ATTENTE_CPA). Dans ce cas précis, ne pas pré-remplir — sinon l'anesthésiste
+  // voit les constatations d'un ancien épisode comme si elles s'appliquaient au nouveau. Exception :
+  // une CPA à REPORT ne touche jamais patient.statut (voir CPAService.create), donc reste
+  // pertinente même si le statut est EN_ATTENTE_CPA — c'est la même CPA à reprendre, pas une autre.
+  const cpaStalePourEpisodeActuel = !!cpaExistante && !!patient
+    && patient.statut === 'EN_ATTENTE_CPA' && cpaExistante.decision !== 'REPORT';
   useEffect(() => {
-    if (!cpaExistante) return;
+    // On attend que `patient` soit chargé avant de pré-remplir quoi que ce soit : sans cette
+    // attente, un premier passage avec `patient` encore null (fetch en cours) pré-remplissait le
+    // formulaire avant même de savoir si cette CPA était pertinente pour l'épisode en cours — et
+    // rien ne revenait ensuite l'effacer une fois `patient` chargé et le cas stale détecté.
+    if (!cpaExistante || !patient || cpaStalePourEpisodeActuel) return;
     const c = cpaExistante;
     setForm(f => ({
       ...f,
@@ -310,7 +305,6 @@ function ConsultationCpaPageContent() {
     if (c.decision) setDecision(c.decision);
     if (c.decisionOperation) setDecisionOperation(c.decisionOperation);
     if (c.motifRefus) setMotifRefus(c.motifRefus);
-    if (c.validationProfInformelle) setValidationProfInformelle(c.validationProfInformelle);
     if (c.premedicaments?.length) {
       setMedicaments(c.premedicaments.map((p: any) => ({
         premedication: p.nom, dose: p.dose, voieAdmin: p.voieAdministration, debut: p.debut, frequence: p.frequence,
@@ -318,7 +312,12 @@ function ConsultationCpaPageContent() {
     }
     setMedicamentsAnesthesieRows(restaurerMedicamentsAnesthesieRows(c.medicamentsAnesthesieReanimation));
     if (c.dateVerificationVeille) setDateVPA(formatDateInput(c.dateVerificationVeille));
-  }, [cpaExistante]);
+    // Dépend de `patient?.statut` plutôt que de `patient` en entier : `patient` change de
+    // référence à chaque modification de la date d'intervention (voir
+    // handleEnregistrerDateIntervention plus bas) — en dépendre entièrement aurait redéclenché ce
+    // pré-remplissage et effacé toute saisie du formulaire déjà en cours à chaque fois que la
+    // date d'intervention est modifiée depuis cette même page.
+  }, [cpaExistante, patient?.statut, cpaStalePourEpisodeActuel]);
 
   // Pré-remplit le champ éditable avec la date/heure d'intervention actuellement enregistrée
   useEffect(() => {
@@ -340,12 +339,91 @@ function ConsultationCpaPageContent() {
   // sans cette exclusion, le patient restait bloqué indéfiniment en lecture seule sur l'examen/la
   // décision (seuls médicaments + vérification veille restaient éditables), sans aucun moyen de
   // reposer une vraie décision APTE/INAPTE.
-  const cpaDejaRemplie = !!cpaExistante && cpaExistante.decision !== 'REPORT';
+  // `/cpa?patientId=` renvoie TOUT l'historique de ce patient (une fiche patient est réutilisée
+  // d'un épisode chirurgical à l'autre — voir PrescriptionService.ingerer, qui remet son statut à
+  // EN_ATTENTE_CPA à chaque nouvelle prescription) : sans le garde-fou `patient.statut`, la CPA
+  // déjà validée d'un épisode précédent bloquait à tort la CPA du nouvel épisode ("CPA déjà
+  // remplie et validée" alors qu'aucune CPA n'existe pour CET épisode) — le patient restait alors
+  // figé à EN_ATTENTE_CPA pour toujours, visible indéfiniment dans le Fil de travail au lieu de
+  // progresser vers le Programme opératoire. Tant que le statut courant est EN_ATTENTE_CPA, la
+  // CPA de l'épisode en cours reste à faire, quelle que soit l'ancienneté de la dernière CPA.
+  const cpaDejaRemplie = !!cpaExistante && cpaExistante.decision !== 'REPORT'
+    && !!patient && patient.statut !== 'EN_ATTENTE_CPA';
   const peutEditerExamenEtDecision = !cpaDejaRemplie && (estResponsableOuMajor || estAnesthesisteConnecte);
   // Le Major cumule les deux rôles (Responsable CPA + Anesthésiste) : contrairement à un
   // Responsable CPA seul, il peut aussi compléter les médicaments d'anesthésie/réanimation et
   // planifier la vérification veille — jamais bloqué en attente d'un vrai anesthésiste.
   const peutEditerMedicamentsEtVpa = estAnesthesisteConnecte || estMajor;
+
+  // Filet de sécurité coupure de courant / fermeture accidentelle : le contenu du formulaire est
+  // sauvegardé localement (pas de son propre, pas de dépendance réseau — fonctionne même hors
+  // ligne) et proposé au retour sur cette page tant qu'il n'a pas été soumis. Désactivé une fois
+  // la CPA déjà remplie et validée (formulaire alors surtout en lecture seule, rien à protéger),
+  // et tant que le chargement initial n'est pas terminé (sinon un instantané vide écraserait un
+  // brouillon valide dès l'arrivée sur la page).
+  const brouillonKey = patientId ? `cpa-brouillon:${patientId}` : null;
+  const brouillonSnapshot = {
+    form, scoreMallampati, scoreASA, decision, decisionOperation, motifRefus,
+    dateReportCpa, heureReportCpa, dateOperationReportee, heureOperationReportee,
+    dateVPA, heureVPA, medicaments, medicamentsAnesthesieRows,
+  };
+  useDraftAutosave(brouillonKey, brouillonSnapshot, {
+    enabled: !chargementCpa && !cpaDejaRemplie && !termine,
+  });
+
+  const [brouillonTrouve, setBrouillonTrouve] = useState<Brouillon<typeof brouillonSnapshot> | null>(null);
+  useEffect(() => {
+    if (!brouillonKey || chargementCpa || cpaDejaRemplie) return;
+    const brouillon = chargerBrouillon<typeof brouillonSnapshot>(brouillonKey);
+    if (brouillon) setBrouillonTrouve(brouillon);
+    // Ne (re)détecte qu'au moment où le chargement initial se termine, pas à chaque frappe — le
+    // brouillon vient sinon d'être écrit par cette page elle-même, pas besoin de se le
+    // re-proposer à lui-même.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brouillonKey, chargementCpa, cpaDejaRemplie]);
+
+  const restaurerBrouillon = () => {
+    if (!brouillonTrouve) return;
+    const d = brouillonTrouve.data;
+    setForm(d.form);
+    setScoreMallampati(d.scoreMallampati);
+    setScoreASA(d.scoreASA);
+    setDecision(d.decision);
+    setDecisionOperation(d.decisionOperation);
+    setMotifRefus(d.motifRefus);
+    setDateReportCpa(d.dateReportCpa);
+    setHeureReportCpa(d.heureReportCpa);
+    setDateOperationReportee(d.dateOperationReportee);
+    setHeureOperationReportee(d.heureOperationReportee);
+    setDateVPA(d.dateVPA);
+    setHeureVPA(d.heureVPA);
+    setMedicaments(d.medicaments);
+    setMedicamentsAnesthesieRows(d.medicamentsAnesthesieRows);
+    setBrouillonTrouve(null);
+  };
+
+  const ignorerBrouillon = () => {
+    if (brouillonKey) effacerBrouillon(brouillonKey);
+    setBrouillonTrouve(null);
+  };
+
+  // Date de vérification veille attribuée automatiquement (veille de l'opération) plutôt que
+  // choisie manuellement dans un calendrier — elle doit toujours avoir lieu la veille de
+  // l'intervention, ce n'est pas un vrai choix de créneau. Sans objet pour un patient urgent
+  // (chirurgie immédiate, jamais de "veille" à attendre — voir le garde-fou plus bas). Repli sur
+  // aujourd'hui si l'opération est prévue le jour même ou le lendemain (une "veille" dans le
+  // passé n'a pas de sens). Ne s'applique que si aucune date n'est déjà connue (saisie
+  // manuelle, brouillon restauré, ou CPA déjà remplie avec sa propre date) : ne jamais écraser
+  // un choix existant.
+  useEffect(() => {
+    if (estUrgent || dateVPA || !patient?.dateIntervention) return;
+    const veille = new Date(patient.dateIntervention);
+    veille.setDate(veille.getDate() - 1);
+    const aujourdhui = new Date();
+    aujourdhui.setHours(0, 0, 0, 0);
+    if (veille < aujourdhui) veille.setTime(aujourdhui.getTime());
+    setDateVPA(formatDateInput(veille));
+  }, [estUrgent, patient?.dateIntervention, dateVPA]);
 
   const handleEnregistrerDateIntervention = async () => {
     const patientIdFinal = patientId || patient?.id;
@@ -431,28 +509,11 @@ function ConsultationCpaPageContent() {
         // structurants doivent être activement choisis avant de pouvoir valider — plutôt que de
         // silencieusement retomber sur une valeur jamais vraiment observée.
         const champsManquants: string[] = [];
-        if (form.antecedentsAnesthesie === null) champsManquants.push("Antécédents d'anesthésie (OUI/NON)");
+        // Seuls ces deux champs restent obligatoires sur toute la fiche — tous les autres
+        // (examen clinique, voies aériennes, ASA, protocole, instructions...) sont volontairement
+        // laissés libres, la décision finale ci-dessous mise à part.
         if (form.patientMineur === null) champsManquants.push('Patient mineur (OUI/NON)');
         if (form.autorisationOpererSignee === null) champsManquants.push("Autorisation d'opérer signée (OUI/NON)");
-        if (form.asthme === null) champsManquants.push('Asthmatique (OUI/NON)');
-        if (!form.tempsSaignement) champsManquants.push('Temps de saignement');
-        if (form.transfusionsAnterieures === null) champsManquants.push('Transfusions antérieures (OUI/NON)');
-        if (!form.examenCardiovasculaire) champsManquants.push('Examen cardio-vasculaire');
-        if (!form.examenPulmonaire) champsManquants.push('Examen pulmonaire');
-        if (!form.examenNeurologique) champsManquants.push('Examen neurologique');
-        if (!form.colorationConjonctivale) champsManquants.push('Coloration conjonctivale');
-        if (!form.abordVeineux) champsManquants.push('Abords veineux');
-        if (!form.rachis) champsManquants.push('Rachis');
-        if (!form.dents) champsManquants.push('Dents');
-        if (!form.tabac) champsManquants.push('Tabac');
-        if (!form.alcool) champsManquants.push('Alcool');
-        if (scoreMallampati === null) champsManquants.push('Score Mallampati');
-        if (scoreASA === null) champsManquants.push('Score ASA');
-        if (!form.typeAnesthesie) champsManquants.push("Type d'anesthésie");
-        if (!form.techniqueIntubation) champsManquants.push("Technique d'intubation");
-        if (!form.jeune.trim() && !(form.jeuneSolides && form.jeuneLiquides)) champsManquants.push('Jeûne');
-        if (!form.preparationPhysique) champsManquants.push('Préparation physique');
-        if (!form.tachesInfirmieres) champsManquants.push('Tâches soignantes');
         if (champsManquants.length) {
           alert('❌ Complétez ces champs avant de valider :\n— ' + champsManquants.join('\n— '));
           setLoading(false);
@@ -465,7 +526,6 @@ function ConsultationCpaPageContent() {
 
         const payload = {
           patientId: patientIdFinal,
-          anesthesisteId: estAnesthesisteConnecte ? undefined : anesthesisteId,
           dateConsultation: new Date().toISOString().split('T')[0],
           histoireActuelle: form.histoireActuelle || undefined,
           dernierRepasBoisson: form.dernierRepasBoisson || undefined,
@@ -527,7 +587,15 @@ function ConsultationCpaPageContent() {
           decision,
           decisionOperation: (decision === 'APTE' || decision === 'INAPTE') ? (decisionOperation || undefined) : undefined,
           motifRefus: (decision === 'INAPTE' || decision === 'REPORT') ? motifRefus.trim() : undefined,
-          validationProfInformelle: validationProfInformelle.trim() || undefined,
+          // Le Responsable CPA est seul censé réaliser la CPA, mais en pratique il n'est pas
+          // toujours disponible : un autre intervenant habilité (Anesthésiste, Major) la réalise
+          // alors à sa place, après accord du Responsable CPA obtenu par téléphone. On ne gère
+          // aucun vrai workflow d'approbation sur la plateforme (pas de saisie, pas de suivi) —
+          // la validation est actée automatiquement dès que ce n'est pas le Responsable CPA
+          // lui-même qui soumet la fiche.
+          validationProfInformelle: estResponsableCpa
+            ? undefined
+            : 'Validation obtenue par téléphone auprès du Responsable CPA',
           traitementEnCours: form.traitementEnCours || undefined,
           traitementASuivre: form.traitementASuivre || undefined,
           conclusion: form.conclusion || undefined,
@@ -582,6 +650,8 @@ function ConsultationCpaPageContent() {
           }
         }
 
+        if (brouillonKey) effacerBrouillon(brouillonKey);
+
         if (estDemandeExterne) {
           // Patient d'un service externe : son parcours s'arrête à cette décision (voir
           // CPAService.create, qui ne le fait jamais basculer vers le programme du bloc) — ni le
@@ -624,6 +694,7 @@ function ConsultationCpaPageContent() {
           dateVerificationVeille: (!estUrgent && decision === 'APTE' && dateVPA) ? dateVPA : undefined,
         });
         await planifierVerificationVeille(patientIdFinal);
+        if (brouillonKey) effacerBrouillon(brouillonKey);
 
         if (estDemandeExterne) {
           setTermine(true);
@@ -651,7 +722,7 @@ function ConsultationCpaPageContent() {
         titre: 'Patient',
         champs: [
           { label: 'Nom', valeur: nomComplet },
-          { label: 'N° Dossier', valeur: patient?.idDossier ? `#${patient.idDossier}` : '' },
+          { label: 'N° Dossier', valeur: (() => { const id = formaterIdDossier(patient?.idDossier); return id ? `#${id}` : ''; })() },
           { label: 'Diagnostic / Intervention prévue', valeur: intervention || patient?.libelle || '' },
           { label: 'Date de consultation', valeur: new Date().toLocaleDateString('fr-FR') },
         ],
@@ -698,35 +769,16 @@ function ConsultationCpaPageContent() {
         titre: 'Voies aériennes',
         champs: [
           { label: 'Score Mallampati', valeur: scoreMallampati != null ? String(scoreMallampati) : '' },
-          { label: 'Ouverture buccale', valeur: form.ouvertureBuccale ? `${form.ouvertureBuccale} cm` : '' },
-          { label: 'DMTC', valeur: form.distanceMentoThyroidienne ? `${form.distanceMentoThyroidienne} cm` : '' },
+          { label: 'Ouverture buccale', valeur: form.ouvertureBuccale || '' },
+          { label: 'DMTC', valeur: form.distanceMentoThyroidienne || '' },
           { label: 'Dents', valeur: form.dents },
           { label: 'Tabac', valeur: form.tabac },
           { label: 'Alcool', valeur: form.alcool },
         ],
       },
       {
-        titre: 'Bilan biologique / paraclinique',
+        titre: 'Protocole opératoire',
         champs: [
-          { label: 'Numération (GB/GR/Hb/Ht/PL/TP/PQ/TCA/Fibri)', valeur: [
-            form.bilanGb && `GB:${form.bilanGb}`, form.bilanGr && `GR:${form.bilanGr}`, form.bilanHb && `Hb:${form.bilanHb}`, form.bilanHt && `Ht:${form.bilanHt}`,
-            form.bilanPl && `PL:${form.bilanPl}`, form.bilanTp && `TP:${form.bilanTp}`, form.bilanPq && `PQ:${form.bilanPq}`, form.bilanTca && `TCA:${form.bilanTca}`, form.bilanFibri && `Fibri:${form.bilanFibri}`,
-          ].filter(Boolean).join(' — ') },
-          { label: 'Ionogramme (Na/K/Cl/RA/Gly/Prot/Urée/Créat/Ac Ur)', valeur: [
-            form.bilanNa && `Na:${form.bilanNa}`, form.bilanK && `K:${form.bilanK}`, form.bilanCl && `Cl:${form.bilanCl}`, form.bilanRa && `RA:${form.bilanRa}`, form.bilanGly && `Gly:${form.bilanGly}`,
-            form.bilanProt && `Prot:${form.bilanProt}`, form.bilanUree && `Urée:${form.bilanUree}`, form.bilanCreat && `Créat:${form.bilanCreat}`, form.bilanAcUr && `Ac Ur:${form.bilanAcUr}`,
-          ].filter(Boolean).join(' — ') },
-          { label: 'ECG', valeur: form.ecg },
-          { label: 'Rx (radio pulmonaire)', valeur: form.radioPulmonaire },
-          { label: 'Écho', valeur: form.echographie },
-          { label: 'Scanner', valeur: form.scanner },
-          { label: 'Autres examens', valeur: form.autresExamensParacliniques },
-        ],
-      },
-      {
-        titre: 'Protocole retenu',
-        champs: [
-          { label: 'Score ASA', valeur: scoreASA != null ? `ASA ${scoreASA}` : '' },
           { label: 'Type d\'anesthésie', valeur: form.typeAnesthesie },
           { label: 'Technique', valeur: form.sousTypeAnesthesie },
           { label: 'Technique d\'intubation', valeur: form.techniqueIntubation },
@@ -743,10 +795,16 @@ function ConsultationCpaPageContent() {
         ],
       },
       {
-        titre: 'Conclusion',
+        titre: 'Traitement médicamenteux',
         champs: [
           { label: 'Traitement en cours', valeur: form.traitementEnCours },
           { label: 'Traitement à suivre', valeur: form.traitementASuivre },
+        ],
+      },
+      {
+        titre: 'Conclusion',
+        champs: [
+          { label: 'Score ASA', valeur: scoreASA != null ? `ASA ${scoreASA}` : '' },
           { label: 'Conclusion', valeur: form.conclusion },
           { label: 'Décision', valeur: decision ? decisionLabel[decision] : '' },
           { label: 'Motif', valeur: motifRefus },
@@ -777,35 +835,6 @@ function ConsultationCpaPageContent() {
     } catch (err) {
       console.error(err);
       alert('❌ Erreur lors de la génération du PDF');
-    } finally {
-      setExportEnCours(false);
-    }
-  };
-
-  // Partage direct (Web Share API, niveau 2 avec fichiers) : disponible surtout sur mobile
-  // (Android/iOS) — sur desktop, la plupart des navigateurs ne le supportent pas encore. Repli
-  // clair dans ce cas : le PDF est tout de même téléchargé, avec une invite à le joindre
-  // manuellement dans WhatsApp/l'email, plutôt que de prétendre à un envoi 100% automatique
-  // qu'aucune page web ne peut garantir sans API native.
-  const handlePartager = async () => {
-    setExportEnCours(true);
-    try {
-      const { blob, nomFichier } = await genererPdfCpa();
-      const nomComplet = formaterNomPatient(patient) || patientNom;
-      const fichier = new File([blob], `${nomFichier}.pdf`, { type: 'application/pdf' });
-      const texte = `Fiche CPA — ${nomComplet}${decision ? ` — Décision : ${decision}` : ''}`;
-
-      if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
-        await navigator.share({ files: [fichier], title: 'Fiche CPA', text: texte });
-        return;
-      }
-
-      // Repli : le PDF est déjà téléchargé (voir genererPdfCpa) — on ouvre juste le canal
-      // choisi avec un texte pré-rempli, à charge pour l'utilisateur de joindre le fichier
-      // téléchargé (aucune page web ne peut le faire à sa place sans l'API ci-dessus).
-      alert("📄 PDF téléchargé. Votre navigateur ne permet pas de le joindre automatiquement : ouvrez WhatsApp ou votre messagerie et joignez le fichier téléchargé.");
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') { console.error(err); alert('❌ Erreur lors du partage'); }
     } finally {
       setExportEnCours(false);
     }
@@ -881,12 +910,10 @@ function ConsultationCpaPageContent() {
         : 'bg-white border-outline-variant/50 text-on-surface-variant'
     } ${editable ? 'cursor-pointer hover:border-primary/60' : 'cursor-not-allowed opacity-70'}`;
 
-  // Champ texte obligatoire : liseré ambré tant qu'il est vide, pour repérer d'un coup d'œil ce
-  // qu'il reste à compléter avant de pouvoir valider — redevient neutre dès qu'il est rempli.
-  const texteRequisClass = (valeur: string, base = 'h-20') =>
-    `w-full bg-surface-container-low border-2 rounded-xl p-3 text-sm ${base} transition-colors focus:ring-2 focus:ring-primary/30 outline-none disabled:opacity-60 ${
-      valeur ? 'border-transparent' : 'border-amber-300/70'
-    }`;
+  // Champ libre (ni obligatoire ni signalé visuellement) — seuls Patient mineur et Autorisation
+  // d'opérer signée le sont encore sur toute la fiche, avec leur propre style de pastille OUI/NON.
+  const texteRequisClass = (_valeur: string, base = 'h-20') =>
+    `w-full bg-surface-container-low border-2 border-transparent rounded-xl p-3 text-sm ${base} transition-colors focus:ring-2 focus:ring-primary/30 outline-none disabled:opacity-60`;
 
   // Patient suivi ici uniquement pour sa CPA/VPA (demande d'un service externe) : une fois la
   // décision prise, son parcours s'arrête — pas de Fil de travail ni de programme opératoire du
@@ -932,6 +959,26 @@ function ConsultationCpaPageContent() {
           {peutEditerMedicamentsEtVpa
             ? "CPA déjà remplie et validée — complétez les médicaments d'anesthésie/réanimation et la vérification veille ci-dessous."
             : 'CPA déjà remplie et validée — consultation en lecture seule.'}
+        </div>
+      )}
+
+      {/* Saisie non enregistrée retrouvée localement (coupure de courant, fermeture accidentelle
+          de l'onglet...) — jamais appliquée automatiquement, uniquement sur confirmation, pour ne
+          jamais écraser silencieusement ce qui est déjà affiché. */}
+      {brouillonTrouve && (
+        <div className="rounded-xl px-4 py-3 text-sm font-bold flex flex-wrap items-center gap-3 bg-amber-50 text-amber-900 border border-amber-200">
+          <span className="material-symbols-outlined text-lg">restore</span>
+          <span className="flex-1 min-w-[220px]">
+            Une saisie non enregistrée du {new Date(brouillonTrouve.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} a été retrouvée pour ce patient.
+          </span>
+          <button type="button" onClick={restaurerBrouillon}
+            className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700 transition-colors">
+            Restaurer
+          </button>
+          <button type="button" onClick={ignorerBrouillon}
+            className="px-3 py-1.5 bg-white text-amber-800 border border-amber-300 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
+            Ignorer
+          </button>
         </div>
       )}
 
@@ -983,39 +1030,17 @@ function ConsultationCpaPageContent() {
         )}
       </div>
 
-      {/* Anesthésiste réalisant la consultation — uniquement pertinent tant que la CPA n'est pas
-          encore remplie (désignation faite par le Major/Responsable CPA à la création) */}
-      {!cpaDejaRemplie && (
-        <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">badge</span>
-          {estAnesthesisteConnecte ? (
-            <div>
-              <p className="text-xs font-semibold text-on-surface-variant">Anesthésiste réalisant la consultation</p>
-              <p className="text-sm font-bold text-on-surface">{nomAnesthesiste || '—'}</p>
-            </div>
-          ) : (
-            <div className="flex-1">
-              <label className="text-xs font-semibold text-on-surface-variant block mb-1">Anesthésiste ayant réalisé la consultation (facultatif)</label>
-              <select value={anesthesisteId} onChange={e => setAnesthesisteId(e.target.value)}
-                className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm font-bold">
-                <option value="">
-                  {anesthesistes.length === 0 ? '— Aucun anesthésiste enregistré localement —' : '— Sélectionner —'}
-                </option>
-                {anesthesistes.map((m: any) => (
-                  <option key={m.id} value={m.id}>{m.prenom} {m.nom}</option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* CONTENU PRINCIPAL */}
-      <div className="flex flex-col lg:flex-row gap-2">
-        {/* COLONNE GAUCHE */}
-        <div className={`flex-1 space-y-2 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
+      <SommaireCpa />
+
+      {/* CONTENU PRINCIPAL — la carte Prescription reste collée (sticky) à côté du formulaire
+          depuis Antécédents jusqu'à Conclusion (le moment de la CPA où une prescription
+          complémentaire est le plus susceptible d'être nécessaire) ; au-delà (Traitement
+          médicamenteux, Instructions, Protocole, Décision), le contenu repasse pleine largeur. */}
+      <div className="flex flex-col lg:flex-row gap-2 items-start">
+        <div className={`flex-1 space-y-2 min-w-0 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
           {/* Antécédents — section 1 de la fiche papier "Fiche d'Anesthésie – Réanimation" */}
-          <section className="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-4">
+          <section id="cpa-antecedents" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-4 scroll-mt-32">
             <div className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">history_edu</span>
               <h2 className="text-lg font-bold font-headline text-primary">Antécédents</h2>
@@ -1055,21 +1080,12 @@ function ConsultationCpaPageContent() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD médicaux</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdMedicaux} onChange={setField('atcdMedicaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="HTA, diabète..."></textarea>
-              </div>
-              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD anesthésiques et chirurgicaux</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdChirurgicaux} onChange={setField('atcdChirurgicaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Interventions, anesthésies antérieures..."></textarea>
-              </div>
-              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">Incidents</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.notesIncidents} onChange={setField('notesIncidents')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Décrire tout incident..."></textarea>
-              </div>
-            </div>
-
+            {/* Regroupés ensemble : trois champs directement liés à l'expérience anesthésique/
+                chirurgicale passée du patient (ATCD d'anesthésie, ATCD anesthésiques et
+                chirurgicaux détaillés, incidents constatés). */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-on-surface-variant">Antécédents d'anesthésie ?<Requis /></label>
+                <label className="block text-sm font-semibold text-on-surface-variant">Antécédents d'anesthésie ?</label>
                 <div className="flex gap-2">
                   <label className={pilleClass(form.antecedentsAnesthesie === true, peutEditerExamenEtDecision)}>
                     <input disabled={!peutEditerExamenEtDecision} checked={form.antecedentsAnesthesie === true} onChange={() => setForm(f => ({ ...f, antecedentsAnesthesie: true }))} className="hidden" name="history" type="radio" />OUI
@@ -1079,8 +1095,28 @@ function ConsultationCpaPageContent() {
                   </label>
                 </div>
               </div>
+              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD anesthésiques et chirurgicaux</label>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdChirurgicaux} onChange={setField('atcdChirurgicaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Interventions, anesthésies antérieures..."></textarea>
+              </div>
+              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">Incidents</label>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.notesIncidents} onChange={setField('notesIncidents')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Décrire tout incident..."></textarea>
+              </div>
+            </div>
+
+            {/* Regroupés ensemble : les deux champs d'antécédents "généraux" (médicaux, familiaux),
+                distincts du bloc anesthésique/chirurgical ci-dessus. */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD médicaux</label>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdMedicaux} onChange={setField('atcdMedicaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="HTA, diabète..."></textarea>
+              </div>
+              <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD Familiaux</label>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdFamiliaux} onChange={setField('atcdFamiliaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="HTA, diabète, asthme..."></textarea>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-on-surface-variant">Asthmatique ?<Requis /></label>
+                <label className="block text-sm font-semibold text-on-surface-variant">Asthmatique ?</label>
                 <div className="flex gap-2">
                   <label className={pilleClass(form.asthme === true, peutEditerExamenEtDecision)}>
                     <input disabled={!peutEditerExamenEtDecision} checked={form.asthme === true} onChange={() => setForm(f => ({ ...f, asthme: true }))} className="hidden" name="asthme" type="radio" />OUI
@@ -1091,7 +1127,7 @@ function ConsultationCpaPageContent() {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-on-surface-variant">Temps de saignement<Requis /></label>
+                <label className="block text-sm font-semibold text-on-surface-variant">Temps de saignement</label>
                 <div className="flex gap-2">
                   <label className={pilleClass(form.tempsSaignement === 'NORMAL', peutEditerExamenEtDecision)}>
                     <input disabled={!peutEditerExamenEtDecision} checked={form.tempsSaignement === 'NORMAL'} onChange={() => setForm(f => ({ ...f, tempsSaignement: 'NORMAL' }))} className="hidden" name="tempsSaignement" type="radio" />NORMAL
@@ -1103,23 +1139,24 @@ function ConsultationCpaPageContent() {
               </div>
             </div>
 
+            {/* ATCD Obstétricaux + Contraception regroupés — G/P/A ne reçoivent qu'un chiffre
+                (quelques unités), donc volontairement étroits plutôt qu'une pleine colonne. */}
             <div className="border-t border-outline-variant/20 pt-3 space-y-2">
               <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">ATCD Obstétricaux</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <div><label className="text-[10px] font-bold block mb-1">G (Geste)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
-                <div><label className="text-[10px] font-bold block mb-1">P (Pare)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
-                <div><label className="text-[10px] font-bold block mb-1">A (Avortement)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
-                <div><label className="text-[10px] font-bold block mb-1">DDR</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxDdr} onChange={setField('atcdObstetricauxDdr')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" type="date" /></div>
+              <div className="flex flex-wrap items-end gap-2">
+                <div className="w-16"><label className="text-[10px] font-bold block mb-1">G</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-16"><label className="text-[10px] font-bold block mb-1">P</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-16"><label className="text-[10px] font-bold block mb-1">A</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="flex-1 min-w-[140px]"><label className="text-[10px] font-bold block mb-1">DDR</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxDdr} onChange={setField('atcdObstetricauxDdr')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" type="date" /></div>
+                <div className="flex-1 min-w-[160px]"><label className="text-[10px] font-bold block mb-1">Contraception</label><input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
               </div>
             </div>
 
-            <div className="border-t border-outline-variant/20 pt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="border-t border-outline-variant/20 pt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Allergies médicamenteuses</label>
                 <input disabled={!peutEditerExamenEtDecision} value={form.allergiesMedicamenteuses} onChange={setField('allergiesMedicamenteuses')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Aucune / préciser..." /></div>
               <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Allergies (autres)</label>
                 <input disabled={!peutEditerExamenEtDecision} value={form.allergiesAutres} onChange={setField('allergiesAutres')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Latex, alimentaire..." /></div>
-              <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Contraception</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" /></div>
             </div>
 
             <div className="border-t border-outline-variant/20 pt-3 space-y-2">
@@ -1135,12 +1172,9 @@ function ConsultationCpaPageContent() {
               </div>
             </div>
 
-            <div className="border-t border-outline-variant/20 pt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">ATCD Familiaux</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdFamiliaux} onChange={setField('atcdFamiliaux')} className="w-full h-16 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="HTA, diabète, asthme..."></textarea>
-              </div>
+            <div className="border-t border-outline-variant/20 pt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-on-surface-variant block">Transfusions antérieures ?<Requis /></label>
+                <label className="text-sm font-semibold text-on-surface-variant block">Transfusions antérieures ?</label>
                 <div className="flex gap-2">
                   <label className={pilleClass(form.transfusionsAnterieures === true, peutEditerExamenEtDecision)}>
                     <input disabled={!peutEditerExamenEtDecision} checked={form.transfusionsAnterieures === true} onChange={() => setForm(f => ({ ...f, transfusionsAnterieures: true }))} className="hidden" name="transfusions" type="radio" />OUI
@@ -1156,7 +1190,7 @@ function ConsultationCpaPageContent() {
           </section>
 
           {/* Examen clinique */}
-          <section className="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+          <section id="cpa-examen" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm scroll-mt-32">
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-primary">stethoscope</span>
               <h2 className="text-lg font-bold font-headline text-primary">Examen clinique</h2>
@@ -1177,31 +1211,29 @@ function ConsultationCpaPageContent() {
                 </div>
               </div>
               <div className="md:col-span-5 grid grid-cols-1 gap-3">
-                <div><label className="text-xs font-bold uppercase tracking-tighter">Cardio-vasculaire<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.examenCardiovasculaire} onChange={setField('examenCardiovasculaire')} className={texteRequisClass(form.examenCardiovasculaire)} placeholder="Bruit du coeur..."></textarea></div>
-                <div><label className="text-xs font-bold uppercase tracking-tighter">Pulmonaire<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.examenPulmonaire} onChange={setField('examenPulmonaire')} className={texteRequisClass(form.examenPulmonaire)} placeholder="Murmure vésiculaire..."></textarea></div>
-                <div><label className="text-xs font-bold uppercase tracking-tighter">Neurologique<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.examenNeurologique} onChange={setField('examenNeurologique')} className={texteRequisClass(form.examenNeurologique)} placeholder="Etat de conscience..."></textarea></div>
+                <div><label className="text-xs font-bold uppercase tracking-tighter">Cardio-vasculaire</label><textarea disabled={!peutEditerExamenEtDecision} value={form.examenCardiovasculaire} onChange={setField('examenCardiovasculaire')} className={texteRequisClass(form.examenCardiovasculaire)} placeholder="Bruit du coeur..."></textarea></div>
+                <div><label className="text-xs font-bold uppercase tracking-tighter">Pulmonaire</label><textarea disabled={!peutEditerExamenEtDecision} value={form.examenPulmonaire} onChange={setField('examenPulmonaire')} className={texteRequisClass(form.examenPulmonaire)} placeholder="Murmure vésiculaire..."></textarea></div>
+                <div><label className="text-xs font-bold uppercase tracking-tighter">Neurologique</label><textarea disabled={!peutEditerExamenEtDecision} value={form.examenNeurologique} onChange={setField('examenNeurologique')} className={texteRequisClass(form.examenNeurologique)} placeholder="Etat de conscience..."></textarea></div>
               </div>
               <div className="md:col-span-4 grid grid-cols-1 gap-3">
-                <div><label className="text-xs font-bold uppercase tracking-tighter">Coloration Conjonctivale<Requis /></label>
-                  <select disabled={!peutEditerExamenEtDecision} value={form.colorationConjonctivale} onChange={setField('colorationConjonctivale')} className={texteRequisClass(form.colorationConjonctivale, '')}>
-                    <option value="">— Sélectionner —</option><option>Normale (Rose)</option><option>Pâleur</option><option>Ictère</option><option>Congestion</option>
-                  </select>
+                <div><label className="text-xs font-bold uppercase tracking-tighter">Coloration Conjonctivale</label>
+                  <input disabled={!peutEditerExamenEtDecision} value={form.colorationConjonctivale} onChange={setField('colorationConjonctivale')} className={texteRequisClass(form.colorationConjonctivale, '')} placeholder="Normale, pâleur, ictère..." />
                 </div>
-                <div><label className="text-xs font-bold uppercase tracking-tighter">Abords veineux<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.abordVeineux} onChange={setField('abordVeineux')} className={texteRequisClass(form.abordVeineux)} placeholder="Qualité du réseau..."></textarea></div>
-                <div><label className="text-xs font-bold uppercase tracking-tighter">Rachis<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.rachis} onChange={setField('rachis')} className={texteRequisClass(form.rachis)} placeholder="Mobilité, déformation..."></textarea></div>
+                <div><label className="text-xs font-bold uppercase tracking-tighter">Abords veineux</label><textarea disabled={!peutEditerExamenEtDecision} value={form.abordVeineux} onChange={setField('abordVeineux')} className={texteRequisClass(form.abordVeineux)} placeholder="Qualité du réseau..."></textarea></div>
+                <div><label className="text-xs font-bold uppercase tracking-tighter">Rachis</label><textarea disabled={!peutEditerExamenEtDecision} value={form.rachis} onChange={setField('rachis')} className={texteRequisClass(form.rachis)} placeholder="Mobilité, déformation..."></textarea></div>
               </div>
             </div>
           </section>
 
           {/* Voies aériennes */}
-          <section className="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+          <section id="cpa-voies-aeriennes" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm scroll-mt-32">
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-primary">air</span>
               <h2 className="text-lg font-bold font-headline text-primary">Voies aériennes</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="space-y-2">
-                <label className="text-sm font-semibold block">Mallampati Score<Requis /></label>
+                <label className="text-sm font-semibold block">Mallampati Score</label>
                 <div className="grid grid-cols-4 gap-2">
                   {[1, 2, 3, 4].map((score) => (
                     <button key={score} onClick={() => setScoreMallampati(score)} disabled={!peutEditerExamenEtDecision}
@@ -1211,21 +1243,21 @@ function ConsultationCpaPageContent() {
                   ))}
                 </div>
               </div>
-              <div className="space-y-2"><label className="text-sm font-semibold block">Ouverture buccale</label><div className="relative"><input disabled={!peutEditerExamenEtDecision} value={form.ouvertureBuccale} onChange={setField('ouvertureBuccale')} className="w-full bg-surface-container-low border-none rounded-xl p-3 pr-10 text-sm disabled:opacity-60" placeholder="cm" type="number" /><span className="absolute right-3 top-3 text-xs font-bold">CM</span></div></div>
-              <div className="space-y-2"><label className="text-sm font-semibold block">DMTC</label><div className="relative"><input disabled={!peutEditerExamenEtDecision} value={form.distanceMentoThyroidienne} onChange={setField('distanceMentoThyroidienne')} className="w-full bg-surface-container-low border-none rounded-xl p-3 pr-10 text-sm disabled:opacity-60" placeholder="cm" type="number" /><span className="absolute right-3 top-3 text-xs font-bold">CM</span></div></div>
+              <div className="space-y-2"><label className="text-sm font-semibold block">Ouverture buccale</label><input disabled={!peutEditerExamenEtDecision} value={form.ouvertureBuccale} onChange={setField('ouvertureBuccale')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" /></div>
+              <div className="space-y-2"><label className="text-sm font-semibold block">DMTC</label><input disabled={!peutEditerExamenEtDecision} value={form.distanceMentoThyroidienne} onChange={setField('distanceMentoThyroidienne')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" /></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 border-t border-outline-variant/20 pt-4">
-              <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">DENTS<Requis /></label>
+              <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">DENTS</label>
                 <select disabled={!peutEditerExamenEtDecision} value={form.dents} onChange={setField('dents')} className={texteRequisClass(form.dents, '')}>
                   <option value="">— Sélectionner —</option><option>Denture saine</option><option>Prothèse amovible</option><option>Dents fragiles/mobiles</option>
                 </select>
               </div>
-              <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">TABAC<Requis /></label>
+              <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">TABAC</label>
                 <select disabled={!peutEditerExamenEtDecision} value={form.tabac} onChange={setField('tabac')} className={texteRequisClass(form.tabac, '')}>
                   <option value="">— Sélectionner —</option><option>Non fumeur</option><option>Fumeur actif</option><option>Fumeur passif</option><option>Ancien fumeur</option>
                 </select>
               </div>
-              <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">ALCOOLS<Requis /></label>
+              <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">ALCOOLS</label>
                 <select disabled={!peutEditerExamenEtDecision} value={form.alcool} onChange={setField('alcool')} className={texteRequisClass(form.alcool, '')}>
                   <option value="">— Sélectionner —</option><option>Aucun</option><option>Occasionnel</option><option>Régulier</option><option>Chronique</option><option>Sevrage</option>
                 </select>
@@ -1233,58 +1265,44 @@ function ConsultationCpaPageContent() {
             </div>
           </section>
 
-          {/* Bilan biologique / paraclinique — section 3 de la fiche papier */}
-          <section className="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">biotech</span>
-              <h2 className="text-lg font-bold font-headline text-primary">Bilan biologique / paraclinique</h2>
+          {/* Conclusion — section 4 de la fiche papier. Score ASA amené ici, aligné avec le champ
+              Conclusion (déplacé depuis le bloc ASA & Protocole plus bas) et réduit à la même
+              taille que le sélecteur Mallampati (Voies aériennes) pour bien s'aligner à côté du
+              texte. */}
+          <section id="cpa-conclusion" className={`bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3 scroll-mt-32 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary">summarize</span>
+          <h2 className="text-lg font-bold font-headline text-primary">Conclusion</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-2 space-y-2">
+            <label className="text-sm font-semibold text-on-surface-variant block">Conclusion</label>
+            <textarea disabled={!peutEditerExamenEtDecision} value={form.conclusion} onChange={setField('conclusion')} className="w-full h-28 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60"></textarea>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold block">Score ASA</label>
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3, 4, 5, 6].map((score) => (
+                <button key={score} onClick={() => setScoreASA(score)} disabled={!peutEditerExamenEtDecision}
+                  className={`p-4 rounded-lg border-2 font-bold text-base transition-all disabled:opacity-60 disabled:cursor-not-allowed ${scoreASA === score ? 'border-primary bg-primary-fixed text-primary' : 'border-outline-variant bg-white hover:bg-primary-fixed'}`}>
+                  {score}
+                </button>
+              ))}
+              <button onClick={() => setScoreASA('E')} disabled={!peutEditerExamenEtDecision}
+                className={`col-span-2 rounded-lg border-2 font-bold text-base transition-all disabled:opacity-60 disabled:cursor-not-allowed ${scoreASA === 'E' ? 'border-primary bg-primary-fixed text-primary' : 'border-outline-variant bg-white hover:bg-primary-fixed'}`}>
+                E
+              </button>
             </div>
-
-            <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Numération</label>
-              <div className="grid grid-cols-3 md:grid-cols-9 gap-2">
-                {([['bilanGb', 'GB'], ['bilanGr', 'GR'], ['bilanHb', 'Hb'], ['bilanHt', 'Ht'], ['bilanPl', 'PL'], ['bilanTp', 'TP'], ['bilanPq', 'PQ'], ['bilanTca', 'TCA'], ['bilanFibri', 'Fibri']] as const).map(([key, label]) => (
-                  <div key={key}><label className="text-[10px] font-bold block mb-1">{label}</label>
-                    <input disabled={!peutEditerExamenEtDecision} value={form[key]} onChange={setField(key)} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2 border-t border-outline-variant/20 pt-3">
-              <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Ionogramme</label>
-              <div className="grid grid-cols-3 md:grid-cols-9 gap-2">
-                {([['bilanNa', 'Na'], ['bilanK', 'K'], ['bilanCl', 'Cl'], ['bilanRa', 'RA'], ['bilanGly', 'Gly'], ['bilanProt', 'Prot'], ['bilanUree', 'Urée'], ['bilanCreat', 'Créat'], ['bilanAcUr', 'Ac Ur']] as const).map(([key, label]) => (
-                  <div key={key}><label className="text-[10px] font-bold block mb-1">{label}</label>
-                    <input disabled={!peutEditerExamenEtDecision} value={form[key]} onChange={setField(key)} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border-t border-outline-variant/20 pt-3">
-              <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">ECG</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.ecg} onChange={setField('ecg')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="RAS / anomalie..." /></div>
-              <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Rx (radio pulmonaire)</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.radioPulmonaire} onChange={setField('radioPulmonaire')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="RAS / anomalie..." /></div>
-              <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Écho</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.echographie} onChange={setField('echographie')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="RAS / anomalie..." /></div>
-              <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Scanner</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.scanner} onChange={setField('scanner')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="RAS / anomalie..." /></div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-on-surface-variant block">Autres examens</label>
-              <textarea disabled={!peutEditerExamenEtDecision} value={form.autresExamensParacliniques} onChange={setField('autresExamensParacliniques')} className="w-full h-16 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60"></textarea>
-            </div>
-            <div className="space-y-2 border-t border-outline-variant/20 pt-3">
-              <label className="text-sm font-semibold text-on-surface-variant block">Pièces jointes (résultats scannés, documents...)</label>
-              <PiecesJointesUploader value={form.piecesJointes} onChange={(v) => setForm(f => ({ ...f, piecesJointes: v }))} disabled={!peutEditerExamenEtDecision} />
-            </div>
-          </section>
+          </div>
+          </div>
+        </section>
         </div>
 
-        {/* COLONNE DROITE — l'action de prescription, mise bien en évidence en haut à droite
-            (Score ASA et Protocole retenu sont désormais en bas de page, juste avant la
-            décision finale). */}
-        <div className="w-full lg:w-80 space-y-2">
+        {/* Carte Prescription — collée (sticky) le long d'Antécédents / Examen / Voies aériennes /
+            Conclusion, là où une prescription complémentaire est le plus susceptible d'être
+            nécessaire. top-32 (128px) pour rester sous le TopBar fixe (80px) ET le sommaire
+            sticky de la CPA (~50px), même valeur que le scroll-mt-32 utilisé sur les ancres. */}
+        <div className="w-full lg:w-80 lg:sticky lg:top-32 space-y-2">
           <section className={`rounded-2xl p-5 shadow-lg overflow-hidden ${peutDeciderAptitudeCpa ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-500/40' : 'bg-surface-container-lowest text-on-surface-variant'}`}>
             <div className="flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-2xl" style={peutDeciderAptitudeCpa ? { fontVariationSettings: "'FILL' 1" } : undefined}>edit_note</span>
@@ -1319,11 +1337,13 @@ function ConsultationCpaPageContent() {
         </div>
       </div>
 
-      {/* Conclusion — section 4 de la fiche papier */}
-      <section className={`bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
+      {/* Traitement médicamenteux — sorti de la Conclusion (qui mélangeait jugement clinique et
+          traitement en cours du patient), section à part entière (pleine largeur, en dehors de la
+          colonne collée à la carte Prescription). */}
+      <section id="cpa-traitement" className={`bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3 scroll-mt-32 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">summarize</span>
-          <h2 className="text-lg font-bold font-headline text-primary">Conclusion</h2>
+          <span className="material-symbols-outlined text-primary">pill</span>
+          <h2 className="text-lg font-bold font-headline text-primary">Traitement médicamenteux</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Traitement en cours</label>
@@ -1331,20 +1351,111 @@ function ConsultationCpaPageContent() {
           <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Traitement à suivre</label>
             <textarea disabled={!peutEditerExamenEtDecision} value={form.traitementASuivre} onChange={setField('traitementASuivre')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60"></textarea></div>
         </div>
-        <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Conclusion</label>
-          <textarea disabled={!peutEditerExamenEtDecision} value={form.conclusion} onChange={setField('conclusion')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60"></textarea></div>
       </section>
 
       {/* Instructions & Prescription */}
-      <div className="rounded-2xl border-2 border-blue-300 bg-gradient-to-b from-blue-50/80 to-white shadow-md overflow-hidden">
+      <div id="cpa-instructions" className="rounded-2xl border-2 border-blue-300 bg-gradient-to-b from-blue-50/80 to-white shadow-md overflow-hidden scroll-mt-32">
         <div className="px-4 py-3 bg-blue-100/70 border-b border-blue-200 flex items-center gap-2">
           <span className="material-symbols-outlined text-blue-600">assignment</span>
           <h2 className="text-sm font-extrabold text-blue-900 uppercase tracking-widest">Instructions Pré-opératoires</h2>
         </div>
         <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className={!peutEditerExamenEtDecision ? 'opacity-80' : ''}>
-              <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm mb-4">
+          {/* Rangée 1 : Protocole opératoire + Jeûne, côte à côte et à la même hauteur (le
+              protocole retenu conditionne les règles de jeûne à observer — les deux se lisent
+              ensemble, en premier). */}
+          <div id="cpa-protocole" className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch scroll-mt-32 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
+            <div>
+              <section className="h-full bg-white rounded-2xl shadow-md border-2 border-secondary/20 overflow-hidden">
+                <div className="bg-gradient-to-r from-secondary to-secondary/80 px-4 py-3 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-white">vaccines</span>
+                  <h2 className="text-sm font-extrabold text-white uppercase tracking-widest">Protocole opératoire</h2>
+                </div>
+                <div className="p-4 space-y-3">
+                  <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
+                    <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">medication_liquid</span> Type d'anesthésie
+                    </label>
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                      {['Anesthésie Générale (AG)', 'ALR', 'AL'].map(type => (
+                        <button key={type} type="button" disabled={!peutEditerExamenEtDecision}
+                          onClick={() => setForm(f => ({ ...f, typeAnesthesie: type, sousTypeAnesthesie: '' }))}
+                          className={`p-3 rounded-lg border-2 font-bold text-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.typeAnesthesie === type ? 'border-secondary bg-secondary text-white shadow-md' : 'border-secondary/20 bg-white text-on-surface hover:bg-secondary/10'}`}>
+                          {type === 'Anesthésie Générale (AG)' ? 'AG' : type}
+                        </button>
+                      ))}
+                    </div>
+                    {form.typeAnesthesie === 'Anesthésie Générale (AG)' && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Sédation', 'Intubation', 'Masque Laryngé', 'Masque Facial'].map(st => (
+                          <button key={st} type="button" disabled={!peutEditerExamenEtDecision}
+                            onClick={() => setForm(f => ({ ...f, sousTypeAnesthesie: st }))}
+                            className={`p-2.5 rounded-lg border-2 font-semibold text-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.sousTypeAnesthesie === st ? 'border-secondary bg-secondary-fixed text-secondary' : 'border-secondary/20 bg-white text-on-surface-variant hover:bg-secondary/5'}`}>
+                            {st}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {form.typeAnesthesie === 'ALR' && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {['Rachianesthésie', 'APD', 'Blocage'].map(st => (
+                          <button key={st} type="button" disabled={!peutEditerExamenEtDecision}
+                            onClick={() => setForm(f => ({ ...f, sousTypeAnesthesie: st }))}
+                            className={`p-2.5 rounded-lg border-2 font-semibold text-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.sousTypeAnesthesie === st ? 'border-secondary bg-secondary-fixed text-secondary' : 'border-secondary/20 bg-white text-on-surface-variant hover:bg-secondary/5'}`}>
+                            {st}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
+                    <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">air</span> Technique d'intubation
+                    </label>
+                    <select disabled={!peutEditerExamenEtDecision} value={form.techniqueIntubation} onChange={setField('techniqueIntubation')} className="w-full bg-white border border-secondary/20 rounded-xl p-3 text-sm font-bold text-on-surface focus:ring-2 focus:ring-secondary/30 outline-none disabled:opacity-60">
+                      <option value="">— Sélectionner —</option><option>Sonde Endotrachéale</option><option>Masque Laryngé</option><option>IOT Séquence Rapide</option>
+                    </select>
+                  </div>
+                  <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
+                    <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">checklist</span> Recommandations et protocoles
+                    </label>
+                    <textarea disabled={!peutEditerExamenEtDecision} value={form.recommandationsProtocole} onChange={setField('recommandationsProtocole')} className="w-full h-20 bg-white border border-secondary/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-secondary/30 outline-none disabled:opacity-60" placeholder="Surveillance renforcée, précautions particulières..."></textarea>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div>
+              <div className="h-full bg-white rounded-xl border border-blue-200 p-4 shadow-sm space-y-2">
+                <h3 className="text-sm font-bold text-blue-800 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">no_food</span> Jeûne</h3>
+                <div className="space-y-2"><textarea disabled={!peutEditerExamenEtDecision} value={form.jeune} onChange={setField('jeune')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Instructions spécifiques..."></textarea></div>
+                <div className="bg-blue-50/60 rounded-xl p-4 border-l-4 border-blue-400">
+                  <h4 className="text-sm font-bold text-blue-700 flex items-center gap-2 mb-2">Règles de jeûne</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="bg-white p-3 rounded-lg">
+                      <label className="text-[10px] font-bold uppercase block mb-1">Solides</label>
+                      <input disabled={!peutEditerExamenEtDecision} value={form.jeuneSolides} onChange={setField('jeuneSolides')} placeholder="À partir de minuit" className="w-full bg-transparent border-none text-sm font-bold p-0 focus:ring-0 disabled:opacity-60 placeholder:font-normal placeholder:text-gray-400" />
+                    </div>
+                    <div className="bg-white p-3 rounded-lg">
+                      <label className="text-[10px] font-bold uppercase block mb-1">Liquide</label>
+                      <input disabled={!peutEditerExamenEtDecision} value={form.jeuneLiquides} onChange={setField('jeuneLiquides')} placeholder="Jusqu'à H-2" className="w-full bg-transparent border-none text-sm font-bold p-0 focus:ring-0 disabled:opacity-60 placeholder:font-normal placeholder:text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Préparation physique</label><textarea disabled={!peutEditerExamenEtDecision} value={form.preparationPhysique} onChange={setField('preparationPhysique')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Douche, dépilation..."></textarea></div>
+                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Tâches soignantes</label><textarea disabled={!peutEditerExamenEtDecision} value={form.tachesInfirmieres} onChange={setField('tachesInfirmieres')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Surveillance, constantes..."></textarea></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Rangée 2 : Prémédication + Médicaments d'anesthésie et de réanimation, côte à côte et
+              à la même hauteur. Médicaments d'anesthésie est volontairement plus large et plus
+              coloré : c'est le seul motif de venue de l'anesthésiste sur cette page pour beaucoup
+              de passages (prescrire ses médicaments sans forcément refaire toute la CPA), il ne
+              doit jamais se perdre à le chercher au milieu des autres champs. */}
+          <div className={`grid grid-cols-1 md:grid-cols-5 gap-8 items-stretch mt-4 pt-4 border-t border-surface-container ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
+            <div className="md:col-span-2">
+              <div className="h-full bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
               <h3 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">pill</span> Prémédication</h3>
               <div className="overflow-hidden border border-surface-container rounded-xl">
                 <table className="w-full text-left text-sm">
@@ -1388,140 +1499,44 @@ function ConsultationCpaPageContent() {
                   </div>
                 </div>
               )}
-
-              <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm space-y-2">
-                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Jeûne<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.jeune} onChange={setField('jeune')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Instructions spécifiques..."></textarea></div>
-                <div className="bg-blue-50/60 rounded-xl p-4 border-l-4 border-blue-400">
-                  <h3 className="text-sm font-bold text-blue-700 flex items-center gap-2 mb-2"><span className="material-symbols-outlined">no_food</span>Règles de jeûne</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-white p-3 rounded-lg">
-                      <label className="text-[10px] font-bold uppercase block mb-1">Solides</label>
-                      <input disabled={!peutEditerExamenEtDecision} value={form.jeuneSolides} onChange={setField('jeuneSolides')} placeholder="À partir de minuit" className="w-full bg-transparent border-none text-sm font-bold p-0 focus:ring-0 disabled:opacity-60 placeholder:font-normal placeholder:text-gray-400" />
-                    </div>
-                    <div className="bg-white p-3 rounded-lg">
-                      <label className="text-[10px] font-bold uppercase block mb-1">Liquide</label>
-                      <input disabled={!peutEditerExamenEtDecision} value={form.jeuneLiquides} onChange={setField('jeuneLiquides')} placeholder="Jusqu'à H-2" className="w-full bg-transparent border-none text-sm font-bold p-0 focus:ring-0 disabled:opacity-60 placeholder:font-normal placeholder:text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Préparation physique<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.preparationPhysique} onChange={setField('preparationPhysique')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Douche, dépilation..."></textarea></div>
-                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Tâches soignantes<Requis /></label><textarea disabled={!peutEditerExamenEtDecision} value={form.tachesInfirmieres} onChange={setField('tachesInfirmieres')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Surveillance, constantes..."></textarea></div>
-              </div>
             </div>
 
-            <div>
-              <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
-              <h3 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">medication</span> Médicaments d'anesthésie et de réanimation</h3>
-              <p className="text-xs text-on-surface-variant mb-2">À prévoir pour l'anesthésie et une éventuelle réanimation peropératoire — distinct de la prémédication, rempli par l'anesthésiste.</p>
-              {!peutEditerMedicamentsEtVpa && (
-                <div className="mb-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
-                  Réservé à l'anesthésiste{roleName ? ` (votre rôle : ${roleName})` : ''}.
+            <div className="md:col-span-3">
+              <div className="h-full flex flex-col rounded-2xl border-2 border-indigo-300 shadow-lg shadow-indigo-500/20 overflow-hidden bg-white">
+                <div className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>medication</span>
+                  <h3 className="text-sm font-extrabold text-white uppercase tracking-widest">Médicaments d'anesthésie et de réanimation</h3>
                 </div>
-              )}
-              <button type="button" onClick={() => peutEditerMedicamentsEtVpa && setShowCatalogueModal(true)} disabled={!peutEditerMedicamentsEtVpa}
-                className="w-full flex items-center justify-between p-4 border border-surface-container rounded-xl hover:bg-primary-fixed/10 transition-colors disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:bg-transparent">
-                <span className="flex items-center gap-2 text-sm font-bold text-primary">
-                  <span className="material-symbols-outlined">checklist</span>
-                  Liste des médicaments ({medicamentsSelectionnes.length}/{TOTAL_MEDICAMENTS} sélectionnés)
-                </span>
-                <span className="text-xs font-bold text-primary underline">{peutEditerMedicamentsEtVpa ? 'Ouvrir la liste complète' : 'Voir la liste'}</span>
-              </button>
-
-              <MedicamentsAnesthesieModal
-                open={showCatalogueModal}
-                onClose={() => setShowCatalogueModal(false)}
-                rows={medicamentsAnesthesieRows}
-                onRowsChange={setMedicamentsAnesthesieRows}
-              />
-              </div>
-            </div>
-          </div>
-
-          {/* Score ASA + Protocole retenu — déplacés en bas de page, juste avant la décision
-              finale (la prescription, elle, est montée en haut à droite). */}
-          <div className={`mt-4 pt-4 border-t border-surface-container grid grid-cols-1 lg:grid-cols-2 gap-4 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
-            <section className="bg-primary-container text-on-primary rounded-2xl p-4 shadow-lg shadow-primary/20">
-              <h2 className="text-lg font-bold font-headline mb-2 flex items-center gap-2">
-                <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>award_star</span> Score ASA<Requis />
-              </h2>
-              <div className="grid grid-cols-4 gap-2 mb-2">
-                {[1, 2, 3, 4, 5, 6].map((score) => (
-                  <button key={score} onClick={() => setScoreASA(score)} disabled={!peutEditerExamenEtDecision}
-                    className={`aspect-square rounded-xl font-bold text-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed ${scoreASA === score ? 'bg-white text-primary shadow-md scale-105' : 'bg-white/20 hover:bg-white/40'}`}>
-                    {score}
+                <div className="p-5 flex-1 flex flex-col">
+                  <p className="text-sm text-on-surface-variant mb-3">À prévoir pour l'anesthésie et une éventuelle réanimation peropératoire — distinct de la prémédication, rempli par l'anesthésiste.</p>
+                  {!peutEditerMedicamentsEtVpa && (
+                    <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                      Réservé à l'anesthésiste{roleName ? ` (votre rôle : ${roleName})` : ''}.
+                    </div>
+                  )}
+                  <button type="button" onClick={() => peutEditerMedicamentsEtVpa && setShowCatalogueModal(true)} disabled={!peutEditerMedicamentsEtVpa}
+                    className="mt-auto w-full flex items-center justify-between gap-3 p-5 bg-indigo-600 text-white rounded-xl font-extrabold shadow-md shadow-indigo-500/30 hover:shadow-lg hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
+                    <span className="flex items-center gap-2 text-base">
+                      <span className="material-symbols-outlined text-2xl">checklist</span>
+                      Liste des médicaments ({medicamentsSelectionnes.length}/{TOTAL_MEDICAMENTS} sélectionnés)
+                    </span>
+                    <span className="text-xs font-bold underline underline-offset-2 shrink-0">{peutEditerMedicamentsEtVpa ? 'Ouvrir la liste complète' : 'Voir la liste'}</span>
                   </button>
-                ))}
-                <button onClick={() => setScoreASA('E')} disabled={!peutEditerExamenEtDecision}
-                  className={`col-span-2 aspect-[2/1] rounded-xl font-bold transition-all disabled:opacity-60 disabled:cursor-not-allowed ${scoreASA === 'E' ? 'bg-white text-primary shadow-md scale-105' : 'bg-tertiary-container/40 hover:bg-tertiary-container/60'}`}>
-                  ASA E
-                </button>
-              </div>
-              <p className="text-[10px] text-white/70 uppercase font-bold text-center">Patient avec pathologie systémique sévère</p>
-            </section>
+                </div>
 
-            <section className="bg-white rounded-2xl shadow-md border-2 border-secondary/20 overflow-hidden">
-              <div className="bg-gradient-to-r from-secondary to-secondary/80 px-4 py-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-white">vaccines</span>
-                <h2 className="text-sm font-extrabold text-white uppercase tracking-widest">Protocole retenu</h2>
+                <MedicamentsAnesthesieModal
+                  open={showCatalogueModal}
+                  onClose={() => setShowCatalogueModal(false)}
+                  rows={medicamentsAnesthesieRows}
+                  onRowsChange={setMedicamentsAnesthesieRows}
+                />
               </div>
-              <div className="p-4 space-y-3">
-                <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">medication_liquid</span> Type d'anesthésie<Requis />
-                  </label>
-                  <div className="grid grid-cols-3 gap-2 mb-2">
-                    {['Anesthésie Générale (AG)', 'ALR', 'AL'].map(type => (
-                      <button key={type} type="button" disabled={!peutEditerExamenEtDecision}
-                        onClick={() => setForm(f => ({ ...f, typeAnesthesie: type, sousTypeAnesthesie: '' }))}
-                        className={`p-3 rounded-lg border-2 font-bold text-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.typeAnesthesie === type ? 'border-secondary bg-secondary text-white shadow-md' : 'border-secondary/20 bg-white text-on-surface hover:bg-secondary/10'}`}>
-                        {type === 'Anesthésie Générale (AG)' ? 'AG' : type}
-                      </button>
-                    ))}
-                  </div>
-                  {form.typeAnesthesie === 'Anesthésie Générale (AG)' && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {['Sédation', 'Intubation', 'Masque Laryngé', 'Masque Facial'].map(st => (
-                        <button key={st} type="button" disabled={!peutEditerExamenEtDecision}
-                          onClick={() => setForm(f => ({ ...f, sousTypeAnesthesie: st }))}
-                          className={`p-2.5 rounded-lg border-2 font-semibold text-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.sousTypeAnesthesie === st ? 'border-secondary bg-secondary-fixed text-secondary' : 'border-secondary/20 bg-white text-on-surface-variant hover:bg-secondary/5'}`}>
-                          {st}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {form.typeAnesthesie === 'ALR' && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {['Rachianesthésie', 'APD', 'Blocage'].map(st => (
-                        <button key={st} type="button" disabled={!peutEditerExamenEtDecision}
-                          onClick={() => setForm(f => ({ ...f, sousTypeAnesthesie: st }))}
-                          className={`p-2.5 rounded-lg border-2 font-semibold text-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed ${form.sousTypeAnesthesie === st ? 'border-secondary bg-secondary-fixed text-secondary' : 'border-secondary/20 bg-white text-on-surface-variant hover:bg-secondary/5'}`}>
-                          {st}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">air</span> Technique d'intubation<Requis />
-                  </label>
-                  <select disabled={!peutEditerExamenEtDecision} value={form.techniqueIntubation} onChange={setField('techniqueIntubation')} className={`w-full bg-white border rounded-xl p-3 text-sm font-bold text-on-surface focus:ring-2 focus:ring-secondary/30 outline-none disabled:opacity-60 ${form.techniqueIntubation ? 'border-secondary/20' : 'border-amber-300'}`}>
-                    <option value="">— Sélectionner —</option><option>Sonde Endotrachéale</option><option>Masque Laryngé</option><option>IOT Séquence Rapide</option>
-                  </select>
-                </div>
-                <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
-                  <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">checklist</span> Recommandations et protocoles
-                  </label>
-                  <textarea disabled={!peutEditerExamenEtDecision} value={form.recommandationsProtocole} onChange={setField('recommandationsProtocole')} className="w-full h-20 bg-white border border-secondary/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-secondary/30 outline-none disabled:opacity-60" placeholder="Surveillance renforcée, précautions particulières..."></textarea>
-                </div>
-              </div>
-            </section>
+            </div>
           </div>
 
           {/* Décision Finale — seul champ réellement obligatoire de la consultation : mise en
               évidence forte (cadre doré) pour la distinguer de tous les autres champs libres */}
-          <div className="mt-4 pt-4 border-t border-surface-container">
+          <div id="cpa-decision" className="mt-4 pt-4 border-t border-surface-container scroll-mt-32">
             <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-50/80 to-white shadow-md overflow-hidden">
               <div className="px-4 py-3 bg-amber-100/70 border-b border-amber-200 flex items-center gap-2">
                 <span className="material-symbols-outlined text-amber-600">gavel</span>
@@ -1624,16 +1639,10 @@ function ConsultationCpaPageContent() {
                     </div>
                   </div>
                 )}
-                {/* Mention informelle : pas un vrai workflow d'approbation, juste un aperçu si le
-                    Prof/chef de service a donné son accord par un simple appel téléphonique. */}
-                <div className="mt-3 pt-3 border-t border-amber-200/60">
-                  <label className="text-[11px] font-bold text-amber-800 block mb-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">call</span> Validation informelle du Prof (optionnel)
-                  </label>
-                  <input disabled={!peutEditerExamenEtDecision} value={validationProfInformelle} onChange={e => setValidationProfInformelle(e.target.value)}
-                    className="w-full bg-white border border-amber-200 rounded-lg p-2 text-xs disabled:opacity-60"
-                    placeholder="Ex : validé par téléphone par le Pr Rakoto le 22/07 à 14h" />
-                </div>
+                {/* Pas de saisie manuelle ici : quand ce n'est pas le Responsable CPA qui soumet
+                    la fiche, la validation téléphonique du Responsable CPA est actée
+                    automatiquement à l'enregistrement (voir handleValider) — aucun workflow
+                    d'approbation à gérer sur la plateforme. */}
               </div>
             </div>
           </div>
@@ -1665,19 +1674,21 @@ function ConsultationCpaPageContent() {
             </div>
           )}
 
-          {/* Planification de la vérification à la veille — dès la décision APTE, posée par qui
-              valide la CPA (Respo CPA/Major en étape 1, ou l'anesthésiste solo/en réouverture) :
-              sans cette date, le patient restait bloqué à CPA_REALISE, invisible du Fil de
-              travail tant qu'un anesthésiste ne rouvrait pas manuellement la fiche. Sans objet
-              pour un patient urgent (chirurgie immédiate, pas de "veille"), ni pour REPORT (voir
-              la date de report ci-dessus) ou INAPTE. */}
+          {/* Vérification à la veille — plus un vrai "créneau" à planifier : elle a toujours lieu
+              la veille de l'opération, la date est donc attribuée automatiquement (voir l'effet
+              plus haut) à partir de la date d'intervention connue, pas choisie dans un calendrier.
+              Sans objet pour un patient urgent (chirurgie immédiate, pas de "veille"), ni pour
+              REPORT (voir la date de report ci-dessus) ou INAPTE. Sans cette date, le patient
+              restait bloqué à CPA_REALISE, invisible du Fil de travail tant qu'un anesthésiste ne
+              rouvrait pas manuellement la fiche. */}
           {(peutEditerExamenEtDecision || peutEditerMedicamentsEtVpa) && !estUrgent && decision === 'APTE' && (
             <div className="mt-4 p-4 bg-surface-container-low rounded-xl border space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-sm font-bold block">Planification de la vérification à la veille de l'opération</label>
-                <CalendrierAgenda type="VERIFICATION_VEILLE" onSelectDate={setDateVPA} />
-              </div>
-              <p className="text-xs text-on-surface-variant mb-1">Contrôle final réalisé la veille de l'intervention, avant le passage au bloc. L'icône calendrier montre les jours déjà chargés pour vous aider à choisir.</p>
+              <label className="text-sm font-bold block">Vérification à la veille de l'opération</label>
+              <p className="text-xs text-on-surface-variant mb-1">
+                {patient?.dateIntervention
+                  ? `Date attribuée automatiquement (veille de l'opération du ${new Date(patient.dateIntervention).toLocaleDateString('fr-FR')}) — modifiable si besoin.`
+                  : "Date d'opération pas encore connue : renseignez-la vous-même, ou laissez vide — le patient restera visible dans le Fil de travail en attendant."}
+              </p>
               <div className="flex flex-col md:flex-row md:items-center gap-2">
                 <input className="flex-1 bg-white border-none rounded-lg p-2 text-sm" type="date" value={dateVPA} onChange={e => setDateVPA(e.target.value)} min={new Date().toISOString().split('T')[0]} />
                 <input className="flex-none w-32 bg-white border-none rounded-lg p-2 text-sm" type="time" value={heureVPA} onChange={e => setHeureVPA(e.target.value)} />
@@ -1686,10 +1697,8 @@ function ConsultationCpaPageContent() {
           )}
 
           {/* Export / Partage — capture la fiche CPA telle que remplie à l'instant en PDF, à
-              envoyer au professeur responsable de CPA. Le partage direct (pièce jointe) ne
-              fonctionne que sur les navigateurs qui supportent l'API Web Share niveau 2
-              (surtout mobile) — sur les autres, le PDF est téléchargé et il faut le joindre à
-              la main, aucune page web ne peut le faire automatiquement. */}
+              envoyer au professeur responsable de CPA, par WhatsApp ou email (pas de partage
+              "appareil" : la fiche ne part jamais vers quelqu'un à proximité). */}
           <div className="mt-4 pt-4 border-t border-surface-container">
             <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-base">ios_share</span> Exporter / Partager la fiche CPA
@@ -1698,10 +1707,6 @@ function ConsultationCpaPageContent() {
               <button type="button" onClick={handleTelechargerPdf} disabled={exportEnCours}
                 className="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container transition-colors disabled:opacity-50">
                 <span className="material-symbols-outlined text-base">picture_as_pdf</span> Télécharger en PDF
-              </button>
-              <button type="button" onClick={handlePartager} disabled={exportEnCours}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50">
-                <span className="material-symbols-outlined text-base">share</span> Partager (appareil)
               </button>
               <button type="button" onClick={handlePartagerWhatsApp} disabled={exportEnCours}
                 className="flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-lg text-xs font-bold hover:opacity-90 transition-colors disabled:opacity-50">

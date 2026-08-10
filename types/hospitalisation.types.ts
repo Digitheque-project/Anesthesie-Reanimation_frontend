@@ -30,6 +30,24 @@ export interface Hospitalisation {
   commentaire?: string
 }
 
+export interface PlanLitsLit {
+  id: string
+  codeLit: string
+  statut: 'DISPONIBLE' | 'OCCUPE' | 'A_NETTOYER' | 'MAINTENANCE'
+}
+
+export interface PlanLitsChambre {
+  chambreId: string
+  numeroChambre: number
+  type: string
+  lits: PlanLitsLit[]
+}
+
+export interface PlanLitsResponse {
+  serviceId: string
+  chambres: PlanLitsChambre[]
+}
+
 export interface CloseHospitalisationPayload {
   chuId: string
   updatedBy: string

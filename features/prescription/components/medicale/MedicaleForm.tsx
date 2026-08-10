@@ -181,7 +181,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
         {visibleTabs.map(t => (
           <button key={t.key} style={chipStyle(activeTab === t.key)} onClick={() => setActiveTab(t.key)}>
-            <span className="ms" style={{ fontSize: 16 }}>{t.icon}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{t.icon}</span>
             {t.label}
             {t.key === 'encours' && prescriptionsEnCours.length > 0 && (
               <span style={{
@@ -259,7 +259,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
                 <div className="togr-l"><p>Notifier les infirmiers</p><span>Envoyer une notification au service</span></div>
                 <label className="tog"><input type="checkbox" checked={notifier} onChange={e => setNotifier(e.target.checked)}/><span className="tog-t"></span></label>
               </div>
-              {notifier && <div className="hint"><span className="ms" style={{fontSize:13,verticalAlign:'middle',color:'var(--navy)'}}>notifications_active</span> Notification envoyée aux <strong>infirmiers de garde</strong>.</div>}
+              {notifier && <div className="hint"><span className="material-symbols-outlined" style={{fontSize:13,verticalAlign:'middle',color:'var(--navy)'}}>notifications_active</span> Notification envoyée aux <strong>infirmiers de garde</strong>.</div>}
             </div>
 
             {!canValidate && (
@@ -281,7 +281,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >
-                <span className="ms">save</span>{loading ? 'Enregistrement...' : 'Valider'}
+                <span className="material-symbols-outlined">save</span>{loading ? 'Enregistrement...' : 'Valider'}
               </button>
               <button
                 onClick={handleCreerOrdonnance}
@@ -294,7 +294,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 }}
               >
-                <span className="ms">description</span>{loading ? 'Création...' : 'Créer Ordonnance'}
+                <span className="material-symbols-outlined">description</span>{loading ? 'Création...' : 'Créer Ordonnance'}
               </button>
             </div>
           </div>
@@ -305,7 +305,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
       {activeTab === 'encours' && (
         <div>
           <div className="active-rx" style={{ maxWidth: 700 }}>
-            <div className="active-rx-header"><span className="ms">pending_actions</span><span>Prescriptions en cours</span></div>
+            <div className="active-rx-header"><span className="material-symbols-outlined">pending_actions</span><span>Prescriptions en cours</span></div>
             {prescriptionsEnCours.length > 0 ? prescriptionsEnCours.map(p => (
               <div key={p.id} style={{ position: 'relative' }}>
                 {p.medicaments?.map((med, idx) => (
@@ -324,7 +324,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
                     color: 'var(--txt3)', fontSize: 16, lineHeight: 1,
                   }}
                 >
-                  <span className="ms">check_circle</span>
+                  <span className="material-symbols-outlined">check_circle</span>
                 </button>
               </div>
             )) : (
@@ -346,7 +346,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
         <PremierSoinTab patientId={patient.id} />
       )}
 
-      {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
+      {toast && <div className="tst on"><span className="material-symbols-outlined">check_circle</span>{toast}</div>}
 
       <ConfirmationModal
         open={showConfirmValidation}

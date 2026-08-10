@@ -231,7 +231,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd }: Pro
               ? kitsDisponibles.find((k) => k.id === selectedKitId)?.designation || kitsDisponibles.find((k) => k.id === selectedKitId)?.nom || 'Kit sélectionné'
               : '-- Aucun kit sélectionné --'}
           </span>
-          <span className="ms" style={{ fontSize: 16, color: 'var(--txt3)' }}>{showKitDropdown ? 'expand_less' : 'expand_more'}</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3)' }}>{showKitDropdown ? 'expand_less' : 'expand_more'}</span>
         </div>
         {showKitDropdown && (
           <div style={{
@@ -282,7 +282,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd }: Pro
             onFocus={() => { if (nom.trim().length > 0) setShowSuggestions(true); }}
             placeholder="Rechercher dans le stock pharmacie..."
             style={errors.nom ? { borderColor: 'var(--red)' } : {}} />
-          <span className="ico"><span className="ms">search</span></span>
+          <span className="ico"><span className="material-symbols-outlined">search</span></span>
         </div>
         {errors.nom && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.nom}</div>}
         {searchError && <div style={{ fontSize: 11, color: 'var(--orange)', marginTop: 3 }}>{searchError}</div>}
@@ -364,7 +364,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd }: Pro
       <div className="mb12"><label className="lbl">Instructions d&apos;utilisation</label><input type="text" value={instructions} onChange={e => setInstructions(e.target.value)} placeholder="Ex : à prendre après les repas..."/></div>
       <div className="mb12"><label className="lbl">Remarques</label><input type="text" value={remarques} onChange={e => setRemarques(e.target.value)} placeholder="Précisions complémentaires..."/></div>
       <button className="badd" onClick={ajouterMedicament} style={{ opacity: isFormValid ? 1 : 0.5 }}>
-        <span className="ms" style={{fontSize:17}}>add</span> Ajouter à la prescription
+        <span className="material-symbols-outlined" style={{fontSize:17}}>add</span> Ajouter à la prescription
       </button>
     </>
   );

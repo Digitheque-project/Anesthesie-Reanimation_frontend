@@ -83,6 +83,16 @@
   animation: overlayFadeIn 0.2s ease-out forwards;
 }
 
+/* Barres de navigation horizontales défilables (ex: sommaire de sections CPA) — scroll tactile
+   intact, juste sans le rail visible qui alourdit une simple rangée de pastilles. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Impression : n'imprime que le contenu de la page (masque menu latéral, barre du haut et
    tout élément marqué print:hidden côté composants), sans marge de mise en page écran. */
 @media print {

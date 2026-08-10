@@ -114,7 +114,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
   if (draftItems.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--txt3)' }}>
-        <span className="ms" style={{ fontSize: 40, display: 'block', marginBottom: 8, color: 'var(--bdr)' }}>description</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 40, display: 'block', marginBottom: 8, color: 'var(--bdr)' }}>description</span>
         <p style={{ fontSize: 13 }}>Aucune ordonnance en attente</p>
         <p style={{ fontSize: 12, marginTop: 4 }}>Ajoutez des médicaments depuis l&apos;onglet <strong>Nouvelle prescription</strong> puis cliquez <strong>Créer Ordonnance</strong>.</p>
       </div>
@@ -142,7 +142,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
                   width: 36, height: 36, borderRadius: '50%',
                   background: 'var(--navy-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <span className="ms" style={{ fontSize: 18, color: 'var(--navy)' }}>description</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--navy)' }}>description</span>
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--txt)' }}>{item.summary}</div>
@@ -156,7 +156,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
                 title="Retirer du panier"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--txt3)', fontSize: 16 }}
               >
-                <span className="ms">delete</span>
+                <span className="material-symbols-outlined">delete</span>
               </button>
             </div>
 
@@ -168,7 +168,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
                   padding: '6px 10px', background: '#eff6ff', borderRadius: 6,
                   border: '1px solid #bfdbfe',
                 }}>
-                  <span className="ms" style={{ fontSize: 14, color: '#2563eb' }}>local_hospital</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#2563eb' }}>local_hospital</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#1e40af' }}>PREMIER SOINS</span>
                   <span style={{ fontSize: 10, color: '#60a5fa', fontWeight: 600 }}>({premierSoinMeds.length})</span>
                 </div>
@@ -217,7 +217,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
                         onChange={() => togglePremierSoin(item.localId, m.id)}
                         style={{ accentColor: '#2563eb', width: 14, height: 14 }}
                       />
-                      <span className="ms" style={{ fontSize: 12, color: '#2563eb' }}>local_hospital</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#2563eb' }}>local_hospital</span>
                     </label>
                   </div>
                 ))}
@@ -232,7 +232,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
                   padding: '6px 10px', background: '#f9fafb', borderRadius: 6,
                   border: '1px solid var(--bdr)',
                 }}>
-                  <span className="ms" style={{ fontSize: 14, color: 'var(--txt3)' }}>medication</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, color: 'var(--txt3)' }}>medication</span>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--txt2)' }}>AUTRES MÉDICAMENTS</span>
                   <span style={{ fontSize: 10, color: 'var(--txt3)', fontWeight: 600 }}>({nonPremierSoinMeds.length})</span>
                 </div>
@@ -280,7 +280,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
                         onChange={() => togglePremierSoin(item.localId, m.id)}
                         style={{ accentColor: '#2563eb', width: 14, height: 14 }}
                       />
-                      <span className="ms" style={{ fontSize: 12, color: '#9ca3af' }}>local_hospital</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 12, color: '#9ca3af' }}>local_hospital</span>
                     </label>
                   </div>
                 ))}
@@ -319,7 +319,7 @@ export default function OrdonnanceTab({ patient, prescripteur }: Props) {
         );
       })}
 
-      {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
+      {toast && <div className="tst on"><span className="material-symbols-outlined">check_circle</span>{toast}</div>}
     </div>
   );
 }

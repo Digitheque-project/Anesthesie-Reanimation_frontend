@@ -6,6 +6,8 @@ import { planningService, patientService } from '@/lib/api';
 import { formaterNomPatient } from '@/lib/patient';
 import { styleUrgence } from '@/lib/urgence';
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
+import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus';
+import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate';
 
 type Onglet = 'CPA' | 'VERIFICATION_VEILLE';
 
@@ -86,6 +88,14 @@ export default function RendezVousPage() {
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
+
+  // Un patient dont la CPA/vérification veille vient d'être traitée (depuis un autre onglet, ou
+  // page restaurée depuis le cache de navigation du routeur) pouvait rester affiché ici sans
+  // rafraîchissement manuel — voir useRefetchOnFocus.
+  useRefetchOnFocus(charger);
+  // Rafraîchissement en temps réel (sans recharger la page) dès qu'une action est traitée,
+  // ici ou depuis un autre poste connecté — voir useRefetchOnRealtimeUpdate.
+  useRefetchOnRealtimeUpdate(charger);
 
   // Recherche multi-champs côté client (nom patient, type, chirurgien) — même pattern que
   // app/bloc/rapports/page.tsx.

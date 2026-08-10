@@ -6,6 +6,7 @@ import { styleUrgence } from "@/lib/urgence";
 import { formaterNomPatient } from "@/lib/patient";
 import { libelleStatutPatient, styleStatutPatient } from "@/lib/statut";
 import { useRole } from "@/lib/hooks/useRole";
+import VoirDossierButton from "@/components/bloc/patient/VoirDossierButton";
 
 interface Patient {
   id: string;
@@ -60,11 +61,6 @@ export default function PatientsListTableNonOp({ patients }: PatientsListTableNo
       next.delete(patient.id);
       return next;
     }), 1000);
-  };
-
-  const handleDossier = (patient: Patient) => {
-    const cleanId = patient.realId || patient.id.replace("#", "");
-    router.push(`/bloc/dossier-patient/${cleanId}/complet`);
   };
 
   return (
@@ -126,10 +122,11 @@ export default function PatientsListTableNonOp({ patients }: PatientsListTableNo
                         className="min-w-[100px] px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm disabled:opacity-70">
                         {isLoading ? '...' : 'Démarrer'}
                       </button>
-                      <button onClick={() => handleDossier(patient)}
-                        className="px-4 py-1.5 bg-white text-primary border border-primary/30 rounded-lg text-xs font-bold hover:bg-primary-fixed transition-all active:scale-95 shadow-sm">
-                        Dossier
-                      </button>
+                      <VoirDossierButton
+                        patientId={patient.realId || patient.id.replace("#", "")}
+                        variant="button"
+                        className="!px-4 !py-1.5 !bg-white border border-primary/30 hover:!bg-primary-fixed"
+                      />
                     </div>
                   </td>
                 </tr>

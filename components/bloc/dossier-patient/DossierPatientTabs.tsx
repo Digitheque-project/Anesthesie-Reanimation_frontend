@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { patientService } from '@/lib/api'
+import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
 
 interface DossierPatientTabsProps {
   patientId: string
@@ -347,13 +347,7 @@ export default function DossierPatientTabs({ patientId }: DossierPatientTabsProp
   return (
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
       <div className="flex items-center justify-end px-3 py-2 border-b border-outline-variant/20 bg-surface-container-lowest">
-        <Link
-          href={`/bloc/dossier-patient/${patientId}/complet`}
-          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-colors"
-        >
-          <span className="material-symbols-outlined text-base">open_in_new</span>
-          Ouvrir le dossier complet (édition + prescription)
-        </Link>
+        <VoirDossierButton patientId={patientId} variant="button" className="shrink-0" />
       </div>
       <div className="flex overflow-x-auto border-b border-outline-variant/20 bg-surface-container-lowest">
         {ONGLETS.map(o => (

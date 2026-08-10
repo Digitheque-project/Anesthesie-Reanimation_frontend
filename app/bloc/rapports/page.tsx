@@ -236,7 +236,7 @@ export default function RapportsPage() {
           { label: 'Sorties de réveil', val: stats.totalSortiesReveil, icon: 'exit_to_app', couleur: 'teal' },
           { label: 'Médecins actifs', val: stats.totalMedecins, icon: 'medical_information', couleur: 'indigo' },
         ].map((kpi, i) => (
-          <KpiCard key={i} label={kpi.label} valeur={loading ? '…' : (kpi.val ?? 0)} icone={kpi.icon} couleur={kpi.couleur} />
+          <KpiCard key={i} label={kpi.label} valeur={kpi.val ?? 0} loading={loading} icone={kpi.icon} couleur={kpi.couleur} />
         ))}
       </div>
 
@@ -487,7 +487,13 @@ export default function RapportsPage() {
             </thead>
             <tbody className="divide-y divide-outline-variant/10">
               {loading ? (
-                <tr><td colSpan={9} className="px-4 py-10 text-center text-on-surface-variant">Chargement...</td></tr>
+                [0, 1, 2, 3].map((i) => (
+                  <tr key={i}>
+                    <td colSpan={9} className="px-4 py-3">
+                      <div className="h-4 w-full max-w-md bg-slate-200 rounded animate-pulse" />
+                    </td>
+                  </tr>
+                ))
               ) : detailFiltre.length === 0 ? (
                 <tr><td colSpan={9} className="px-4 py-10 text-center text-on-surface-variant">Aucune opération sur cette période</td></tr>
               ) : detailFiltre.map((o: any, i: number) => {
@@ -533,7 +539,7 @@ const KPI_COULEUR: Record<string, { bg: string; text: string; barre: string }> =
   rose: { bg: 'bg-rose-100', text: 'text-rose-700', barre: 'bg-rose-500' },
 }
 
-function KpiCard({ label, valeur, icone, couleur }: { label: string; valeur: any; icone: string; couleur: string }) {
+function KpiCard({ label, valeur, loading, icone, couleur }: { label: string; valeur: any; loading?: boolean; icone: string; couleur: string }) {
   const c = KPI_COULEUR[couleur] || KPI_COULEUR.blue
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20 flex items-center gap-4 hover:shadow-md transition-shadow">
@@ -542,7 +548,13 @@ function KpiCard({ label, valeur, icone, couleur }: { label: string; valeur: any
       </div>
       <div>
         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wide">{label}</p>
-        <p className={`text-2xl font-extrabold ${c.text}`}>{valeur}</p>
+        {/* Squelette animé plutôt qu'un "…" figé (voir aussi EtatGlobalPatients/GroupePlanningTable
+            sur le tableau de bord — même correctif, même raison). */}
+        {loading ? (
+          <div className="h-7 w-10 bg-slate-200 rounded animate-pulse mt-0.5" />
+        ) : (
+          <p className={`text-2xl font-extrabold ${c.text}`}>{valeur}</p>
+        )}
       </div>
     </div>
   )

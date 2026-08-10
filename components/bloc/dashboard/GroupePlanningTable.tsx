@@ -42,13 +42,28 @@ export default function GroupePlanningTable({ icon, titre, accent, lignes, loadi
           <span className={`material-symbols-outlined ${c.text}`}>{icon}</span>
           <h3 className={`font-bold ${c.text} text-sm uppercase tracking-widest`}>{titre}</h3>
         </div>
-        <span className={`${c.badge} px-2 py-0.5 rounded text-[10px] font-bold`}>
-          {loading ? '…' : `${lignes.length} patient${lignes.length > 1 ? 's' : ''}`}
-        </span>
+        {loading ? (
+          <div className="h-4 w-16 bg-white/60 rounded animate-pulse" />
+        ) : (
+          <span className={`${c.badge} px-2 py-0.5 rounded text-[10px] font-bold`}>
+            {`${lignes.length} patient${lignes.length > 1 ? 's' : ''}`}
+          </span>
+        )}
       </div>
 
       {loading ? (
-        <p className="text-xs text-on-surface-variant px-6 py-6">Chargement...</p>
+        // Squelette de lignes plutôt qu'un simple texte "Chargement..." — donne tout de suite la
+        // forme du tableau à venir, au lieu d'un état qui peut se lire comme figé pendant 5-8s.
+        <div className="divide-y divide-outline-variant/10">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="px-6 py-4 flex items-center gap-4">
+              <div className="h-4 w-16 bg-slate-200 rounded animate-pulse" />
+              <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
+              <div className="h-4 flex-1 bg-slate-100 rounded animate-pulse" />
+              <div className="h-4 w-12 bg-slate-100 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
       ) : lignes.length === 0 ? (
         <p className="text-xs text-on-surface-variant px-6 py-6">{emptyMessage}</p>
       ) : (

@@ -183,7 +183,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
                 </div>
               </>
             )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}><span className="ms" style={{ fontSize: 16, color: 'var(--red)' }}>warning</span><span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--red)' }}>Alertes</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}><span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--red)' }}>warning</span><span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--red)' }}>Alertes</span></div>
             <textarea style={{ background: 'var(--red-lt)', border: '1.5px dashed var(--red-bdr)', borderRadius: 10, padding: '8px 12px', fontSize: 14, width: '100%', resize: 'none' }} rows={1} placeholder="Contre-indications..." value={alertes} onChange={e => setAlertes(e.target.value)} />
           </div>
           <div className="card" style={{ padding: 12 }}>
@@ -195,7 +195,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
           </div>
           <button className="bp" onClick={handleSubmit} disabled={!isFormValid || loading} style={{ opacity: isFormValid && !loading ? 1 : 0.5, marginTop: 0 }}
 >
-  <span className="ms">check_circle</span>{loading ? "Envoi..." : "Valider"}
+  <span className="material-symbols-outlined">check_circle</span>{loading ? "Envoi..." : "Valider"}
 </button>
         </div>
       </div>
@@ -213,7 +213,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
         isSending={isSending}
       />
 
-      {toast && <div className="tst on"><span className="ms">check_circle</span>{toast}</div>}
+      {toast && <div className="tst on"><span className="material-symbols-outlined">check_circle</span>{toast}</div>}
     </div>
   );
 }

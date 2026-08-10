@@ -3,11 +3,27 @@
 import { useState, useEffect } from 'react'
 import { rapportsService, notificationService, patientService } from '@/lib/api'
 import WelcomeBanner from '@/components/bloc/dashboard/WelcomeBanner'
-import EtatGlobalPatients from '@/components/bloc/dashboard/EtatGlobalPatients'
+import EtatGlobalPatients, { type SectionResume } from '@/components/bloc/dashboard/EtatGlobalPatients'
 import AlerteBandeau, { type PatientTresUrgent } from '@/components/bloc/dashboard/AlerteBandeau'
 import GroupePlanningTable, { LignePlanning } from '@/components/bloc/dashboard/GroupePlanningTable'
 import { obtenirSessionValide } from '@/lib/auth/central-session'
 import { formaterNomPatient } from '@/lib/patient'
+import { useRole } from '@/lib/hooks/useRole'
+import { RoleClinique } from '@/lib/auth/role-clinique'
+
+// Même règle de visibilité que le menu latéral (voir rolesExclus dans Sidebar.tsx) — sans ce
+// filtre, le tableau de bord affichait les compteurs et le planning de pages totalement absentes
+// du menu du rôle connecté (ex: "Bloc opératoire"/"Salle de réveil" pour un Major ou un
+// Responsable CPA, "Prescription"/"CPA" pour un IBODE), sans nulle part où aller les consulter en
+// détail.
+const BLOCS_EXCLUS: Partial<Record<'prescription' | 'cpa' | 'bloc' | 'reveil', RoleClinique[]>> = {
+  prescription: [RoleClinique.CHIRURGIEN, RoleClinique.IBODE],
+  // La CPA se pilote depuis Prescription/Fil de travail (aucune entrée de menu dédiée) — mêmes
+  // rôles exclus que ces deux pages.
+  cpa: [RoleClinique.CHIRURGIEN, RoleClinique.IBODE],
+  bloc: [RoleClinique.MAJOR, RoleClinique.RESPONSABLE_CPA],
+  reveil: [RoleClinique.MAJOR, RoleClinique.RESPONSABLE_CPA, RoleClinique.CHIRURGIEN, RoleClinique.IBODE],
+}
 
 // Jamais l'ID en remplacement du nom (interdit) — voir formaterNomPatient.
 const nomPatient = (p: any) => {
@@ -31,6 +47,8 @@ export default function DashboardPage() {
   const [patientsReveil, setPatientsReveil] = useState<LignePlanning[]>([])
   const [patientsTresUrgents, setPatientsTresUrgents] = useState<PatientTresUrgent[]>([])
   const session = obtenirSessionValide()
+  const { role } = useRole()
+  const visible = (cle: keyof typeof BLOCS_EXCLUS) => !role || !BLOCS_EXCLUS[cle]?.includes(role)
 
   useEffect(() => { chargerToutesLesDonnees() }, [])
 
@@ -139,12 +157,12 @@ export default function DashboardPage() {
 
       <EtatGlobalPatients
         loading={loading}
-        sections={[
-          { titre: 'Prescription — Aujourd\'hui', icon: 'notification_important', accent: 'tertiary', lignes: prescriptions },
-          { titre: 'CPA — Aujourd\'hui', icon: 'fact_check', accent: 'quaternary', lignes: patientsCpa },
-          { titre: 'Bloc opératoire — Aujourd\'hui', icon: 'medical_services', accent: 'primary', lignes: patientsBloc },
-          { titre: 'Salle de réveil', icon: 'bed', accent: 'secondary', lignes: patientsReveil },
-        ]}
+        sections={([
+          visible('prescription') && { titre: 'Prescription — Aujourd\'hui', icon: 'notification_important', accent: 'tertiary', lignes: prescriptions },
+          visible('cpa') && { titre: 'CPA — Aujourd\'hui', icon: 'fact_check', accent: 'quaternary', lignes: patientsCpa },
+          visible('bloc') && { titre: 'Bloc opératoire — Aujourd\'hui', icon: 'medical_services', accent: 'primary', lignes: patientsBloc },
+          visible('reveil') && { titre: 'Salle de réveil', icon: 'bed', accent: 'secondary', lignes: patientsReveil },
+        ].filter(Boolean)) as SectionResume[]}
       />
 
       <div className="space-y-4">
@@ -152,38 +170,46 @@ export default function DashboardPage() {
           <h2 className="text-xl font-bold text-on-surface">Planning du jour</h2>
         </div>
         <div className="grid grid-cols-1 gap-6">
-          <GroupePlanningTable
-            icon="notification_important"
-            titre="Fil de prescription — Aujourd'hui"
-            accent="tertiary"
-            lignes={prescriptions}
-            loading={loading}
-            emptyMessage="Aucune prescription reçue aujourd'hui"
-          />
-          <GroupePlanningTable
-            icon="fact_check"
-            titre="Patients prêts pour la CPA"
-            accent="quaternary"
-            lignes={patientsCpa}
-            loading={loading}
-            emptyMessage="Aucun patient en attente de consultation pré-anesthésique"
-          />
-          <GroupePlanningTable
-            icon="medical_services"
-            titre="Bloc Opératoire — Aujourd'hui"
-            accent="primary"
-            lignes={patientsBloc}
-            loading={loading}
-            emptyMessage="Aucun patient prêt ou en cours d'intervention aujourd'hui"
-          />
-          <GroupePlanningTable
-            icon="bed"
-            titre="Salle de Réveil"
-            accent="secondary"
-            lignes={patientsReveil}
-            loading={loading}
-            emptyMessage="Personne en salle de réveil actuellement"
-          />
+          {visible('prescription') && (
+            <GroupePlanningTable
+              icon="notification_important"
+              titre="Fil de prescription — Aujourd'hui"
+              accent="tertiary"
+              lignes={prescriptions}
+              loading={loading}
+              emptyMessage="Aucune prescription reçue aujourd'hui"
+            />
+          )}
+          {visible('cpa') && (
+            <GroupePlanningTable
+              icon="fact_check"
+              titre="Patients prêts pour la CPA"
+              accent="quaternary"
+              lignes={patientsCpa}
+              loading={loading}
+              emptyMessage="Aucun patient en attente de consultation pré-anesthésique"
+            />
+          )}
+          {visible('bloc') && (
+            <GroupePlanningTable
+              icon="medical_services"
+              titre="Bloc Opératoire — Aujourd'hui"
+              accent="primary"
+              lignes={patientsBloc}
+              loading={loading}
+              emptyMessage="Aucun patient prêt ou en cours d'intervention aujourd'hui"
+            />
+          )}
+          {visible('reveil') && (
+            <GroupePlanningTable
+              icon="bed"
+              titre="Salle de Réveil"
+              accent="secondary"
+              lignes={patientsReveil}
+              loading={loading}
+              emptyMessage="Personne en salle de réveil actuellement"
+            />
+          )}
         </div>
       </div>
     </div>

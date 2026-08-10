@@ -43,9 +43,15 @@ export default function EtatGlobalPatients({ sections, loading }: EtatGlobalProp
               <h4 className={`text-[11px] font-extrabold uppercase tracking-wider ${c.text}`}>{section.titre}</h4>
             </div>
 
-            <p className="text-4xl font-black text-on-surface tracking-tighter mb-4">
-              {loading ? '…' : total.toString().padStart(2, '0')}
-            </p>
+            {/* Squelette animé plutôt qu'un "…" figé — sans repère de progression, un
+                chargement de 5-8s peut se lire comme un écran figé qui incite à rafraîchir. */}
+            {loading ? (
+              <div className="h-9 w-14 bg-slate-200 rounded-md animate-pulse mb-4" />
+            ) : (
+              <p className="text-4xl font-black text-on-surface tracking-tighter mb-4">
+                {total.toString().padStart(2, '0')}
+              </p>
+            )}
 
             <div className="space-y-1.5 pt-3 border-t border-slate-50">
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">

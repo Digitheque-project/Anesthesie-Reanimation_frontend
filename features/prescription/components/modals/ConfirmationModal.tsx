@@ -71,7 +71,7 @@ export default function ConfirmationModal({
       >
         <div style={{ padding: '24px 24px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           <div style={{ width: 52, height: 52, borderRadius: '50%', background: `${t.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
-            <span className="ms" style={{ fontSize: 28, color: t.color }}>{headIcon}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 28, color: t.color }}>{headIcon}</span>
           </div>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--txt, #1f2937)' }}>{title}</h3>
           {message && (

@@ -649,7 +649,7 @@ export default function HistoriqueForm({ patient }: Props) {
 
       {/* BARRE D'OUTILS — compacte : type de prescription + bouton « Filtres » repliable */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: showFilters ? 12 : 20 }}>
-            <span className="ms" style={{ fontSize: 18, color: 'var(--txt3)' }}>filter_list</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--txt3)' }}>filter_list</span>
             <SearchableSelect
               options={FILTRES.map((f) => ({ value: f.id, label: f.label, icon: f.icon }))}
               value={filtre}
@@ -671,9 +671,9 @@ export default function HistoriqueForm({ patient }: Props) {
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
             >
-              <span className="ms" style={{ fontSize: 16 }}>tune</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>tune</span>
               Filtres{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
-              <span className="ms" style={{ fontSize: 16 }}>{showFilters ? 'expand_less' : 'expand_more'}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{showFilters ? 'expand_less' : 'expand_more'}</span>
             </button>
             {advancedFilterCount > 0 && (
               <button
@@ -685,7 +685,7 @@ export default function HistoriqueForm({ patient }: Props) {
                   background: '#fff', color: 'var(--txt2)', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
               >
-                <span className="ms" style={{ fontSize: 16 }}>close</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
                 Réinitialiser
               </button>
             )}
@@ -753,7 +753,7 @@ export default function HistoriqueForm({ patient }: Props) {
           {/* CONTENU */}
           {loading ? (
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--txt3)' }}>
-              <span className="ms" style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>hourglass_top</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>hourglass_top</span>
               Chargement...
             </div>
           ) : error ? (
@@ -762,7 +762,7 @@ export default function HistoriqueForm({ patient }: Props) {
         </div>
       ) : items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--txt3)' }}>
-          <span className="ms" style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>inbox</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>inbox</span>
           Aucune prescription trouvée
         </div>
       ) : (
@@ -780,7 +780,7 @@ export default function HistoriqueForm({ patient }: Props) {
                   width: 36, height: 36, borderRadius: 8, flexShrink: 0,
                   background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <span className="ms" style={{ fontSize: 18, color }}>{FILTRES.find(f => f.id === item._type)?.icon || 'description'}</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 18, color }}>{FILTRES.find(f => f.id === item._type)?.icon || 'description'}</span>
                 </div>
 
                 {/* Infos */}
@@ -844,7 +844,7 @@ export default function HistoriqueForm({ patient }: Props) {
                 <div style={{ background: color, padding: '20px 24px', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span className="ms" style={{ fontSize: 22, color: '#fff' }}>{icon}</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff' }}>{icon}</span>
                     </div>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '.2px' }}>Prescription {label}</div>
@@ -875,7 +875,7 @@ export default function HistoriqueForm({ patient }: Props) {
                 const ic = isOk ? 'check_circle' : isKo ? 'cancel' : 'pending';
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: bg }}>
-                    <span className="ms" style={{ fontSize: 18, color: fg }}>{ic}</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: fg }}>{ic}</span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: fg }}>Statut : {s}</span>
                   </div>
                 );
@@ -885,7 +885,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {patient && (patient.nom || patient.idPermanent) && (
                 <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                   <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span className="ms" style={{ fontSize: 16, color: 'var(--navy)' }}>person</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>person</span>
                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Patient</span>
                   </div>
                   <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -905,7 +905,7 @@ export default function HistoriqueForm({ patient }: Props) {
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {patient.groupeSanguin && (
                         <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: '#fee2e2', color: '#991b1b', fontWeight: 600 }}>
-                          <span className="ms" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 3 }}>bloodtype</span>{patient.groupeSanguin}
+                          <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 3 }}>bloodtype</span>{patient.groupeSanguin}
                         </span>
                       )}
                       {patient.service && (
@@ -924,7 +924,7 @@ export default function HistoriqueForm({ patient }: Props) {
                     </div>
                     {patient.allergies && patient.allergies.length > 0 && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, background: '#fef3c7', border: '1px solid #fbbf24' }}>
-                        <span className="ms" style={{ fontSize: 14, color: '#92400e' }}>warning</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#92400e' }}>warning</span>
                         <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>Allergies : {patient.allergies.join(', ')}</span>
                       </div>
                     )}
@@ -935,7 +935,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {/* ── SECTION PRESCRIPTEUR ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="ms" style={{ fontSize: 16, color: 'var(--navy)' }}>stethoscope</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>stethoscope</span>
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Prescripteur</span>
                 </div>
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -978,7 +978,7 @@ export default function HistoriqueForm({ patient }: Props) {
                   </div>
                   {selectedItem.sourceType === 'accueil' && (
                     <div style={{ fontSize: 11, color: 'var(--txt3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span className="ms" style={{ fontSize: 13 }}>info</span>
+                      <span className="material-symbols-outlined" style={{ fontSize: 13 }}>info</span>
                       Prescription initiée depuis le service d'Accueil
                     </div>
                   )}
@@ -988,7 +988,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {/* ── SECTION DÉTAILS CLINIQUES ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="ms" style={{ fontSize: 16, color: 'var(--navy)' }}>clinical_notes</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>clinical_notes</span>
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Détails cliniques</span>
                 </div>
                 <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--txt)', lineHeight: 1.7 }}>
@@ -999,7 +999,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {/* ── SECTION SUIVI / TIMELINE ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="ms" style={{ fontSize: 16, color: 'var(--navy)' }}>history</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>history</span>
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Suivi</span>
                 </div>
                 <div style={{ padding: '12px 14px' }}>

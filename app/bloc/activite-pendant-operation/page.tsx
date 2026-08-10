@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api/client'
 import { patientService } from '@/lib/api'
+import { formaterIdDossier } from '@/lib/patient'
 import MomentsTimeline from '@/components/bloc/moments-operatoire/MomentsTimeline'
 import SurveillancePanel from '@/components/bloc/surveillance/SurveillancePanel'
 import RoleGate from '@/components/bloc/auth/RoleGate'
@@ -124,7 +125,7 @@ function ActivitePendantOperationPageContent() {
           </div>
           <div className="h-10 w-px bg-surface-container-highest"></div>
           <div className="grid grid-cols-4 gap-x-8 gap-y-1">
-            <div><p className="text-[9px] text-on-surface-variant font-semibold uppercase tracking-tighter">N° Dossier</p><p className="font-label text-xs font-bold text-on-surface">{patient?.idDossier ? `#${patient.idDossier}` : '—'}</p></div>
+            <div><p className="text-[9px] text-on-surface-variant font-semibold uppercase tracking-tighter">N° Dossier</p><p className="font-label text-xs font-bold text-on-surface">{formaterIdDossier(patient?.idDossier) ? `#${formaterIdDossier(patient?.idDossier)}` : '—'}</p></div>
             <div><p className="text-[9px] text-on-surface-variant font-semibold uppercase tracking-tighter">Âge / Sexe</p><p className="font-label text-xs font-bold text-on-surface">{patient?.dateNaissance ? `${Math.max(0, Math.floor((Date.now() - new Date(patient.dateNaissance).getTime()) / (365.25 * 24 * 60 * 60 * 1000)))} ans` : '—'} / {patient?.sexe || '—'}</p></div>
             <div><p className="text-[9px] text-on-surface-variant font-semibold uppercase tracking-tighter">Opération</p><p className="font-label text-xs font-bold text-on-surface truncate">{intervention || patient?.libelle || '—'}</p></div>
           </div>

@@ -1,4 +1,5 @@
 import { PatientSortie } from "@/types/bloc";
+import { formaterIdDossier } from "@/lib/patient";
 
 export default function HeaderPatient({ patient }: { patient: PatientSortie }) {
   const statusColor = {
@@ -18,7 +19,7 @@ export default function HeaderPatient({ patient }: { patient: PatientSortie }) {
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">ID Dossier</p>
-          <p className="font-semibold text-lg text-on-surface">{patient.idDossier}</p>
+          <p className="font-semibold text-lg text-on-surface">{formaterIdDossier(patient.idDossier) || '—'}</p>
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Chambre</p>
