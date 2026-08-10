@@ -10,6 +10,7 @@ import { obtenirSessionValide } from '@/lib/auth/central-session'
 import { formaterNomPatient } from '@/lib/patient'
 import { useRole } from '@/lib/hooks/useRole'
 import { RoleClinique } from '@/lib/auth/role-clinique'
+import { estPatientTraite } from '@/lib/notifications/patient-traite'
 
 // Même règle de visibilité que le menu latéral (voir rolesExclus dans Sidebar.tsx) — sans ce
 // filtre, le tableau de bord affichait les compteurs et le planning de pages totalement absentes
@@ -76,7 +77,14 @@ export default function DashboardPage() {
     }
 
     if (notifsRes.status === 'fulfilled') {
-      const enAttente = (notifsRes.value?.data || []).filter((n: any) => n.statut === 'EN_ATTENTE' && estAujourdhui(n.createdAt))
+      // Même règle que le fil Prescription (voir notification-cpa/page.tsx) : on n'affiche que
+      // les prescriptions encore à traiter — notifications EN_ATTENTE non lues (comme la cloche),
+      // et patients dont la CPA n'est pas encore traitée (voir estPatientTraite). Sans ces
+      // filtres, un patient déjà pris en charge réapparaissait dans "Prescription — Aujourd'hui"
+      // tant que sa notification d'origine restait EN_ATTENTE.
+      const enAttente = (notifsRes.value?.data || []).filter(
+        (n: any) => n.statut === 'EN_ATTENTE' && !n.lu && !estPatientTraite(n) && estAujourdhui(n.createdAt)
+      )
       setPrescriptions(enAttente.map((n: any): LignePlanning => {
         const patientId = n.patient?.id || n.patientId
         return {
