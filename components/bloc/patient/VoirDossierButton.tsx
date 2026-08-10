@@ -5,9 +5,10 @@ import DossierPatientModal from '@/components/clinical/dossier-patient/DossierPa
 
 type Props = {
   patientId: string | null | undefined
-  /** "button" (par défaut, en-tête d'écran patient), "icon" (colonne Action d'un tableau) ou
-   * "link" (texte souligné compact). */
-  variant?: 'button' | 'icon' | 'link'
+  /** "button" (par défaut, en-tête d'écran patient), "icon" (colonne Action d'un tableau),
+   * "link" (texte souligné compact) ou "primary" (bouton plein largeur, fond primaire — action
+   * principale isolée, ex. section "Dossier Patient" d'une fiche). */
+  variant?: 'button' | 'icon' | 'link' | 'primary'
   className?: string
   chuId?: string
   serviceId?: string
@@ -69,6 +70,21 @@ export default function VoirDossierButton({
           className={`inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline ${className}`}
         >
           <span className="material-symbols-outlined text-sm">folder_shared</span> Voir dossier
+        </button>
+        {modale}
+      </>
+    )
+  }
+
+  if (variant === 'primary') {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary/90 hover:shadow-md active:scale-[0.99] transition-all ${className}`}
+        >
+          <span className="material-symbols-outlined text-lg">folder_shared</span> Voir dossier patient
         </button>
         {modale}
       </>
