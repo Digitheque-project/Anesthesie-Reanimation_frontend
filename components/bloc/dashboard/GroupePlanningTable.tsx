@@ -81,7 +81,11 @@ export default function GroupePlanningTable({ icon, titre, accent, lignes, loadi
             </thead>
             <tbody className="divide-y divide-outline-variant/10 text-sm">
               {lignes.map((l, i) => (
-                <tr key={i} className="hover:bg-surface-container-lowest transition-colors">
+                <tr
+                  key={i}
+                  onClick={() => router.push(l.href)}
+                  className="hover:bg-surface-container-lowest transition-colors cursor-pointer"
+                >
                   <td className="px-6 py-4">
                     <span className={`${styleUrgence(l.priorite).fondPlein} text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase`}>{libelleUrgence(l.priorite)}</span>
                   </td>
@@ -94,12 +98,12 @@ export default function GroupePlanningTable({ icon, titre, accent, lignes, loadi
                     {l.heure || '—'}
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
-                    <button onClick={() => router.push(l.href)}
+                    <button onClick={(e) => { e.stopPropagation(); router.push(l.href) }}
                       className={`${c.text} ${c.actionBg} px-3 py-1 rounded-lg text-[10px] font-bold transition-colors`}>
                       {l.actionLabel}
                     </button>
                     {l.href2 && (
-                      <button onClick={() => router.push(l.href2!)}
+                      <button onClick={(e) => { e.stopPropagation(); router.push(l.href2!) }}
                         className="text-on-surface-variant bg-slate-50 hover:bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-bold transition-colors border border-outline-variant/20">
                         {l.actionLabel2}
                       </button>
