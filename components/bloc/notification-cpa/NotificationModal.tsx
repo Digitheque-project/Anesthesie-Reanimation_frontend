@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { libelleUrgence, niveauUrgenceNotification } from '@/lib/urgence';
 import { formaterNomPatient } from '@/lib/patient';
+import { estPatientTraite } from '@/lib/notifications/patient-traite';
 
 interface NotificationModalProps {
   isOpen: boolean;
@@ -74,7 +75,9 @@ export default function NotificationModal({
   const toutesNotifications = notifications || [];
   // Une notification déjà lue (marquée dans cette session, ou déjà `lu` en base lors d'une
   // session précédente) ne doit plus apparaître dans la liste — pas juste être re-stylée.
-  const notificationsAffichees = toutesNotifications.filter(n => !readNotifications.has(n.id) && !n.lu);
+  // Ni une notification rattachée à un patient déjà traité (voir estPatientTraite) : un patient
+  // pris en charge (CPA réalisée/inapte ou plus loin dans le parcours) ne doit plus apparaître ici.
+  const notificationsAffichees = toutesNotifications.filter(n => !readNotifications.has(n.id) && !n.lu && !estPatientTraite(n));
   const unreadCount = notificationsAffichees.length;
   const aucuneNotification = toutesNotifications.length === 0;
 

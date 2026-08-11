@@ -8,8 +8,9 @@ export type MedicamentRow = {
   id: string;
   label: string;
   selected: boolean;
-  /** Mode choisi pour le champ ci-dessous : description du dosage (ex. "500mg") ou quantité
-   * (ex. "3 ampoules"). */
+  /** Mode de saisie historique (DOSAGE/QUANTITE) — plus choississable dans l'interface depuis
+   * que la colonne s'appelle « Unité » ; conservé dans les données pour ne pas casser les
+   * fiches déjà enregistrées (valeur par défaut : DOSAGE). */
   mode: ModeSaisieMedicament;
   dosage: string;
   /** Nombre d'unités à prévoir — sert au calcul du prix total (rapprochement Pharmacie), distinct
@@ -152,7 +153,7 @@ export default function MedicamentTable({
                 Médicament / Matériel
               </th>
               <th className="w-72 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
-                Dosage ou Quantité
+                Unité
               </th>
               <th className="w-24 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                 Nombre
@@ -164,9 +165,7 @@ export default function MedicamentTable({
           </thead>
           <tbody className="divide-y divide-outline-variant/10 text-sm">
             {rows.map((row) => {
-              const mode = row.mode ?? "DOSAGE";
-              const dosagePlaceholder =
-                row.dosagePlaceholder ?? (mode === "QUANTITE" ? "ex: 3 ampoules" : "ex: 500mg");
+              const dosagePlaceholder = row.dosagePlaceholder ?? "ex: 500mg";
               const prixUnitaire = prixParId?.[row.id];
               const nombreValeur = Number(row.nombre);
               // N'affiche le prix total qu'une fois la ligne vraiment renseignée (dosage/quantité
@@ -232,23 +231,13 @@ export default function MedicamentTable({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <select
-                        value={mode}
-                        onChange={(e) => patchRow(row.id, "mode", e.target.value)}
-                        className="h-9 shrink-0 rounded border border-outline-variant/20 bg-surface-container-low px-1.5 text-[11px] font-bold outline-none focus:ring-2 focus:ring-primary/20"
-                      >
-                        <option value="DOSAGE">Dosage</option>
-                        <option value="QUANTITE">Quantité</option>
-                      </select>
-                      <input
-                        type="text"
-                        value={row.dosage}
-                        onChange={(e) => patchRow(row.id, "dosage", e.target.value)}
-                        placeholder={dosagePlaceholder}
-                        className={dosageInputClassName}
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      value={row.dosage}
+                      onChange={(e) => patchRow(row.id, "dosage", e.target.value)}
+                      placeholder={dosagePlaceholder}
+                      className={dosageInputClassName}
+                    />
                     {/* Choix connus (concentration, calibre, nom alternatif...) : un clic
                         remplit directement le champ ci-dessus, sans avoir à le taper. */}
                     {row.variantes && row.variantes.length > 0 && (

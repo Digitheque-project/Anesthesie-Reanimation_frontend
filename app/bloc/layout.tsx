@@ -12,7 +12,7 @@ export default function BlocLayout({ children }: { children: ReactNode }) {
         <Sidebar />
         <TopBar />
         {/* ✅ Ajout d’un padding-top pour éviter que le contenu soit caché sous le TopBar */}
-        <main className="ml-64 pt-20">
+        <main className="ml-64 pt-24">
           {children}
         </main>
       </div>

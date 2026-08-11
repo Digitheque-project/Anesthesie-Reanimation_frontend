@@ -27,12 +27,17 @@ export default function RendezVousPage() {
   // uniquement — cette liste n'est plus liée à un créneau à date fixe (voir plus bas), mais on
   // veut pouvoir se limiter aux patients opérés tel jour, sans devoir chercher parmi tous les
   // patients CPA validée en attente de vérification.
-  const [filtreDateVerif, setFiltreDateVerif] = useState('');
+  const [filtreDateVerif, setFiltreDateVerif] = useState(new Date().toISOString().split('T')[0]);
   // Patients déjà planifiés (retirés du fil de prescription dès qu'un créneau CPA leur est
   // réservé, voir PlanningService.reserverCreneau) : sans cette alerte, il fallait parcourir le
   // calendrier jour par jour pour se rendre compte qu'un RDV existait déjà à une autre date.
   const [alerteCpa, setAlerteCpa] = useState<{ total: number; prochaine: string | null } | null>(null);
   const [voirTousCpa, setVoirTousCpa] = useState(false);
+  // Même mécanique côté « Vérification veille » : le calendrier ci-dessus démarre sur la date du
+  // jour, or les vérifications à faire peuvent être échelonnées sur d'autres jours (la veille de
+  // chaque intervention) — on prévient du total + de la prochaine, avec un bouton pour tout
+  // afficher d'un coup (voirTousVerif), exactement comme l'alerte RDV CPA.
+  const [voirTousVerif, setVoirTousVerif] = useState(false);
 
   useEffect(() => {
     if (onglet !== 'CPA') return;
@@ -51,18 +56,40 @@ export default function RendezVousPage() {
   const charger = async () => {
     setLoading(true);
     try {
-      if (onglet === 'CPA' && voirTousCpa) {
-        const data = await planningService.getCpaAVenir();
-        const filtres = (Array.isArray(data) ? data : []).filter((c: any) =>
+      if (onglet === 'CPA') {
+        // Rendez-vous CPA planifiés : patient normal dont la CPA reste réellement à faire
+        // (statut EN_ATTENTE_CPA) — date sélectionnée, ou "tous les rendez-vous à venir" quand
+        // voirTousCpa est actif.
+        const data = voirTousCpa
+          ? await planningService.getCpaAVenir()
+          : await planningService.getJour(selectedDate, onglet);
+        const rows = (Array.isArray(data) ? data : []).filter((c: any) =>
           (c.patient?.niveauUrgence ?? 'NORMAL') === 'NORMAL' && c.patient?.statut === 'EN_ATTENTE_CPA'
         );
-        setCreneaux(filtres);
+        // CPA déjà validée par le Responsable CPA (décision APTE), médicaments d'anesthésie
+        // encore à compléter/vérifier par l'anesthésiste — statut CPA_REALISE, non urgent. Ce
+        // sont ces patients qui déclenchent le bouton "Vérifier médicament" : toujours visibles,
+        // quelle que soit la date sélectionnée (pas de créneau planifié à une date précise).
+        const { data: medData } = await patientService.getAll({ statut: 'CPA_REALISE', niveauUrgence: 'NORMAL', limite: 200 });
+        const medRows = (Array.isArray(medData) ? medData : []).map((p: any) => ({
+          id: p.patientId,
+          heureDebut: null,
+          dateIntervention: p.dateIntervention || null,
+          patient: { id: p.patientId, nom: p.nom, prenom: p.prenom, niveauUrgence: p.niveauUrgence, statut: p.statut },
+          type: 'VERIFICATION_MEDICAMENTS',
+          chirurgien: p.chirurgien_nom ? { nom: p.chirurgien_nom } : null,
+          estUrgence: false,
+          sousType: 'VERIF_MEDICAMENT',
+          statut: 'VERIF_MEDICAMENT',
+        }));
+        setCreneaux([...medRows, ...rows]);
       } else if (onglet === 'VERIFICATION_VEILLE') {
         // La vérification veille ne dépend plus d'un créneau planifié à une date précise : tout
-        // patient dont la CPA vient d'être validée (statut CPA_REALISE, apte, non urgent — sans
-        // objet pour une VPA en urgence) doit y être visible tant qu'il n'a pas été vérifié,
-        // qu'une date ait été posée ou non.
-        const { data } = await patientService.getAll({ statut: 'CPA_REALISE', niveauUrgence: 'NORMAL', limite: 200 });
+        // patient dont la CPA a été validée ET dont les médicaments ont été vérifiés par
+        // l'anesthésiste (statut EN_ATTENTE_VERIFICATION_VEILLE, apte, non urgent — sans objet
+        // pour une VPA en urgence) doit y être visible tant qu'il n'a pas été vérifié, qu'une
+        // date ait été posée ou non.
+        const { data } = await patientService.getAll({ statut: 'EN_ATTENTE_VERIFICATION_VEILLE', niveauUrgence: 'NORMAL', limite: 200 });
         const rows = (Array.isArray(data) ? data : []).map((p: any) => ({
           id: p.patientId,
           heureDebut: null,
@@ -74,16 +101,6 @@ export default function RendezVousPage() {
           statut: 'EN_ATTENTE',
         }));
         setCreneaux(rows);
-      } else {
-        const data = await planningService.getJour(selectedDate, onglet);
-        // Patient normal, dont la CPA reste réellement à faire — un créneau CPA planifié pour
-        // un patient déjà CPA_REALISE/CPA_INAPTE (ou plus loin dans le parcours) ne doit plus
-        // apparaître ici : sans ce filtre, valider une CPA renvoyait l'utilisateur directement
-        // sur cet onglet où le patient qu'il venait de traiter réapparaissait aussitôt.
-        const filtres = (Array.isArray(data) ? data : []).filter((c: any) =>
-          (c.patient?.niveauUrgence ?? 'NORMAL') === 'NORMAL' && c.patient?.statut === 'EN_ATTENTE_CPA'
-        );
-        setCreneaux(filtres);
       }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -101,7 +118,7 @@ export default function RendezVousPage() {
   // app/bloc/rapports/page.tsx.
   const creneauxFiltres = useMemo(() => {
     let filtres = creneaux;
-    if (onglet === 'VERIFICATION_VEILLE' && filtreDateVerif) {
+    if (onglet === 'VERIFICATION_VEILLE' && !voirTousVerif && filtreDateVerif) {
       filtres = filtres.filter((c: any) => c.dateIntervention && new Date(c.dateIntervention).toISOString().split('T')[0] === filtreDateVerif);
     }
     const q = recherche.trim().toLowerCase();
@@ -109,14 +126,30 @@ export default function RendezVousPage() {
     return filtres.filter((c: any) =>
       [formaterNomPatient(c.patient), c.type, c.chirurgien?.nom].some((v) => String(v || '').toLowerCase().includes(q))
     );
-  }, [creneaux, recherche, onglet, filtreDateVerif]);
+  }, [creneaux, recherche, onglet, filtreDateVerif, voirTousVerif]);
+
+  // Alerte « vérifications la veille à faire » : calculée à partir de la liste déjà chargée
+  // (tous les patients CPA validée, non urgents, en attente de vérification) — le total, et la
+  // prochaine (date d'intervention la plus proche, aujourd'hui ou plus tard).
+  const alerteVerif = useMemo(() => {
+    if (onglet !== 'VERIFICATION_VEILLE') return null;
+    const total = creneaux.length;
+    if (total === 0) return null;
+    const aujourdhui = new Date().toISOString().split('T')[0];
+    const dates = creneaux
+      .map((c: any) => (c.dateIntervention ? new Date(c.dateIntervention).toISOString().split('T')[0] : null))
+      .filter((d: string | null): d is string => d !== null)
+      .sort();
+    const prochaine = dates.find((d) => d >= aujourdhui) ?? dates[0] ?? null;
+    return { total, prochaine };
+  }, [creneaux, onglet]);
 
   const formaterDate = (d: string) => {
     return new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   };
 
   const ongletActif = ONGLETS.find(o => o.type === onglet)!;
-  const TYPE_LABELS: Record<string, string> = { CPA: 'CPA', VERIFICATION_VEILLE: 'Vérif. veille' };
+  const TYPE_LABELS: Record<string, string> = { CPA: 'CPA', VERIFICATION_VEILLE: 'Vérif. veille', VERIFICATION_MEDICAMENTS: 'Vérif. médicaments' };
 
   return (
     <div className="p-6 flex flex-col gap-6">
@@ -137,9 +170,9 @@ export default function RendezVousPage() {
               <span className="material-symbols-outlined text-lg">filter_alt</span>
               Filtrer par date d'intervention
             </label>
-            <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)}
-              className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit" />
-            {filtreDateVerif && (
+            <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
+              className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" />
+            {filtreDateVerif && !voirTousVerif && (
               <button onClick={() => setFiltreDateVerif('')} className="text-xs font-bold text-primary hover:underline">
                 Effacer
               </button>
@@ -160,6 +193,25 @@ export default function RendezVousPage() {
           <button onClick={() => setVoirTousCpa(v => !v)}
             className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">
             {voirTousCpa ? 'Revenir à la date sélectionnée' : 'Voir tous les rendez-vous CPA'}
+          </button>
+        </div>
+      )}
+
+      {/* Alerte vérifications la veille à faire (patients CPA validée en attente de vérification) —
+          même mécanique que l'alerte RDV CPA : le calendrier démarre sur la date du jour, or les
+          vérifications peuvent être échelonnées sur d'autres jours (la veille de chaque opération) ;
+          on affiche le total + la prochaine, avec un bouton pour tout voir d'un coup. */}
+      {onglet === 'VERIFICATION_VEILLE' && alerteVerif && alerteVerif.total > 0 && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex flex-wrap items-center justify-between gap-3">
+          <span className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">event_available</span>
+            {alerteVerif.total} vérification{alerteVerif.total > 1 ? 's' : ''} la veille à faire
+            {alerteVerif.prochaine && ` — la prochaine est le ${new Date(alerteVerif.prochaine + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
+            {voirTousVerif ? '.' : `. Changez le calendrier ci-dessus pour la voir, ou :`}
+          </span>
+          <button onClick={() => setVoirTousVerif(v => !v)}
+            className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">
+            {voirTousVerif ? 'Revenir à la date sélectionnée' : 'Voir tous les vérifications à faire'}
           </button>
         </div>
       )}
@@ -256,8 +308,9 @@ export default function RendezVousPage() {
                       <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                         c.statut === 'PLANIFIE' ? 'bg-blue-100 text-blue-700' :
                         c.statut === 'TERMINE' ? 'bg-green-100 text-green-700' :
+                        c.statut === 'VERIF_MEDICAMENT' ? 'bg-amber-100 text-amber-700' :
                         c.statut === 'EN_ATTENTE' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
-                      }`}>{c.statut === 'EN_ATTENTE' ? 'En attente' : (c.statut || '—')}</span>
+                      }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : (c.statut || '—')}</span>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -265,7 +318,7 @@ export default function RendezVousPage() {
                           onClick={() => router.push(`${ongletActif.cible}?patientId=${c.patient?.id}&patientNom=${encodeURIComponent(nom)}`)}
                           className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors whitespace-nowrap"
                         >
-                          {ongletActif.actionLabel}
+                          {c.sousType === 'VERIF_MEDICAMENT' ? 'Vérifier médicament' : ongletActif.actionLabel}
                         </button>
                         <VoirDossierButton patientId={c.patient?.id} variant="icon" />
                       </div>

@@ -22,7 +22,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd }: Pro
   const [frequenceType, setFrequenceType] = useState('');
   const [frequenceValeur, setFrequenceValeur] = useState<number>(0);
   const [dureeJours, setDureeJours] = useState<number>(0);
-  const [dateDebut, setDateDebut] = useState('');
+  const [dateDebut, setDateDebut] = useState(new Date().toISOString().split('T')[0]);
   const [heureDebut, setHeureDebut] = useState('');
   const [instructions, setInstructions] = useState('');
   const [remarques, setRemarques] = useState('');

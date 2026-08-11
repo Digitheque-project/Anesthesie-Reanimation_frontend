@@ -5,7 +5,7 @@ export const STATUT_LABEL: Record<string, string> = {
   EN_ATTENTE_CPA: 'En attente CPA',
   CPA_REALISE: 'CPA réalisée',
   CPA_INAPTE: 'Inapte (CPA)',
-  EN_ATTENTE_VERIFICATION_VEILLE: 'En attente VPA',
+  EN_ATTENTE_VERIFICATION_VEILLE: 'En attente vérification veille',
   VERIFICATION_VEILLE_REALISEE: 'VPA réalisée',
   PRET_POUR_BLOC: 'Prêt pour bloc',
   EN_COURS_OPERATION: 'En cours d\'opération',

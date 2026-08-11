@@ -106,7 +106,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
   const [dureeJours, setDureeJours] = useState<number>(0);
   const [frequenceType, setFrequenceType] = useState('');
   const [frequenceValeur, setFrequenceValeur] = useState<number>(0);
-  const [dateDebut, setDateDebut] = useState('');
+  const [dateDebut, setDateDebut] = useState(new Date().toISOString().split('T')[0]);
   const [heureDebut, setHeureDebut] = useState('');
   const [instructions, setInstructions] = useState('');
   const [urgence, setUrgence] = useState<'NORMAL'|'URGENT'|'TRES_URGENT'>('NORMAL');
@@ -272,7 +272,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
 
       {/* === ONGLET NOUVELLE PRESCRIPTION === */}
       {activeTab === 'nouvelle' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 16, alignItems: 'start' }}>
           {/* COLONNE GAUCHE */}
           <div>
             <div className="card mb12" style={{ padding: 12 }}>

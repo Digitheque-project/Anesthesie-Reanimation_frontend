@@ -43,12 +43,11 @@ function ApresOperationPageContent() {
     compteFinalCorrect: boolean | null
     etiquetageVerifie: boolean | null
     signalementsEffectues: boolean | null
-    observationsParticulieres: string
   }>({
     dateCreation: new Date().toISOString().split('T')[0],
     // Aucune réponse pré-cochée : chaque item doit être choisi activement.
     interventionEnregistree: null, compteFinalCorrect: null, etiquetageVerifie: null,
-    signalementsEffectues: null, observationsParticulieres: '',
+    signalementsEffectues: null,
   })
   const [loading, setLoading] = useState(false)
   const [majDistante, setMajDistante] = useState(false)
@@ -132,17 +131,6 @@ function ApresOperationPageContent() {
               </div>
             ))}
           </div>
-        </section>
-
-        {/* Observations */}
-        <section className="bg-surface-container-lowest rounded-3xl p-8 border border-outline-variant/20 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="material-symbols-outlined text-primary">edit_note</span>
-            <h3 className="text-sm font-bold font-headline text-on-surface uppercase tracking-wider">Observations Particulières</h3>
-          </div>
-          <textarea className="w-full min-h-[120px] rounded-2xl border-none bg-surface-container-low p-5 text-sm focus:ring-2 focus:ring-primary/10"
-            placeholder="Saisissez ici les motifs de dérogation ou les incidents techniques notables..."
-            value={form.observationsParticulieres} onChange={e => setForm({...form, observationsParticulieres: e.target.value})}></textarea>
         </section>
       </div>
 

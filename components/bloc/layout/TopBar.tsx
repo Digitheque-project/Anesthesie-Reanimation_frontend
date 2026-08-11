@@ -11,6 +11,8 @@ import { obtenirSessionValide } from '@/lib/auth/central-session';
 import { dedupeParPatient } from '@/lib/notifications/dedupe';
 import { normaliserDemandeExterne } from '@/lib/notifications/normaliser-demande-externe';
 import { apiClient } from '@/lib/api/client';
+import { estPatientTraite } from '@/lib/notifications/patient-traite';
+import Clock from '@/components/bloc/layout/Clock';
 
 export default function TopBar() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -42,9 +44,12 @@ export default function TopBar() {
       });
       setNotifications(notifs);
 
-      // Compter les notifications non lues — ni traitées (statut) ni déjà écartées (lu)
+      // Compter les notifications non lues — ni traitées (statut), ni déjà écartées (lu), ni
+      // rattachées à un patient déjà traité (voir estPatientTraite) : un patient pris en charge
+      // ne doit plus compter comme "non lu" ni réapparaître dans le badge de la cloche.
       const unread = notifs.filter((n: any) => {
         if (n.lu) return false;
+        if (estPatientTraite(n)) return false;
         // Pour les notifications internes (avec statut)
         if (n.statut) return n.statut === 'EN_ATTENTE';
         // Pour les notifications webhook (avec processed)
@@ -126,6 +131,9 @@ export default function TopBar() {
       </div>
 
       <div className="flex items-center gap-6">
+        {/* Horloge temps réel — visible en permanence sur toutes les interfaces du bloc */}
+        <Clock />
+
         {/* Wrapper `relative` : ancre la pop-up de notifications juste sous la cloche
             (NotificationModal se positionne en `absolute right-0 top-full`), au lieu d'un
             tiroir plein écran indépendant du bouton qui l'ouvre. */}

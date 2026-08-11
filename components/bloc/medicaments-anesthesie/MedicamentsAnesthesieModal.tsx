@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import MedicamentTable, { MedicamentRow } from "./MedicamentTable";
 import { CATALOGUE_MEDICAMENTS, CategorieMedicament } from "@/lib/data/catalogue-medicaments-anesthesie";
 import { trouverArticlePharmacie } from "@/lib/data/rapprochement-pharmacie";
@@ -60,6 +61,20 @@ export default function MedicamentsAnesthesieModal({
 
   const catalogueIndisponible = catalogueCharge && articlesPharmacie.length === 0;
 
+  // La modale est rendue dans un portail attaché à <body> : posée dans le conteneur
+  // `lg:sticky` de la CPA, `position: sticky` crée un stacking context qui piègeait son
+  // z-index (effectivement 0) — la Sidebar (z-50), la TopBar (z-40) et le sommaire sticky
+  // (z-30) passaient donc au-dessus et masquaient la fenêtre. Portée à la racine du
+  // document, elle couvre tout le viewport et domine tous ces éléments.
+  useEffect(() => {
+    if (!open) return;
+    const precedent = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = precedent;
+    };
+  }, [open]);
+
   const prixParId = useMemo(() => {
     const table: Record<string, number | null> = {};
     if (!articlesPharmacie.length) return table;
@@ -79,8 +94,8 @@ export default function MedicamentsAnesthesieModal({
     onRowsChange([...autres, ...sousLignes]);
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-6 bg-gradient-to-r from-primary to-secondary">
           <div className="flex items-center gap-3">
@@ -141,6 +156,7 @@ export default function MedicamentsAnesthesieModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

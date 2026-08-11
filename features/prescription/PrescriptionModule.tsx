@@ -111,7 +111,7 @@ function PrescriptionModuleInner({ patientId, patientType = 'hospitalise', servi
 			{/* ── Left icon rail : prescription modules (fixed width) ──── */}
 			<aside
 				aria-label="Types de prescription"
-				className="sticky top-4 max-h-[calc(100vh-2rem)] w-40 shrink-0 self-start overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/80 p-2 sm:w-44 lg:w-48"
+				className="sticky top-4 max-h-full w-40 shrink-0 self-start overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/80 p-2 sm:w-44 lg:w-48"
 			>
 				<p className="px-2 pb-1.5 pt-1 text-[11px] font-extrabold uppercase tracking-[0.08em] text-slate-400">
 					Prescriptions

@@ -46,7 +46,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
   const [incident, setIncident] = useState('');
   const [groupage, setGroupage] = useState('');
   const [hb, setHb] = useState('');
-  const [produits, setProduits] = useState<Produit[]>([{ id: '1', produit: 'cgr', quantite: '', datePrevue: '', plaquettes: '' }]);
+  const [produits, setProduits] = useState<Produit[]>([{ id: '1', produit: 'cgr', quantite: '', datePrevue: new Date().toISOString().split('T')[0], plaquettes: '' }]);
   const [notes, setNotes] = useState('');
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(false);
@@ -135,7 +135,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 16, alignItems: 'start' }}>
         {/* COLONNE GAUCHE */}
         <div className="card" style={{ padding: 12 }}>
           <div className="mb12"><label className="lbl">Renseignements cliniques <span className="req">*</span></label><textarea rows={3} placeholder="Pathologie, contexte, motif de la transfusion..." value={renseignements} onChange={e => setRenseignements(e.target.value)} /></div>

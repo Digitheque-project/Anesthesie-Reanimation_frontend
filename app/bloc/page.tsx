@@ -78,12 +78,11 @@ export default function DashboardPage() {
 
     if (notifsRes.status === 'fulfilled') {
       // Même règle que le fil Prescription (voir notification-cpa/page.tsx) : on n'affiche que
-      // les prescriptions encore à traiter — notifications EN_ATTENTE non lues (comme la cloche),
-      // et patients dont la CPA n'est pas encore traitée (voir estPatientTraite). Sans ces
-      // filtres, un patient déjà pris en charge réapparaissait dans "Prescription — Aujourd'hui"
-      // tant que sa notification d'origine restait EN_ATTENTE.
+      // les prescriptions encore à traiter — patients dont la CPA n'est pas encore traitée (voir
+      // estPatientTraite). Pas de filtre `lu` ici : "lue" dans la cloche ne signifie pas
+      // "traitée", un patient marqué lu mais dont la CPA reste à faire doit rester visible.
       const enAttente = (notifsRes.value?.data || []).filter(
-        (n: any) => n.statut === 'EN_ATTENTE' && !n.lu && !estPatientTraite(n) && estAujourdhui(n.createdAt)
+        (n: any) => n.statut === 'EN_ATTENTE' && !estPatientTraite(n) && estAujourdhui(n.createdAt)
       )
       setPrescriptions(enAttente.map((n: any): LignePlanning => {
         const patientId = n.patient?.id || n.patientId

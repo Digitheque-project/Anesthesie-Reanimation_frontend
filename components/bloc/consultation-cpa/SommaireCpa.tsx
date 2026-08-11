@@ -9,13 +9,13 @@ export interface SommaireSection {
 }
 
 const SECTIONS: SommaireSection[] = [
-  { id: 'cpa-antecedents', label: 'Antécédents', icon: 'history_edu' },
+  { id: 'cpa-antecedents', label: 'Histoire et Antécédents', icon: 'history_edu' },
   { id: 'cpa-examen', label: 'Examen clinique', icon: 'stethoscope' },
   { id: 'cpa-voies-aeriennes', label: 'Voies aériennes', icon: 'air' },
-  { id: 'cpa-conclusion', label: 'Conclusion', icon: 'summarize' },
   { id: 'cpa-traitement', label: 'Traitement médicamenteux', icon: 'pill' },
-  { id: 'cpa-instructions', label: 'Instructions & médicaments', icon: 'assignment' },
+  { id: 'cpa-conclusion', label: 'Conclusion', icon: 'summarize' },
   { id: 'cpa-protocole', label: 'Protocole', icon: 'vaccines' },
+  { id: 'cpa-instructions', label: 'Instructions & médicaments', icon: 'assignment' },
   { id: 'cpa-decision', label: 'Décision finale', icon: 'gavel' },
 ];
 
@@ -57,13 +57,16 @@ export default function SommaireCpa() {
   return (
     <nav
       aria-label="Sections de la consultation"
-      // top-20 (80px) reprend exactement le pt-20 du <main> dans app/bloc/layout.tsx, qui
-      // compense la hauteur du TopBar fixe — sans ce raccord, le sommaire se collait 12px trop
-      // haut et se faisait à moitié recouvrir par le TopBar (z-40) au lieu de se loger juste en
-      // dessous.
-      className="sticky top-20 z-30 -mx-4 px-4 py-2 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant/20 shadow-sm"
+      // top-24 (96px) reprend exactement le pt-24 du <main> dans app/bloc/layout.tsx, qui
+      // compense la hauteur du TopBar fixe — sans ce raccord, le sommaire se collait trop
+      // haut et se faisait à moitié recouvrir par le TopBar (z-40) au lieu de se loger juste
+      // en dessous.
+      className="sticky top-24 z-30 -mx-4 px-4 py-2 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant/20 shadow-sm"
     >
-      <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+      {/* Les onglets passent à la ligne suivante dès qu'ils ne tiennent plus (flex-wrap) au lieu
+          de défiler sur une seule ligne à scrollbar masquée : tous les onglets restent visibles
+          quel que soit le zoom de l'écran. */}
+      <div className="flex flex-wrap gap-1.5">
         {SECTIONS.map((s) => {
           const estActif = s.id === actif;
           return (

@@ -1,7 +1,7 @@
 'use client'
 import { Suspense } from "react";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api/client'
 import { patientService } from '@/lib/api'
@@ -25,6 +25,22 @@ export default function VerificationVeillePage() {
 }
 
 type ReponseSecurite = boolean | null
+
+type FichierJoint = {
+  id: string
+  patientId: string
+  verificationVeilleId: string | null
+  nomOriginal: string
+  mimeType: string
+  tailleOctets: number
+  telechargeParId: string | null
+  createdAt: string
+}
+
+type ErreurApi = {
+  response?: { data?: { message?: string | string[] } }
+  message?: string
+}
 
 function VerificationVeillePageContent() {
   const searchParams = useSearchParams()
@@ -52,6 +68,9 @@ function VerificationVeillePageContent() {
     jeune: '', examensComplementaires: '', heureDepart: '09:00',
   })
   const [medicamentsVerifies, setMedicamentsVerifies] = useState<string[]>([])
+  const [fichiers, setFichiers] = useState<FichierJoint[]>([])
+  const [uploadEnCours, setUploadEnCours] = useState(false)
+  const inputFichierRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (patientId) {
@@ -60,6 +79,18 @@ function VerificationVeillePageContent() {
         if (res.data?.data?.length > 0) setCpa(res.data.data[0])
       }).catch(() => {})
     }
+  }, [patientId])
+
+  // Charge les fichiers déjà importés pour ce patient (pièces jointes de la vérification la
+  // veille) — importés avant la validation ou après, ils restent rattachés au patient.
+  useEffect(() => {
+    if (!patientId) return
+    apiClient.get('/verification-veille/fichiers', { params: { patientId } })
+      .then(res => {
+        const liste = Array.isArray(res.data) ? res.data : res.data?.data || []
+        setFichiers(liste)
+      })
+      .catch(() => {})
   }, [patientId])
 
   // Filet de sécurité coupure de courant / fermeture accidentelle — même mécanique que la CPA
@@ -130,6 +161,85 @@ function VerificationVeillePageContent() {
       alert('❌ Erreur : ' + (Array.isArray(message) ? message.join(', ') : message))
     }
     finally { setLoading(false) }
+  }
+
+  const patientIdEffectif = patientId || patient?.id
+
+  // Import d'un ou plusieurs fichiers (PDF, images, Office...) — chaque fichier est envoyé en
+  // multipart et stocké côté backend, puis la liste est rechargée.
+  const importerFichiers = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selection = Array.from(event.target.files || [])
+    event.target.value = ''
+    if (!selection.length) return
+    if (!patientIdEffectif) {
+      alert('⚠️ Patient non identifié, impossible d importer des fichiers.')
+      return
+    }
+    setUploadEnCours(true)
+    try {
+      for (const fichier of selection) {
+        const formData = new FormData()
+        formData.append('fichier', fichier)
+        formData.append('patientId', patientIdEffectif)
+        await apiClient.post('/verification-veille/fichiers/upload', formData)
+      }
+      const res = await apiClient.get('/verification-veille/fichiers', { params: { patientId: patientIdEffectif } })
+      setFichiers(Array.isArray(res.data) ? res.data : res.data?.data || [])
+    } catch (err) {
+      console.error(err)
+      const e = err as ErreurApi
+      const message = e.response?.data?.message || e.message || 'Erreur inconnue'
+      alert('❌ Erreur d import : ' + (Array.isArray(message) ? message.join(', ') : message))
+    } finally { setUploadEnCours(false) }
+  }
+
+  const telechargerFichier = async (f: FichierJoint) => {
+    try {
+      const res = await apiClient.get(`/verification-veille/fichiers/${f.id}/contenu`)
+      const donnees = res.data
+      if (!donnees?.base64) throw new Error('Contenu vide')
+      const binaire = atob(donnees.base64)
+      const octets = new Uint8Array(binaire.length)
+      for (let i = 0; i < binaire.length; i++) octets[i] = binaire.charCodeAt(i)
+      const blob = new Blob([octets], { type: donnees.mimeType || f.mimeType })
+      const url = URL.createObjectURL(blob)
+      const lien = document.createElement('a')
+      lien.href = url
+      lien.download = f.nomOriginal
+      document.body.appendChild(lien)
+      lien.click()
+      lien.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      const e = err as ErreurApi
+      alert('❌ Impossible de récupérer le fichier : ' + (e.response?.data?.message || e.message))
+    }
+  }
+
+  const supprimerFichier = async (f: FichierJoint) => {
+    if (!confirm(`Supprimer ${f.nomOriginal} ?`)) return
+    try {
+      await apiClient.delete(`/verification-veille/fichiers/${f.id}`)
+      setFichiers(prev => prev.filter(x => x.id !== f.id))
+    } catch (err) {
+      const e = err as ErreurApi
+      alert('❌ Erreur lors de la suppression : ' + (e.response?.data?.message || e.message))
+    }
+  }
+
+  const formaterTaille = (octets: number) => {
+    if (octets < 1024) return `${octets} o`
+    if (octets < 1024 * 1024) return `${(octets / 1024).toFixed(1)} Ko`
+    return `${(octets / (1024 * 1024)).toFixed(2)} Mo`
+  }
+
+  const iconeFichier = (mimeType: string) => {
+    if (mimeType.startsWith('image/')) return 'image'
+    if (mimeType === 'application/pdf') return 'picture_as_pdf'
+    if (mimeType.includes('word') || mimeType.includes('document')) return 'description'
+    if (mimeType.includes('sheet') || mimeType.includes('excel')) return 'table_chart'
+    if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return 'slideshow'
+    return 'insert_drive_file'
   }
 
   return (
@@ -307,6 +417,65 @@ function VerificationVeillePageContent() {
             <p className="mt-4 text-xs font-bold text-on-surface-variant">{medicamentsVerifies.length}/{medicamentsAnesthesie.length} médicaments reconfirmés</p>
           </section>
         )}
+
+        {/* Autorisation d'anesthésie et d'intervention — fichier (texte, PDF, image...) importé,
+            rattaché au patient et enregistré avec les informations cochées de la vérification */}
+        <section className="lg:col-span-12 bg-white rounded-xl p-8 shadow-sm border border-outline-variant/30">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="material-symbols-outlined text-primary text-2xl">assignment</span>
+            <h3 className="text-lg font-bold text-on-surface">Autorisation d&apos;anesthésie et d&apos;intervention</h3>
+          </div>
+          <p className="text-xs text-on-surface-variant mb-5">
+            Importez ici le document signé autorisant l'anesthésie et l'intervention (fichier texte,
+            PDF ou image). Il est enregistré avec les informations cochées ci-dessus.
+          </p>
+
+          <input
+            ref={inputFichierRef}
+            type="file"
+            multiple
+            className="hidden"
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.bmp,.tiff,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.odt,.ods,.zip"
+            onChange={importerFichiers}
+          />
+
+          <button
+            type="button"
+            onClick={() => inputFichierRef.current?.click()}
+            disabled={uploadEnCours}
+            className="w-full border-2 border-dashed border-primary/30 rounded-xl py-8 flex flex-col items-center gap-2 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="material-symbols-outlined text-4xl">upload_file</span>
+            <span className="text-sm font-bold">{uploadEnCours ? 'Import en cours...' : 'Cliquez pour importer un ou plusieurs fichiers'}</span>
+            <span className="text-[11px] text-on-surface-variant">Texte, PDF, image... 20 Mo maximum par fichier</span>
+          </button>
+
+          {fichiers.length > 0 ? (
+            <ul className="mt-4 space-y-2">
+              {fichiers.map(f => (
+                <li key={f.id} className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low border border-outline-variant/20">
+                  <span className="material-symbols-outlined text-primary text-2xl shrink-0">{iconeFichier(f.mimeType)}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-on-surface truncate">{f.nomOriginal}</p>
+                    <p className="text-[11px] text-on-surface-variant">
+                      {f.mimeType} • {formaterTaille(f.tailleOctets)} • {new Date(f.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <button type="button" onClick={() => telechargerFichier(f)} title="Ouvrir ou télécharger"
+                    className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
+                    <span className="material-symbols-outlined">download</span>
+                  </button>
+                  <button type="button" onClick={() => supprimerFichier(f)} title="Supprimer"
+                    className="p-2 rounded-lg text-error hover:bg-error/10 transition-colors">
+                    <span className="material-symbols-outlined">delete</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 text-xs text-on-surface-variant italic">Aucun document importé pour le moment.</p>
+          )}
+        </section>
 
         {/* Footer Actions */}
         <section className="lg:col-span-12 flex items-center justify-end gap-4 p-6 bg-surface-container text-on-surface rounded-xl shadow-sm border border-outline-variant/30">
