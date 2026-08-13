@@ -47,7 +47,7 @@ export default function StatsNotification({ stats }: StatsNotificationProps) {
 
       <div className="bg-surface-container-lowest p-5 rounded-xl flex flex-col gap-2">
         <span className="text-on-surface-variant text-xs font-bold uppercase tracking-widest">
-          RDV Fixés (24h)
+          RDV Fixés
         </span>
         <div className="flex items-end justify-between gap-4">
           <span className="text-3xl font-extrabold text-secondary font-headline">

@@ -16,6 +16,7 @@ import PrescriptionCpaModal from '@/components/bloc/prescription/PrescriptionCpa
 import BackButton from '@/components/bloc/layout/BackButton';
 import { exporterFichePdf } from '@/lib/export/export';
 import { formaterNomPatient, formaterIdDossier } from '@/lib/patient';
+import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire';
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader';
 import SommaireCpa from '@/components/bloc/consultation-cpa/SommaireCpa';
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave';
@@ -180,10 +181,9 @@ function ConsultationCpaPageContent() {
   const [chargementCpa, setChargementCpa] = useState(true);
   const [historiqueCpa, setHistoriqueCpa] = useState<any[]>([]);
   const [ongletHistorique, setOngletHistorique] = useState(false);
-  // Patient suivi ici uniquement pour sa CPA/VPA, à la demande d'un service externe (autre CHU) :
-  // son parcours s'arrête à la décision, il ne rejoint jamais le Fil de travail ni le programme
-  // opératoire du bloc — voir le branchement post-validation dans handleValider.
-  const [estDemandeExterne, setEstDemandeExterne] = useState(false);
+  // Écran de fin de parcours, réservé au seul cas où le patient quitte réellement le circuit à la
+  // décision : patient non-urgent d'un service non-opératoire (Endoscopie, Imagerie, Urgence...)
+  // dont la CPA est refusée ou reportée — CPAService l'a archivé (SORTI) et renvoyé à son service.
   const [termine, setTermine] = useState(false);
 
   const estResponsableOuMajor = estResponsableCpa || estMajor;
@@ -192,13 +192,6 @@ function ConsultationCpaPageContent() {
     if (patientId) {
       patientService.getById(patientId).then(setPatient).catch(console.error);
     }
-  }, [patientId]);
-
-  useEffect(() => {
-    if (!patientId) return;
-    apiClient.get('/demandes-cpa-externes', { params: { patientId } })
-      .then(({ data }) => setEstDemandeExterne(Array.isArray(data) && data.length > 0))
-      .catch(() => setEstDemandeExterne(false));
   }, [patientId]);
 
   // Le Major/Responsable CPA remplit et valide la CPA en premier ; l'anesthésiste rouvre
@@ -652,16 +645,14 @@ function ConsultationCpaPageContent() {
 
         if (brouillonKey) effacerBrouillon(brouillonKey);
 
-        if (estDemandeExterne) {
-          // Patient d'un service externe : son parcours s'arrête à cette décision (voir
-          // CPAService.create, qui ne le fait jamais basculer vers le programme du bloc) — ni le
-          // Fil de travail ni "patient du jour"/l'arrivée au bloc ne le montreront jamais.
-          setTermine(true);
-        } else if (estUrgent) {
-          // Urgent/très urgent APTE : le patient bascule directement dans le programme
-          // opératoire du jour (voir CPAService.create, bascule PRET_POUR_BLOC), jamais dans le
-          // Fil de travail — proposer à l'anesthésiste d'enchaîner directement sur sa prise en
-          // charge plutôt que de le renvoyer vers un écran où ce patient n'apparaît pas.
+        if (estUrgent) {
+          // Urgent/très urgent APTE : le patient bascule directement dans le programme du jour
+          // (voir CPAService.create, bascule PRET_POUR_BLOC), jamais dans le Fil de travail —
+          // proposer à l'anesthésiste d'enchaîner directement sur sa prise en charge plutôt que
+          // de le renvoyer vers un écran où ce patient n'apparaît pas. Le patient d'un service
+          // non-opératoire (Endoscopie, Imagerie, Urgence...) apparaît dans le "Programme
+          // non-chirurgical", les autres dans le "Programme opératoire" (même distinction par
+          // serviceOrigine que les listes elles-mêmes).
           const proposerRaccourci = decision === 'APTE' && estAnesthesisteConnecte;
           const allerDirectement = proposerRaccourci && confirm(
             '✅ VPA validée — patient prêt à opérer.\n\nContinuer directement vers sa prise en charge (arrivée au bloc) ?'
@@ -670,11 +661,28 @@ function ConsultationCpaPageContent() {
             router.push(`/bloc/arrivee-bloc?patientId=${patientIdFinal}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`);
           } else {
             if (!proposerRaccourci) alert('✅ VPA validée avec succès !');
-            router.push('/bloc/patient-du-jour');
+            router.push(
+              estServiceNonOperatoire(patient?.serviceOrigine)
+                ? '/bloc/programme-non-operatoire'
+                : '/bloc/patient-du-jour'
+            );
           }
         } else {
-          alert('✅ CPA validée avec succès !');
-          router.push('/bloc/rendez-vous');
+          // Patient normal venu d'un service non-opératoire (Endoscopie, Urgence, Imagerie) dont
+          // la CPA est refusée ou reportée : CPAService l'a archivé (SORTI) et notifié son service
+          // d'origine — seul cas où le parcours s'arrête réellement à la décision, l'écran de fin
+          // de parcours le renvoie vers son service (accueil ou archive). Tous les autres patients
+          // continuent exactement comme les patients du bloc : APTE → liste Vérification veille du
+          // Fil de travail (puis Programme non-chirurgical) — direction unique vers le rendez-vous.
+          const retourneServiceOrigine =
+            estServiceNonOperatoire(patient?.serviceOrigine) &&
+            (decision === 'INAPTE' || decision === 'REPORT');
+          if (retourneServiceOrigine) {
+            setTermine(true);
+          } else {
+            alert('✅ CPA validée avec succès !');
+            router.push('/bloc/rendez-vous');
+          }
         }
       } else {
         // Deuxième étape : l'anesthésiste complète la CPA déjà remplie par le Major/Responsable
@@ -696,12 +704,11 @@ function ConsultationCpaPageContent() {
         await planifierVerificationVeille(patientIdFinal);
         if (brouillonKey) effacerBrouillon(brouillonKey);
 
-        if (estDemandeExterne) {
-          setTermine(true);
-        } else {
-          alert('✅ Médicaments et vérification veille enregistrés !');
-          router.push('/bloc/rendez-vous');
-        }
+        // Cette étape (médicaments + vérification veille) ne clôt jamais un parcours : le patient
+        // bascule dans la liste Vérification veille du Fil de travail (voir CPAService.update),
+        // patient externe ou non — direction unique vers le rendez-vous.
+        alert('✅ Médicaments et vérification veille enregistrés !');
+        router.push('/bloc/rendez-vous');
       }
     } catch (err: any) {
       console.error('❌ Erreur validation:', err);

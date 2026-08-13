@@ -10,6 +10,7 @@ import { useRole } from '@/lib/hooks/useRole'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import { patientService } from '@/lib/api'
+import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
 import BackButton from '@/components/bloc/layout/BackButton'
 import InstructionsPostOpForm, { DEFAULT_INSTRUCTIONS_POST_OP, InstructionsPostOpData, depuisProtocole, versPayloadProtocole } from '@/components/bloc/protocole/InstructionsPostOpForm'
@@ -85,8 +86,22 @@ function ProtocoleAnesthesiquePageContent() {
       }
       if (protocoleId) await apiClient.patch(`/protocoles-operatoires/${protocoleId}`, payload)
       else await apiClient.post('/protocoles-operatoires', payload)
-      alert('✅ Protocole anesthésique enregistré ! Redirection vers la salle de réveil.')
-      router.push(`/bloc/salle-de-reveil?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}`)
+      // Patient d'un service non-opératoire (Endoscopie, Urgence, Imagerie) : l'acte anesthésique
+      // est terminé, le service d'origine possède sa propre salle de réveil — retour au service +
+      // archivage du dossier (SORTI) au lieu de la salle de réveil du Bloc.
+      if (estServiceNonOperatoire(patient?.serviceOrigine)) {
+        try {
+          await patientService.retourServiceOrigine(patientId)
+        } catch (err: any) {
+          console.error(err)
+          alert('⚠️ Protocole enregistré, mais le retour du patient à son service d\'origine a échoué : ' + (err.response?.data?.message || err.message || 'erreur inconnue'))
+        }
+        alert('✅ Protocole anesthésique enregistré ! Patient renvoyé à son service d\'origine et dossier archivé.')
+        router.push('/bloc/archives')
+      } else {
+        alert('✅ Protocole anesthésique enregistré ! Redirection vers la salle de réveil.')
+        router.push(`/bloc/salle-de-reveil?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}`)
+      }
     } catch (err: any) {
       console.error(err)
       const message = err.response?.data?.message || err.message || 'Erreur inconnue'

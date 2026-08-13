@@ -28,7 +28,12 @@ export default function ListeSalleReveil() {
   const [loading, setLoading] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [filtreUrgence, setFiltreUrgence] = useState<'TOUS' | 'TRES_URGENT' | 'URGENT' | 'NORMAL'>('TOUS');
-  const [filtreDate, setFiltreDate] = useState('');
+  const [filtreDate, setFiltreDate] = useState(() => {
+    const d = new Date();
+    const mois = String(d.getMonth() + 1).padStart(2, '0');
+    const jour = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mois}-${jour}`;
+  });
   const [tri, setTri] = useState<Tri>('RECENT');
 
   useEffect(() => {
@@ -64,9 +69,17 @@ export default function ListeSalleReveil() {
 
   const getUrgenceColor = (niveau: string) => styleUrgence(niveau).badge;
 
+  // Date locale (YYYY-MM-DD) — cohérente avec la valeur du champ de date, pour que le filtre
+  // « aujourd'hui » par défaut ne rate pas des patients à cause du décalage UTC.
+  const dateLocale = (d: Date) => {
+    const mois = String(d.getMonth() + 1).padStart(2, '0');
+    const jour = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mois}-${jour}`;
+  };
+
   const patientsAffiches = patients
     .filter((p) => filtreUrgence === 'TOUS' || p.niveauUrgence === filtreUrgence)
-    .filter((p) => !filtreDate || (p.entree && p.entree.toISOString().split('T')[0] === filtreDate))
+    .filter((p) => !filtreDate || (p.entree && dateLocale(p.entree) === filtreDate))
     .filter((p) => !recherche.trim() || formaterNomPatient(p).toLowerCase().includes(recherche.trim().toLowerCase()))
     .sort((a, b) => {
       const ta = a.entree?.getTime() ?? 0;

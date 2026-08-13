@@ -113,7 +113,7 @@ function ActivitePendantOperationPageContent() {
   }
 
   return (
-    <main className="h-screen flex flex-col overflow-hidden">
+    <main className="h-[calc(100vh-6rem)] flex flex-col">
       {/* TopAppBar */}
       <header className="bg-white/80 backdrop-blur-xl z-50 shrink-0 border-b border-surface-container-highest shadow-sm flex justify-between items-center w-full px-6 py-2">
         <div className="flex items-center gap-6">

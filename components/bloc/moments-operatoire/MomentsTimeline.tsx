@@ -8,11 +8,13 @@ import type { CategorieMoment } from '@/lib/data/catalogue-moments-operatoires'
 
 // Séparation stricte par rôle — miroir de MomentsOperatoireService côté backend. Pendant
 // l'opération, l'IBODE n'a aucune interface propre : tous les boutons (toutes catégories) sont
-// réservés à l'anesthésiste. L'IBODE retrouve une interface partagée avec l'anesthésiste plus
-// tard, en salle de réveil (voir salle-de-reveil/suivi). Les autres rôles (Responsable CPA,
-// Major) consultent l'historique mais ne déclenchent/créent rien ici.
+// réservés à l'anesthésiste et au Major (qui le remplace totalement — même rôle clinique).
+// L'IBODE retrouve une interface partagée avec l'anesthésiste plus tard, en salle de réveil
+// (voir salle-de-reveil/suivi). Les autres rôles (Responsable CPA) consultent l'historique mais
+// ne déclenchent/créent rien ici.
 const CATEGORIES_AUTORISEES: Record<string, CategorieMoment[]> = {
   ANESTHESISTE: ['ANESTHESIE', 'CHIRURGIE', 'DIVERS'],
+  MAJOR: ['ANESTHESIE', 'CHIRURGIE', 'DIVERS'],
 }
 
 const TITRES_CATEGORIE: Record<CategorieMoment, string> = {

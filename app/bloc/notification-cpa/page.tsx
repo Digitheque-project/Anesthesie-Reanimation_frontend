@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import HeaderNotification from '@/components/bloc/notification-cpa/HeaderNotification'
 import StatsNotification from '@/components/bloc/notification-cpa/StatsNotification'
 import TableauNotifications from '@/components/bloc/notification-cpa/TableauNotifications'
@@ -34,7 +34,6 @@ export default function NotificationCPAPage() {
   const [filtreActif, setFiltreActif] = useState('EN_ATTENTE')
   const [showModal, setShowModal] = useState(false)
   const [selectedNotif, setSelectedNotif] = useState<any>(null)
-  const [stats, setStats] = useState({ total: 0, enAttente: 0, prioriteHaute: 0, rdvFixes24h: 0 })
   // IDs déjà vus, pour ne jouer un son que sur une VRAIE nouvelle arrivée détectée entre deux
   // rafraîchissements — jamais au premier chargement de la page (sinon un carillon à chaque
   // ouverture, même quand rien de nouveau ne s'est passé depuis la dernière visite).
@@ -86,15 +85,6 @@ export default function NotificationCPAPage() {
       const actionnables = toutes.filter((n: any) => !estPatientTraite(n))
 
       setNotifications(actionnables)
-      setStats({
-        total: actionnables.length,
-        enAttente: actionnables.filter((n: any) => n.statut === 'EN_ATTENTE').length,
-        prioriteHaute: actionnables.filter((n: any) => n.estUrgent).length,
-        // RDV fixés : uniquement sur le fil (patients non traités, un par patient) — compter les
-        // notifications RDV_PLANIFIE brutes affichait des patients déjà traités et des doublons,
-        // d'où un chiffre (10) sans rapport avec la liste affichée (2).
-        rdvFixes24h: actionnables.filter((n: any) => n.statut === 'RDV_PLANIFIE').length,
-      })
     } catch (err) { console.error(err) }
     finally { setLoading(false) }
   }
@@ -198,6 +188,16 @@ export default function NotificationCPAPage() {
     : filtreActif === 'urgent' ? notifications.filter(n => n.estUrgent)
     : filtreActif === 'EN_ATTENTE' ? notifications.filter(n => n.statut === 'EN_ATTENTE')
     : notifications.filter(n => n.statut === filtreActif)
+
+  // Les compteurs du haut résument exactement la liste affichée sous eux (mêmes filtres) — un
+  // chiffre "Priorité haute" ou "RDV Fixés" qui ne correspondait pas aux lignes visibles
+  // laissait croire que des patients étaient encore à traiter alors qu'ils n'apparaissaient plus.
+  const stats = useMemo(() => ({
+    total: notificationsFiltrees.length,
+    enAttente: notificationsFiltrees.filter((n: any) => n.statut === 'EN_ATTENTE').length,
+    prioriteHaute: notificationsFiltrees.filter((n: any) => n.estUrgent).length,
+    rdvFixes24h: notificationsFiltrees.filter((n: any) => n.statut === 'RDV_PLANIFIE').length,
+  }), [notificationsFiltrees])
 
   return (
     <RoleGate

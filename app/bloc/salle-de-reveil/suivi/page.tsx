@@ -64,6 +64,10 @@ function SalleDeReveilPageContent() {
   const [scoreSCCREId, setScoreSCCREId] = useState<string | null>(null)
   const [checklistSortie, setChecklistSortie] = useState({ signesVitauxStables: false, douleurControlee: false, prescriptionsFaites: false, familleInformee: false })
   const [showConfirmation, setShowConfirmation] = useState(false)
+  // Fenêtre de re-vérification de la surveillance avant la validation finale : aucune condition
+  // ne bloque le bouton, l'anesthésiste relit les données puis confirme (seule validation).
+  const [showConfirmationRevoir, setShowConfirmationRevoir] = useState(false)
+  const [envoiEnCours, setEnvoiEnCours] = useState(false)
 
   useEffect(() => {
     if (patientId) patientService.getById(patientId).then(setPatient).catch(console.error)
@@ -92,45 +96,66 @@ function SalleDeReveilPageContent() {
       .catch(console.error)
   }, [patientId])
 
-  const scoreItemsIncomplets = Object.values(scores).some(v => v === null) || evs === null || eqa === null
   const scoreTotal = (scores.motricite ?? 0) + (scores.respiration ?? 0) + (scores.pressionArterielle ?? 0) + (scores.etatConscience ?? 0) + (scores.coloration ?? 0)
-  const checklistComplete = Object.values(checklistSortie).every(Boolean)
 
-  const handleEnregistrerScore = async () => {
-    if (!peutSurveiller) { alert('❌ La surveillance de réveil est réservée à l\'anesthésiste et à l\'IBODE.' + (roleName ? ` Votre rôle actuel est : ${roleName}.` : '')); return }
-    if (scoreItemsIncomplets) { alert('❌ Évaluez chaque item de surveillance (SCCRE, EVS, EQA) avant d\'enregistrer le score.'); return }
+  // Sauvegarde le score de réveil tel que renseigné — un item non évalué est enregistré à sa
+  // valeur minimale (0) plutôt que de bloquer : la surveillance ne fait plus l'objet d'une
+  // validation séparée, elle est relue puis validée globalement par la sortie.
+  const enregistrerScore = async (): Promise<string | null> => {
     try {
       const { data } = await apiClient.post('/scores-sccre', {
         patientId: patientId || patient?.id,
         heureArrivee, dateEvaluation: new Date().toISOString().split('T')[0],
-        ...scores, evs, eqa, eva, etatInitial, reponse, sortieAutorisee: false
+        motricite: scores.motricite ?? 0,
+        respiration: scores.respiration ?? 0,
+        pressionArterielle: scores.pressionArterielle ?? 0,
+        etatConscience: scores.etatConscience ?? 0,
+        coloration: scores.coloration ?? 0,
+        evs: evs ?? 1,
+        eqa: eqa ?? 1,
+        eva, etatInitial, reponse, sortieAutorisee: false,
       })
       setScoreSCCREId(data.id)
+      return data.id
     } catch (err: any) {
       console.error(err)
       const message = err.response?.data?.message || err.message || 'Erreur inconnue'
       alert('❌ Erreur lors de l\'enregistrement du score : ' + (Array.isArray(message) ? message.join(', ') : message))
+      return null
     }
   }
 
-  const handleValiderSortie = async () => {
+  // Première étape de la validation finale : le bouton « Autoriser la sortie » (sans aucune
+  // condition de score/checklist) ouvre une fenêtre de re-vérification de la surveillance.
+  const handleOuvrirVerification = () => {
     if (!estAnesthesiste) { alert('❌ L\'autorisation de sortie est réservée à l\'anesthésiste.' + (roleName ? ` Votre rôle actuel est : ${roleName}.` : '')); return }
-    if (!scoreSCCREId) { alert('❌ Enregistrez d\'abord le score de réveil'); return }
-    if (!checklistComplete) { alert('❌ Complétez la checklist de sortie avant de valider'); return }
-    if (!orientation) { alert('❌ Choisissez la destination du patient (option de sortie) avant de valider'); return }
+    setShowConfirmationRevoir(true)
+  }
+
+  // Seule validation réelle : l'anesthésiste confirme depuis la fenêtre de re-vérification.
+  // Le score est enregistré (avec ses valeurs, même partielles) puis la sortie est créée.
+  const handleConfirmerSortie = async () => {
+    if (!estAnesthesiste) { alert('❌ L\'autorisation de sortie est réservée à l\'anesthésiste.' + (roleName ? ` Votre rôle actuel est : ${roleName}.` : '')); return }
+    if (envoiEnCours) return
+    setEnvoiEnCours(true)
     try {
+      const scoreId = scoreSCCREId ?? await enregistrerScore()
+      if (!scoreId) return
       await apiClient.post('/sorties-reveil', {
-        patientId, scoreSCCREId,
+        patientId, scoreSCCREId: scoreId,
         dateHeureSortie: new Date().toISOString(),
         versServiceOrigine: orientation === 'origine',
         autresServicesDestination: orientation === 'autres' ? [serviceChoisi] : [],
         checklistSortie,
       })
+      setShowConfirmationRevoir(false)
       setShowConfirmation(true)
     } catch (err: any) {
       console.error(err)
       const message = err.response?.data?.message || err.message || 'Erreur inconnue'
       alert('❌ Erreur : ' + (Array.isArray(message) ? message.join(', ') : message))
+    } finally {
+      setEnvoiEnCours(false)
     }
   }
 
@@ -236,7 +261,7 @@ function SalleDeReveilPageContent() {
 
       {/* Score SCCRE */}
       <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-3 flex items-center justify-between gap-3">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <span className="material-symbols-outlined text-white text-xl">monitor_heart</span>
             <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">Score de réveil (SCCRE)</h3>
@@ -260,7 +285,7 @@ function SalleDeReveilPageContent() {
                 <div className="col-span-8 flex gap-2">
                   {[0,1,2].map(val => (
                     <button key={val} onClick={() => setScores({...scores, [item.key]: val})}
-                      className={`flex-1 py-3 rounded-lg text-[10px] font-bold transition-all ${scores[item.key as keyof typeof scores] === val ? 'bg-indigo-600 text-white shadow-md' : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'}`}>
+                      className={`flex-1 py-3 rounded-lg text-[10px] font-bold transition-all ${scores[item.key as keyof typeof scores] === val ? 'bg-blue-600 text-white shadow-md' : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container'}`}>
                       {val}
                     </button>
                   ))}
@@ -268,11 +293,7 @@ function SalleDeReveilPageContent() {
               </div>
             ))}
           </div>
-          <button onClick={handleEnregistrerScore} disabled={!peutSurveiller || scoreItemsIncomplets}
-            title={!peutSurveiller ? 'Réservé à l\'anesthésiste et à l\'IBODE' : scoreItemsIncomplets ? 'Évaluez chaque item avant de valider' : undefined}
-            className="mt-6 w-full py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-            {!peutSurveiller ? 'Réservé à l\'anesthésiste et à l\'IBODE' : scoreItemsIncomplets ? 'Évaluez chaque item ci-dessus' : scoreSCCREId ? '✓ Score enregistré — Réenregistrer' : 'Valider le score'}
-          </button>
+          <p className="mt-4 text-xs text-on-surface-variant italic">Les valeurs ci-dessus sont reprises dans la fenêtre de vérification avant la validation finale.</p>
         </div>
       </section>
 
@@ -314,11 +335,11 @@ function SalleDeReveilPageContent() {
           {orientation === 'origine' && <p className="mt-2 text-sm font-bold text-emerald-700">Service d'origine</p>}
           {!orientation && <p className="mt-2 text-sm font-bold text-amber-700">Aucune destination choisie pour l'instant</p>}
 
-          <button onClick={handleValiderSortie} disabled={scoreTotal < 9 || !scoreSCCREId || !checklistComplete || !orientation || !estAnesthesiste}
+          <button onClick={handleOuvrirVerification} disabled={!estAnesthesiste}
             className={`mt-4 w-full py-3 font-bold rounded-xl transition-all ${
-              scoreTotal >= 9 && scoreSCCREId && checklistComplete && orientation && estAnesthesiste ? 'bg-emerald-600 text-white shadow-lg hover:bg-emerald-700' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
+              estAnesthesiste ? 'bg-emerald-600 text-white shadow-lg hover:bg-emerald-700' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
             }`}>
-            {scoreTotal < 9 ? 'Score insuffisant (< 9)' : !scoreSCCREId ? 'Enregistrez le score ci-dessus' : !checklistComplete ? 'Complétez la checklist' : !orientation ? "Choisissez l'option de sortie" : !estAnesthesiste ? `Réservé à l'anesthésiste${roleName ? ` (rôle actuel : ${roleName})` : ''}` : 'Autoriser la sortie'}
+            {estAnesthesiste ? 'Autoriser la sortie' : `Réservé à l'anesthésiste${roleName ? ` (rôle actuel : ${roleName})` : ''}`}
           </button>
         </div>
       </section>
@@ -369,6 +390,99 @@ function SalleDeReveilPageContent() {
               <button onClick={() => router.push('/bloc')}
                 className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-all">
                 🏠 Retour à l'accueil
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Re-vérification de la surveillance — seule validation finale : l'anesthésiste
+          relit la surveillance puis confirme. Aucun champ obligatoire ne bloque l'action. */}
+      {showConfirmationRevoir && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-extrabold text-blue-700 mb-1 flex items-center gap-2">
+              <span className="material-symbols-outlined">visibility</span> Vérification de la surveillance
+            </h3>
+            <p className="text-sm text-on-surface-variant mb-6">Relisez la surveillance avant de confirmer la sortie du patient.</p>
+
+            <div className="space-y-5">
+              <div className="bg-blue-50/60 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-extrabold uppercase tracking-widest text-blue-800">Score de réveil (SCCRE)</h4>
+                  <span className="text-lg font-black text-blue-700">{scoreTotal}<span className="text-sm font-medium text-blue-400">/10</span></span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {[
+                    { label: 'Motricité', value: scores.motricite },
+                    { label: 'Respiration', value: scores.respiration },
+                    { label: 'Pression artérielle', value: scores.pressionArterielle },
+                    { label: 'État de conscience', value: scores.etatConscience },
+                    { label: 'Coloration', value: scores.coloration },
+                  ].map(item => (
+                    <div key={item.label} className="flex justify-between bg-white rounded-lg px-3 py-2 border border-outline-variant/10">
+                      <span className="text-on-surface-variant font-medium">{item.label}</span>
+                      <span className="font-bold text-on-surface">{item.value ?? '—'}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-4 mt-3 text-sm">
+                  <span className="text-on-surface-variant">EVS : <b className="text-on-surface">{evs ?? '—'}</b></span>
+                  <span className="text-on-surface-variant">EQA : <b className="text-on-surface">{eqa ?? '—'}</b></span>
+                  <span className="text-on-surface-variant">EVA : <b className="text-on-surface">{eva}</b></span>
+                </div>
+              </div>
+
+              <div className="rounded-xl p-4 border border-outline-variant/10">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-on-surface-variant mb-3">État respiratoire / neuromusculaire</h4>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {[
+                    { label: 'Intubation (initial)', value: etatInitial.intubation },
+                    { label: 'Curarisation (initial)', value: etatInitial.curarisation },
+                    { label: 'Extubation obtenue', value: reponse.intubation },
+                    { label: 'Décurarisation obtenue', value: reponse.curarisation },
+                  ].map(item => (
+                    <div key={item.label} className="flex justify-between bg-surface-container-low rounded-lg px-3 py-2">
+                      <span className="text-on-surface-variant font-medium">{item.label}</span>
+                      <span className={`font-bold ${item.value ? 'text-emerald-600' : 'text-on-surface-variant'}`}>{item.value ? 'Oui' : 'Non'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl p-4 border border-outline-variant/10">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-on-surface-variant mb-3">Checklist de sortie</h4>
+                <div className="space-y-1.5 text-sm">
+                  {[
+                    { key: 'signesVitauxStables', label: 'Signes vitaux stables' },
+                    { key: 'douleurControlee', label: 'Douleur contrôlée' },
+                    { key: 'prescriptionsFaites', label: 'Prescriptions post-opératoires faites' },
+                    { key: 'familleInformee', label: 'Famille / service informé' },
+                  ].map(item => (
+                    <div key={item.key} className="flex justify-between bg-surface-container-low rounded-lg px-3 py-2">
+                      <span className="text-on-surface-variant font-medium">{item.label}</span>
+                      <span className={`font-bold ${checklistSortie[item.key as keyof typeof checklistSortie] ? 'text-emerald-600' : 'text-on-surface-variant'}`}>
+                        {checklistSortie[item.key as keyof typeof checklistSortie] ? 'Oui' : 'Non'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl p-4 border border-outline-variant/10">
+                <h4 className="text-xs font-extrabold uppercase tracking-widest text-on-surface-variant mb-2">Destination</h4>
+                <p className="text-sm font-bold text-on-surface">
+                  {orientation === 'origine' ? 'Service d\'origine' : orientation === 'autres' ? `Autre service : ${serviceChoisi || '—'}` : 'Aucune destination renseignée'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowConfirmationRevoir(false)} className="flex-1 py-3 border border-outline-variant/20 rounded-xl text-sm font-bold hover:bg-surface-container-low">Annuler</button>
+              <button onClick={handleConfirmerSortie} disabled={envoiEnCours}
+                className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                {envoiEnCours ? 'Confirmation...' : 'Confirmer la sortie'}
               </button>
             </div>
           </div>

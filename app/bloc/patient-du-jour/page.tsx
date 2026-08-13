@@ -33,7 +33,7 @@ export default function PatientDuJourPage() {
       const estDateSelectionnee = (p: any) => !p.dateIntervention || new Date(p.dateIntervention).toISOString().split('T')[0] === selectedDate
       // Les patients venus par une demande de CPA externe d'un service qui n'opère pas au Bloc
       // (Imagerie, Endoscopie, Urgence...) ne font pas partie du programme opératoire du Bloc —
-      // ils vivent dans une liste séparée, "Programme non-opératoire" (voir
+      // ils vivent dans une liste séparée, "Programme non-chirurgical" (voir
       // app/bloc/programme-non-operatoire), avec le même traitement mais jamais mélangés ici.
       const data = [...(pretRes.data || []), ...(encoursRes.data || [])]
         .filter(estDateSelectionnee)

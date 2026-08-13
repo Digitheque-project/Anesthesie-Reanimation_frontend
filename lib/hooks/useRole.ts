@@ -16,11 +16,18 @@ export function useRole() {
 
   const role = matchRoleClinique(roleName)
 
+  // Le Major remplace totalement l'anesthésiste (même rôle clinique, décision validée) : toutes
+  // les capacités réservées à l'anesthésiste lui sont aussi ouvertes — miroir de
+  // agitCommeAnesthesiste côté backend. Son identité reste MAJOR (traçabilité), il n'est jamais
+  // « promu » en ANESTHESISTE.
+  const agitCommeAnesthesiste =
+    role === RoleClinique.ANESTHESISTE || role === RoleClinique.MAJOR
+
   return {
     roleName,
     role,
     estResponsableCpa: role === RoleClinique.RESPONSABLE_CPA,
-    estAnesthesiste: role === RoleClinique.ANESTHESISTE,
+    estAnesthesiste: agitCommeAnesthesiste,
     estChirurgien: role === RoleClinique.CHIRURGIEN,
     estIbode: role === RoleClinique.IBODE,
     estMajor: role === RoleClinique.MAJOR,
@@ -32,16 +39,17 @@ export function useRole() {
       role === RoleClinique.MAJOR ||
       role === RoleClinique.ANESTHESISTE,
     peutGererCreneaux: role === RoleClinique.MAJOR,
-    peutValiderSortieReveil: role === RoleClinique.ANESTHESISTE,
-    // Check-list après intervention (Sign Out OMS) : réservée à l'anesthésiste, miroir de
-    // @RequireRoleClinique sur POST /checklists-apres-op côté backend.
-    peutValiderChecklistApresOp: role === RoleClinique.ANESTHESISTE,
+    peutValiderSortieReveil: agitCommeAnesthesiste,
+    // Check-list après intervention (Sign Out OMS) : réservée à l'anesthésiste (et au Major qui
+    // le remplace), miroir de @RequireRoleClinique sur POST /checklists-apres-op côté backend.
+    peutValiderChecklistApresOp: agitCommeAnesthesiste,
     // Saisir l'examen clinique CPA et décider APTE/INAPTE/REPORT : Anesthésiste, Responsable
     // CPA ou Major (miroir de @RequireRoleClinique sur POST/PATCH /cpa côté backend).
     peutDeciderAptitudeCpa:
       role === RoleClinique.ANESTHESISTE || role === RoleClinique.RESPONSABLE_CPA || role === RoleClinique.MAJOR,
-    // Distingue l'anesthésiste connecté (auto-attribué depuis sa session) d'un Responsable
-    // CPA/Major qui doit désigner explicitement l'anesthésiste ayant réalisé la consultation.
-    estAnesthesisteConnecte: role === RoleClinique.ANESTHESISTE,
+    // Anesthésiste connecté (ou Major qui le remplace) : auto-attribué comme anesthésiste depuis
+    // sa session. Seul le Responsable CPA doit désigner explicitement l'anesthésiste ayant
+    // réalisé la consultation.
+    estAnesthesisteConnecte: agitCommeAnesthesiste,
   }
 }

@@ -89,7 +89,7 @@ export default function ProgrammeNonOperatoirePage() {
     <div className="p-8 flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-extrabold text-on-surface font-headline tracking-tight">
-          Programmation Anesthésique
+          Programme non-chirurgical
         </h1>
         <p className="text-on-surface-variant text-sm font-medium mt-1">
           Patients pris en charge par l'anesthésiste hors du Bloc (Imagerie, Endoscopie, Urgence...) — {new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
