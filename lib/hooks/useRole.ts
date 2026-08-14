@@ -28,7 +28,6 @@ export function useRole() {
     role,
     estResponsableCpa: role === RoleClinique.RESPONSABLE_CPA,
     estAnesthesiste: agitCommeAnesthesiste,
-    estChirurgien: role === RoleClinique.CHIRURGIEN,
     estIbode: role === RoleClinique.IBODE,
     estMajor: role === RoleClinique.MAJOR,
     // Planifier un RDV CPA : Responsable CPA, Major ou Anesthésiste (miroir de

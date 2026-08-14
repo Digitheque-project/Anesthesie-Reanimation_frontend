@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import PatientStatsCards from '@/components/bloc/patient-du-jour/PatientStatsCards'
 import PatientFilters from '@/components/bloc/patient-du-jour/PatientFilters'
 import PatientsListTable from '@/components/bloc/patient-du-jour/PatientsListTable'
@@ -15,12 +15,15 @@ export default function PatientDuJourPage() {
   const [loading, setLoading] = useState(true)
   const [filtres, setFiltres] = useState<FiltresPatient>({ statut: '', specialite: '', recherche: '', sexe: '', heureDebut: '', heureFin: '' })
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  // Le loading plein écran n'apparaît qu'au tout premier chargement : les rafraîchissements
+  // d'arrière-plan (temps réel, retour de focus) ne doivent pas faire clignoter "Chargement...".
+  const aDejaCharge = useRef(false)
 
   useEffect(() => { charger() }, [selectedDate])
 
   const charger = async () => {
     try {
-      setLoading(true)
+      if (!aDejaCharge.current) setLoading(true)
       // Le programme opératoire n'est plus figé sur "aujourd'hui" : on peut naviguer vers
       // n'importe quelle date. Les patients prêts/en cours dont l'intervention est prévue ce
       // jour-là (ou sans date renseignée, à traiter en priorité) y apparaissent.
@@ -62,6 +65,7 @@ export default function PatientDuJourPage() {
     } catch (err) {
       console.error('Erreur:', err)
     } finally {
+      aDejaCharge.current = true
       setLoading(false)
     }
   }

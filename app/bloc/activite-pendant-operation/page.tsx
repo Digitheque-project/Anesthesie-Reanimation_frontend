@@ -11,7 +11,6 @@ import SurveillancePanel from '@/components/bloc/surveillance/SurveillancePanel'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import BackButton from '@/components/bloc/layout/BackButton'
-import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
 import { useRole } from '@/lib/hooks/useRole'
 
 export default function ActivitePendantOperationPage() {
@@ -138,7 +137,15 @@ function ActivitePendantOperationPageContent() {
             </span>
             <span className="text-[10px] font-extrabold tracking-wider">PROCÉDURE EN COURS</span>
           </div>
-          <VoirDossierButton patientId={patientId} variant="icon" />
+          <button
+            type="button"
+            onClick={() => router.push(`/bloc/dossier-patient/${patientId}`)}
+            title="Voir le dossier patient à jour"
+            aria-label="Voir le dossier patient à jour"
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">folder_shared</span>
+          </button>
         </div>
       </header>
 
@@ -147,7 +154,8 @@ function ActivitePendantOperationPageContent() {
           boutons, aucun formulaire clinique ni checklist. */}
       <div className="flex-1 min-h-0 flex gap-6 p-6">
         {estAnesthesiste && (
-        <div className="flex-1 min-w-0 overflow-y-auto space-y-6">
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-6">
         {/* Section 1: APPORTS */}
         <section className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
           <div className="bg-emerald-50 px-6 py-3 border-b border-emerald-100 flex items-center gap-2">
@@ -249,8 +257,10 @@ function ActivitePendantOperationPageContent() {
           </div></div>
         </section>
 
+        </div>
+
         {/* VALIDER */}
-        <div className="flex justify-end pt-4 pb-4">
+        <div className="flex justify-end shrink-0">
           <button
             onClick={handleSubmit}
             disabled={loading || !activiteId}

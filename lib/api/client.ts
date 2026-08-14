@@ -6,7 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'de
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 30000,
+  timeout: 10000,
 });
 
 apiClient.interceptors.request.use((config) => {

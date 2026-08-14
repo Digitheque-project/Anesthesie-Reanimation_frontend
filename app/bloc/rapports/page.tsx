@@ -85,7 +85,6 @@ export default function RapportsPage() {
   }
 
   const stats = dashboard?.statistiques || {}
-  const activiteChirurgiens: any[] = dashboard?.activiteParChirurgien || []
   const activiteAnesthesistes: any[] = dashboard?.activiteParAnesthesiste || []
   const activiteIbode: any[] = dashboard?.activiteParIbode || []
   const activiteRespoCpa: any[] = dashboard?.activiteParResponsableCpa || []
@@ -128,9 +127,6 @@ export default function RapportsPage() {
     name: libelleUrgence(u.niveauUrgence), value: Number(u.count) || 0, fill: PALETTE_URGENCE[u.niveauUrgence] || '#94a3b8',
   }))
   const typesChirurgieGraph = typesChirurgie.slice(0, 8).map((t: any) => ({ name: t.type, count: Number(t.count) || 0 }))
-  const activiteChirurgiensGraph = activiteChirurgiens.map((c: any) => ({
-    name: c.nomComplet?.trim() || 'Non renseigné', nbOperations: Number(c.nbOperations) || 0,
-  }))
   const activiteAnesthesistesGraph = activiteAnesthesistes.map((a: any) => ({
     name: a.nomComplet?.trim() || 'Non renseigné',
     CPA: Number(a.nbCPA) || 0, Opérations: Number(a.nbOperations) || 0, 'Scores SCCRE': Number(a.nbScoresSCCRE) || 0,
@@ -147,14 +143,12 @@ export default function RapportsPage() {
   // par rôle (opérations, actes CPA/scores, moments horodatés, dossiers saisis) : une barre par
   // rôle plutôt qu'un donut, qui suggérerait à tort des parts d'un même total.
   const vueEnsembleGraph = [
-    { name: 'Chirurgien', value: activiteChirurgiens.reduce((s, c: any) => s + (Number(c.nbOperations) || 0), 0), fill: '#3b82f6' },
     { name: 'Anesthésiste', value: activiteAnesthesistes.reduce((s, a: any) => s + (Number(a.nbCPA) || 0) + (Number(a.nbOperations) || 0) + (Number(a.nbScoresSCCRE) || 0), 0), fill: '#8b5cf6' },
     { name: 'IBODE', value: activiteIbode.reduce((s, i: any) => s + (Number(i.nbOperations) || 0), 0), fill: '#f43f5e' },
     { name: 'Responsable CPA', value: activiteRespoCpa.reduce((s, r: any) => s + (Number(r.nbDossiers) || 0), 0), fill: '#f59e0b' },
   ]
 
   // ————— Colonnes / lignes pour les exports —————
-  const colonnesChirurgiens: Colonne[] = [{ cle: 'nomComplet', titre: 'Chirurgien' }, { cle: 'nbOperations', titre: "Nb opérations" }]
   const colonnesAnesthesistes: Colonne[] = [{ cle: 'nomComplet', titre: 'Anesthésiste' }, { cle: 'nbCPA', titre: 'CPA réalisées' }, { cle: 'nbOperations', titre: 'Opérations suivies' }, { cle: 'nbScoresSCCRE', titre: 'Scores SCCRE' }]
   const colonnesDetail: Colonne[] = [
     { cle: 'patientNom', titre: 'Patient' }, { cle: 'libelle', titre: 'Intervention' }, { cle: 'typeChirurgie', titre: 'Type' },
@@ -169,14 +163,12 @@ export default function RapportsPage() {
   const handleCSV = () => exporterCSV(colonnesDetail, lignesDetailExport, nomFichier)
   const handleExcel = () => exporterExcel([
     { nom: 'Détail opérations', colonnes: colonnesDetail, lignes: lignesDetailExport },
-    { nom: 'Chirurgiens', colonnes: colonnesChirurgiens, lignes: activiteChirurgiens },
     { nom: 'Anesthésistes', colonnes: colonnesAnesthesistes, lignes: activiteAnesthesistes },
   ], nomFichier)
   const handlePDF = () => exporterPDF(
     'Rapport d\'activité — Service Anesthésie-Réanimation',
     `Période : ${dateDebut ? fmtDate(dateDebut) : 'Depuis le début'} → ${dateFin ? fmtDate(dateFin) : "Aujourd'hui"} — ${session?.acces.chu?.name || ''}`,
     [
-      { titre: 'Activité par chirurgien', colonnes: colonnesChirurgiens, lignes: activiteChirurgiens },
       { titre: 'Activité par anesthésiste', colonnes: colonnesAnesthesistes, lignes: activiteAnesthesistes },
       { titre: 'Détail des opérations', colonnes: colonnesDetail, lignes: lignesDetailExport },
     ],
@@ -389,22 +381,6 @@ export default function RapportsPage() {
 
       {/* Activité par personnel (détail par individu) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
-          <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-blue-600">content_cut</span> Activité par chirurgien
-          </h3>
-          {activiteChirurgiensGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={activiteChirurgiensGraph} margin={{ left: 0, bottom: 45 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-35} textAnchor="end" interval={0} height={60} />
-                <YAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} width={28} />
-                <Tooltip />
-                <Bar dataKey="nbOperations" name="Opérations" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
             <span className="material-symbols-outlined text-secondary">medical_services</span> Activité par anesthésiste

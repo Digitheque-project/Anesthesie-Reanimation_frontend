@@ -789,7 +789,7 @@ function ConsultationCpaPageContent() {
         ],
       },
       {
-        titre: 'Protocole opératoire',
+        titre: 'Protocole anesthésique',
         champs: [
           { label: 'Type d\'anesthésie', valeur: form.typeAnesthesie },
           { label: 'Technique', valeur: form.sousTypeAnesthesie },
@@ -1387,14 +1387,14 @@ function ConsultationCpaPageContent() {
         </div>
       </div>
 
-      {/* Protocole opératoire — section indépendante, juste après la Conclusion : le protocole
+      {/* Protocole anesthésique — section indépendante, juste après la Conclusion : le protocole
           ne fait pas partie des consignes données au patient, il a quitté les Instructions
           pré-opératoires pour sa propre section pleine largeur. Design inchangé. */}
       <section id="cpa-protocole" className={`scroll-mt-36 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
         <div className="bg-white rounded-2xl shadow-md border-2 border-secondary/20 overflow-hidden">
           <div className="bg-gradient-to-r from-secondary to-secondary/80 px-4 py-3 flex items-center gap-2">
             <span className="material-symbols-outlined text-white">vaccines</span>
-            <h2 className="text-sm font-extrabold text-white uppercase tracking-widest">Protocole opératoire</h2>
+            <h2 className="text-sm font-extrabold text-white uppercase tracking-widest">Protocole anesthésique</h2>
           </div>
           <div className="p-4 space-y-3">
             <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
@@ -1459,7 +1459,7 @@ function ConsultationCpaPageContent() {
         </div>
         <div className="p-4">
           {/* Jeûne — consignes au patient (règles de jeûne, préparation physique, tâches
-              soignantes). Le Protocole opératoire a rejoint sa propre section, juste après la
+              soignantes). Le Protocole anesthésique a rejoint sa propre section, juste après la
               Conclusion. */}
           <div className="space-y-2">
             <div className="h-full bg-white rounded-xl border border-blue-200 p-4 shadow-sm space-y-2">

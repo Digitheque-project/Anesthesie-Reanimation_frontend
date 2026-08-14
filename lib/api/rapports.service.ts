@@ -1,23 +1,10 @@
 import { apiClient } from './client'
 
-const MOCK_STATS = {
-  totalPatients: 42,
-  totalOperations: 156,
-  totalUrgences: 8,
-  totalMedecins: 12,
-  enAttente: 5,
-  aujourdhui: 8
-}
-
 export const rapportsService = {
   getStatistiques: async (dateDebut?: string, dateFin?: string) => {
-    try {
-      const { data } = await apiClient.get('/rapports/statistiques', { params: { dateDebut, dateFin } })
-      return data
-    } catch (error) {
-      console.warn('⚠️ API indisponible - utilisation des stats simulées')
-      return MOCK_STATS
-    }
+    // Pas de repli sur des statistiques simulées : des compteurs inventés induisent en erreur.
+    const { data } = await apiClient.get('/rapports/statistiques', { params: { dateDebut, dateFin } })
+    return data
   },
 
   getTableauDeBord: async (dateDebut?: string, dateFin?: string) => {

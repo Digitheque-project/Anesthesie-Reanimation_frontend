@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { planningService, patientService } from '@/lib/api';
 import { formaterNomPatient } from '@/lib/patient';
@@ -38,6 +38,9 @@ export default function RendezVousPage() {
   // chaque intervention) — on prévient du total + de la prochaine, avec un bouton pour tout
   // afficher d'un coup (voirTousVerif), exactement comme l'alerte RDV CPA.
   const [voirTousVerif, setVoirTousVerif] = useState(false);
+  // Le loading plein écran n'apparaît qu'au tout premier chargement : les rafraîchissements
+  // d'arrière-plan (temps réel, retour de focus) ne doivent pas faire clignoter "Chargement...".
+  const aDejaCharge = useRef(false);
 
   useEffect(() => {
     if (onglet !== 'CPA') return;
@@ -54,7 +57,7 @@ export default function RendezVousPage() {
   useEffect(() => { charger(); }, [selectedDate, onglet, voirTousCpa]);
 
   const charger = async () => {
-    setLoading(true);
+    if (!aDejaCharge.current) setLoading(true);
     try {
       if (onglet === 'CPA') {
         // Rendez-vous CPA planifiés : patient normal dont la CPA reste réellement à faire
@@ -103,7 +106,7 @@ export default function RendezVousPage() {
         setCreneaux(rows);
       }
     } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+    finally { aDejaCharge.current = true; setLoading(false); }
   };
 
   // Un patient dont la CPA/vérification veille vient d'être traitée (depuis un autre onglet, ou

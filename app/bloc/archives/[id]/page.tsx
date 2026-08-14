@@ -287,25 +287,18 @@ export default function ArchiveDetailPage() {
             )}
           </SectionEtape>
 
-          {/* 8. Protocole opératoire + Protocole anesthésique + Instructions post-opératoires
-              (même enregistrement partagé chirurgien/anesthésiste, voir InstructionsPostOpForm) */}
-          <SectionEtape numero={9} icone="clinical_notes" couleur="violet" titre="Protocole opératoire & anesthésique">
+          {/* 8. Protocole anesthésique + Instructions post-opératoires
+              (même enregistrement, voir InstructionsPostOpForm) */}
+          <SectionEtape numero={9} icone="clinical_notes" couleur="violet" titre="Protocole anesthésique">
             {(dossier.protocolesOperatoires?.length || 0) === 0 ? <VideMessage texte="Aucun protocole enregistré." /> : (
               dossier.protocolesOperatoires.map((pr: any) => (
                 <div key={pr.id} className="space-y-3 pb-3 mb-3 border-b border-surface-variant/20 last:border-0 last:pb-0 last:mb-0">
                   <ChampsGrid champs={[
-                    ['Chirurgien', nomPersonne(pr.chirurgien)],
                     ['Anesthésiste', nomPersonne(pr.anesthesiste)],
                     ['Infirmière', nomPersonne(pr.infirmiere)],
                     ['Aide opératoire', nomPersonne(pr.aideOperatoire)],
                     ['Date', fmtDate(pr.dateOperation)],
                   ]} />
-                  {pr.compteRenduIntervention && (
-                    <div>
-                      <p className="text-[10px] font-bold text-violet-700 uppercase tracking-wide mb-1">Compte-rendu de l'intervention (chirurgien)</p>
-                      <p className="text-sm text-on-surface-variant leading-relaxed bg-violet-50/50 border border-violet-100 p-3 rounded-xl">{pr.compteRenduIntervention}</p>
-                    </div>
-                  )}
                   {pr.compteRenduAnesthesique && (
                     <div>
                       <p className="text-[10px] font-bold text-violet-700 uppercase tracking-wide mb-1">Protocole anesthésique (anesthésiste)</p>
@@ -419,7 +412,7 @@ const LABEL_COTE: Record<string, string> = { GAUCHE: 'Gauche', DROITE: 'Droite' 
 const LABEL_PERFUSION: Record<string, string> = { perfusionBrasGauche: 'Bras gauche', perfusionBrasDroit: 'Bras droit', voieCentrale: 'Voie centrale' }
 
 // Détail des Instructions post-opératoires (Surveillance / Drainages / Prescription à suivre),
-// communes au chirurgien et à l'anesthésiste — voir InstructionsPostOpForm côté formulaire.
+// remplies par l'anesthésiste — voir InstructionsPostOpForm côté formulaire.
 function InstructionsPostOpDetail({ protocole: pr }: { protocole: any }) {
   const surveillanceActive = Object.entries(pr.surveillance || {}).filter(([, v]: any) => v && typeof v === 'object' ? v.coche : v)
   const drainages: any[] = Array.isArray(pr.drainages) ? pr.drainages : []

@@ -18,12 +18,12 @@ import { estPatientTraite } from '@/lib/notifications/patient-traite'
 // Responsable CPA, "Prescription"/"CPA" pour un IBODE), sans nulle part où aller les consulter en
 // détail.
 const BLOCS_EXCLUS: Partial<Record<'prescription' | 'cpa' | 'bloc' | 'reveil', RoleClinique[]>> = {
-  prescription: [RoleClinique.CHIRURGIEN, RoleClinique.IBODE],
+  prescription: [RoleClinique.IBODE],
   // La CPA se pilote depuis Prescription/Fil de travail (aucune entrée de menu dédiée) — mêmes
   // rôles exclus que ces deux pages.
-  cpa: [RoleClinique.CHIRURGIEN, RoleClinique.IBODE],
+  cpa: [RoleClinique.IBODE],
   bloc: [RoleClinique.MAJOR, RoleClinique.RESPONSABLE_CPA],
-  reveil: [RoleClinique.MAJOR, RoleClinique.RESPONSABLE_CPA, RoleClinique.CHIRURGIEN, RoleClinique.IBODE],
+  reveil: [RoleClinique.MAJOR, RoleClinique.RESPONSABLE_CPA, RoleClinique.IBODE],
 }
 
 // Jamais l'ID en remplacement du nom (interdit) — voir formaterNomPatient.
@@ -133,14 +133,7 @@ export default function DashboardPage() {
     if (reveilRes.status === 'fulfilled') {
       // Toujours "aujourd'hui" par nature : un patient reste peu de temps en salle de réveil
       const liste = reveilRes.value?.data || []
-      setPatientsReveil(liste.map(versLignePatient('EN_SALLE_REVEIL', 'Suivi réveil', '/bloc/salle-de-reveil/suivi')).map((l: LignePlanning) => ({
-        ...l,
-        // Point d'entrée indépendant pour le chirurgien : il ne suit pas le même
-        // enchaînement d'écrans que l'anesthésiste, il doit pouvoir retrouver le
-        // patient ici pour remplir le protocole opératoire.
-        actionLabel2: 'Protocole opératoire',
-        href2: l.href.replace('/bloc/salle-de-reveil/suivi', '/bloc/protocole-operatoire'),
-      })))
+      setPatientsReveil(liste.map(versLignePatient('EN_SALLE_REVEIL', 'Suivi réveil', '/bloc/salle-de-reveil/suivi')))
     }
 
     setLoading(false)

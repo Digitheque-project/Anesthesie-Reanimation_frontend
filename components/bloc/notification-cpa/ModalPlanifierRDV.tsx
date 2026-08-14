@@ -15,7 +15,7 @@ interface ModalPlanifierRDVProps {
 export default function ModalPlanifierRDV({
   isOpen, onClose, onValider, patientNom, intervention, estUrgent
 }: ModalPlanifierRDVProps) {
-  const [typeRDV, setTypeRDV] = useState<'CPA' | 'VERIFICATION_VEILLE'>('CPA')
+  const [typeRDV, setTypeRDV] = useState<'CPA'>('CPA')
   const [dateRDV, setDateRDV] = useState(new Date().toISOString().split('T')[0])
   const [heureRDV, setHeureRDV] = useState(estUrgent ? new Date().toTimeString().split(' ')[0].substring(0,5) : '')
   const [lieuRDV, setLieuRDV] = useState(estUrgent ? 'Bloc Opératoire - Urgence' : '')
@@ -44,12 +44,6 @@ export default function ModalPlanifierRDV({
                   typeRDV === 'CPA' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                 }`}>
                 CPA (Consultation Pré-Anesthésique)
-              </button>
-              <button onClick={() => setTypeRDV('VERIFICATION_VEILLE')}
-                className={`flex-1 py-2 rounded-lg text-sm font-bold border transition-all ${
-                  typeRDV === 'VERIFICATION_VEILLE' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                }`}>
-                Vérification veille
               </button>
             </div>
           </div>

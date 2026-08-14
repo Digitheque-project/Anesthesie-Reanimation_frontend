@@ -10,15 +10,14 @@ import { useRole } from '@/lib/hooks/useRole'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import { patientService } from '@/lib/api'
-import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire'
+import { aSaPropreSalleDeReveil } from '@/lib/programme-non-operatoire'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
 import BackButton from '@/components/bloc/layout/BackButton'
 import InstructionsPostOpForm, { DEFAULT_INSTRUCTIONS_POST_OP, InstructionsPostOpData, depuisProtocole, versPayloadProtocole } from '@/components/bloc/protocole/InstructionsPostOpForm'
 
-// Équivalent, côté anesthésiste, de la page "Protocole Opératoire" du chirurgien : compte-rendu
-// libre de l'anesthésiste ("Protocole Anesthésique") + Instructions Post-Opératoires, partagées
-// avec le chirurgien (même enregistrement ProtocoleOperatoire côté backend). Ouverte juste après
-// validation de la check-list après intervention (voir app/bloc/apres-operation/page.tsx).
+// Page du protocole anesthésique : compte-rendu libre de l'anesthésiste + Instructions
+// Post-Opératoires (surveillance, drainages, prescriptions). Ouverte juste après validation de la
+// check-list après intervention (voir app/bloc/apres-operation/page.tsx).
 export default function ProtocoleAnesthesiquePage() {
   return (
     <RoleGate allowedRoles={[RoleClinique.ANESTHESISTE, RoleClinique.MAJOR]} message="Vous n'avez pas accès au protocole anesthésique.">
@@ -54,9 +53,9 @@ function ProtocoleAnesthesiquePageContent() {
 
   useEffect(() => on('protocole-operatoire:maj', () => setMajDistante(true)), [on])
 
-  // Préchargement : si le chirurgien a déjà créé l'enregistrement (Protocole Opératoire) pour ce
-  // patient aujourd'hui, on récupère ses Instructions Post-Op déjà saisies au lieu de repartir
-  // d'un formulaire vide (sinon la sauvegarde ici écraserait les siennes).
+  // Préchargement : si un protocole anesthésique existe déjà pour ce patient aujourd'hui, on
+  // récupère le compte-rendu et les Instructions Post-Op déjà saisies au lieu de repartir d'un
+  // formulaire vide (sinon la sauvegarde ici écraserait les précédentes).
   useEffect(() => {
     if (!patientId) return
     apiClient.get('/protocoles-operatoires', { params: { patientId, limite: 1 } })
@@ -86,10 +85,11 @@ function ProtocoleAnesthesiquePageContent() {
       }
       if (protocoleId) await apiClient.patch(`/protocoles-operatoires/${protocoleId}`, payload)
       else await apiClient.post('/protocoles-operatoires', payload)
-      // Patient d'un service non-opératoire (Endoscopie, Urgence, Imagerie) : l'acte anesthésique
-      // est terminé, le service d'origine possède sa propre salle de réveil — retour au service +
-      // archivage du dossier (SORTI) au lieu de la salle de réveil du Bloc.
-      if (estServiceNonOperatoire(patient?.serviceOrigine)) {
+      // Patient d'un service qui possède sa propre salle de réveil (Imagerie, Scanner) : l'acte
+      // anesthésique est terminé, retour au service + archivage du dossier (SORTI) au lieu de la
+      // salle de réveil du Bloc. Les patients d'Endoscopie/Urgence, surveillés par le même
+      // anesthésiste du Bloc, suivent le flux complet et partent en salle de réveil du Bloc.
+      if (aSaPropreSalleDeReveil(patient?.serviceOrigine)) {
         try {
           await patientService.retourServiceOrigine(patientId)
         } catch (err: any) {

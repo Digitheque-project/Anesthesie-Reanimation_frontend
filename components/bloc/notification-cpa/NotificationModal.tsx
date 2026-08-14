@@ -77,7 +77,13 @@ export default function NotificationModal({
   // session précédente) ne doit plus apparaître dans la liste — pas juste être re-stylée.
   // Ni une notification rattachée à un patient déjà traité (voir estPatientTraite) : un patient
   // pris en charge (CPA réalisée/inapte ou plus loin dans le parcours) ne doit plus apparaître ici.
-  const notificationsAffichees = toutesNotifications.filter(n => !readNotifications.has(n.id) && !n.lu && !estPatientTraite(n));
+  // Ni une notification déjà passée en RDV_PLANIFIE : le rendez-vous existe désormais au
+  // calendrier, ce n'est plus une prescription à traiter — un bouton "Voir prescription" dessus
+  // serait trompeur (le bug des patients réapparaissant dans la cloche après planification). Le
+  // suivi des RDV planifiés vit sur la page Notifications (onglet "RDV planifiés"), pas ici.
+  const notificationsAffichees = toutesNotifications.filter(
+    n => !readNotifications.has(n.id) && !n.lu && n.statut !== 'RDV_PLANIFIE' && !estPatientTraite(n)
+  );
   const unreadCount = notificationsAffichees.length;
   const aucuneNotification = toutesNotifications.length === 0;
 

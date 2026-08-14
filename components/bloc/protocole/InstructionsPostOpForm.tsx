@@ -2,10 +2,9 @@
 
 import Checkbox from '@/components/ui/Checkbox'
 
-// Instructions post-opératoires — communes au chirurgien (Protocole Opératoire) et à
-// l'anesthésiste (Protocole Anesthésique) : les deux rôles lisent/complètent le même
-// enregistrement (ProtocoleOperatoire côté backend), voir InstructionsPostOpForm utilisé dans
-// les deux pages.
+// Instructions post-opératoires — remplies par l'anesthésiste dans la page Protocole anesthésique
+// (surveillance, drainages, prescriptions), stockées dans l'enregistrement ProtocoleOperatoire
+// côté backend, voir InstructionsPostOpForm utilisé dans cette page.
 
 export type ModeDrainageAspiratif = 'SIPHON' | 'ASPIRATION'
 export type ModeDrainageRedon = 'SIPHON' | 'REDON'
@@ -89,9 +88,9 @@ export function versPayloadProtocole(data: InstructionsPostOpData) {
   }
 }
 
-// Reconstruction depuis un ProtocoleOperatoire existant (préremplissage quand l'autre rôle a
-// déjà saisi les instructions communes) — tolérant aux formes historiques (surveillance en
-// simples chaînes, prescriptions en booléens) pour ne pas planter sur d'anciens enregistrements.
+// Reconstruction depuis un ProtocoleOperatoire existant (préremplissage quand un protocole a déjà
+// été saisi) — tolérant aux formes historiques (surveillance en simples chaînes, prescriptions en
+// booléens) pour ne pas planter sur d'anciens enregistrements.
 export function depuisProtocole(protocole: any): InstructionsPostOpData {
   const base = DEFAULT_INSTRUCTIONS_POST_OP
   const s = protocole?.surveillance || {}

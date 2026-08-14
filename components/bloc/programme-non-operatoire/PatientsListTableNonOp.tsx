@@ -40,7 +40,7 @@ interface PatientsListTableNonOpProps {
 // lui-même.
 export default function PatientsListTableNonOp({ patients }: PatientsListTableNonOpProps) {
   const router = useRouter();
-  const { estChirurgien, estIbode } = useRole();
+  const { estIbode } = useRole();
   const [loadingPatients, setLoadingPatients] = useState<Set<string>>(new Set());
 
   const handleDemarrer = async (patient: Patient) => {
@@ -50,8 +50,6 @@ export default function PatientsListTableNonOp({ patients }: PatientsListTableNo
     const intervention = encodeURIComponent(patient.operation || '');
     const cible = patient.statut === 'EN_COURS_OPERATION'
       ? `/bloc/activite-pendant-operation?patientId=${cleanId}&patientNom=${nom}&intervention=${intervention}`
-      : estChirurgien
-      ? `/bloc/protocole-operatoire?patientId=${cleanId}&patientNom=${nom}`
       : estIbode
       ? `/bloc/activite-pendant-operation?patientId=${cleanId}&patientNom=${nom}&intervention=${intervention}`
       : `/bloc/arrivee-bloc?patientId=${cleanId}&patientNom=${nom}&intervention=${intervention}`;

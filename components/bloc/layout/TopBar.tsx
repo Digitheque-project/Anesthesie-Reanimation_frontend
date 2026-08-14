@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { notificationService } from '@/lib/api/notification.service';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -23,41 +23,55 @@ export default function TopBar() {
 
   useEffect(() => { setSession(obtenirSessionValide()); }, []);
 
+  // Une notification est "actionnable" si elle est non lue, non traitée (estPatientTraite) et
+  // encore à l'état ouvert — EN_ATTENTE (interne ou demande externe normalisée) ou webhook non
+  // traité. C'est LA règle du compteur de la cloche, réutilisée telle quelle pour décider de
+  // sonner (voir le handler websocket ci-dessous) : une ligne planifiée ou un patient pris en
+  // charge n'est jamais une "nouvelle" notification.
+  const estActionnable = (n: any) => {
+    if (n.lu) return false;
+    if (estPatientTraite(n)) return false;
+    // Pour les notifications internes / demandes externes (avec statut)
+    if (n.statut) return n.statut === 'EN_ATTENTE';
+    // Pour les notifications webhook (avec processed)
+    if (n.processed !== undefined) return !n.processed;
+    // Par défaut, compter comme non lue
+    return true;
+  };
+
+  // Reconstruit la liste dédupliquée (une ligne par patient, toutes sources confondues) triée
+  // par fraîcheur — utilisée par le rafraîchissement périodique ET par le handler websocket,
+  // qui doit resynchroniser l'état réel avant de décider de sonner.
+  const chargerNotifications = async () => {
+    // Récupérer la liste des notifications — un même patient ne doit apparaître qu'une fois.
+    // Fusionne aussi les demandes de CPA externes (Endoscopie...), sinon elles n'apparaissent
+    // jamais dans la cloche (seulement sur la page dédiée /bloc/notification-cpa).
+    const [notifsRes, demandesExternesRes] = await Promise.all([
+      notificationService.getAll(1, 50),
+      apiClient.get('/demandes-cpa-externes', { params: { statut: 'EN_ATTENTE' } }).catch(() => ({ data: [] })),
+    ]);
+    const demandesExternes = (Array.isArray(demandesExternesRes.data) ? demandesExternesRes.data : []).map(normaliserDemandeExterne);
+    const notifs = dedupeParPatient([...(notifsRes.data || []), ...demandesExternes]);
+    // Les deux sources sont chacune déjà triées par date décroissante côté backend, mais leur
+    // fusion ici (+ dedupeParPatient, qui ne retrie pas) ne garantit plus cet ordre global —
+    // sans ce tri, une demande externe récente pouvait apparaître sous une prescription plus
+    // ancienne.
+    notifs.sort((a, b) => {
+      const dateOf = (n: any) => new Date(n.createdAt || n.receivedAt || 0).getTime();
+      return dateOf(b) - dateOf(a);
+    });
+    return notifs;
+  };
+
   const fetchData = async () => {
     try {
-      // Récupérer la liste des notifications — un même patient ne doit apparaître qu'une fois.
-      // Fusionne aussi les demandes de CPA externes (Endoscopie...), sinon elles n'apparaissent
-      // jamais dans la cloche (seulement sur la page dédiée /bloc/notification-cpa).
-      const [notifsRes, demandesExternesRes] = await Promise.all([
-        notificationService.getAll(1, 50),
-        apiClient.get('/demandes-cpa-externes', { params: { statut: 'EN_ATTENTE' } }).catch(() => ({ data: [] })),
-      ]);
-      const demandesExternes = (Array.isArray(demandesExternesRes.data) ? demandesExternesRes.data : []).map(normaliserDemandeExterne);
-      const notifs = dedupeParPatient([...(notifsRes.data || []), ...demandesExternes]);
-      // Les deux sources sont chacune déjà triées par date décroissante côté backend, mais leur
-      // fusion ici (+ dedupeParPatient, qui ne retrie pas) ne garantit plus cet ordre global —
-      // sans ce tri, une demande externe récente pouvait apparaître sous une prescription plus
-      // ancienne.
-      notifs.sort((a, b) => {
-        const dateOf = (n: any) => new Date(n.createdAt || n.receivedAt || 0).getTime();
-        return dateOf(b) - dateOf(a);
-      });
+      const notifs = await chargerNotifications();
       setNotifications(notifs);
 
       // Compter les notifications non lues — ni traitées (statut), ni déjà écartées (lu), ni
       // rattachées à un patient déjà traité (voir estPatientTraite) : un patient pris en charge
       // ne doit plus compter comme "non lu" ni réapparaître dans le badge de la cloche.
-      const unread = notifs.filter((n: any) => {
-        if (n.lu) return false;
-        if (estPatientTraite(n)) return false;
-        // Pour les notifications internes (avec statut)
-        if (n.statut) return n.statut === 'EN_ATTENTE';
-        // Pour les notifications webhook (avec processed)
-        if (n.processed !== undefined) return !n.processed;
-        // Par défaut, compter comme non lue
-        return true;
-      }).length;
-      setUnreadCount(unread);
+      setUnreadCount(notifs.filter(estActionnable).length);
     } catch (err) {
       console.error('Erreur chargement notifications:', err);
     }
@@ -75,15 +89,56 @@ export default function TopBar() {
     const socket = connecterNotificationsTempsReel();
     if (!socket) return;
 
-    const onNotification = (notif: NotificationTempsReel) => {
+    // Filet anti-rafale (même principe que useRefetchOnRealtimeUpdate) : le service
+    // Prescriptions (source de test) peut émettre une pluie de `new_prescription` (~1/s), et le
+    // service Notification re-diffuse chaque évènement. Sans garde, chaque évènement relançait
+    // ici un rechargement complet de la cloche (~1/s). On ignore les évènements déjà vus et on
+    // ne traite qu'un évènement par petite fenêtre : un évènement ignoré n'est pas perdu, le
+    // rechargement suivant relit l'état réel complet côté serveur.
+    const THROTTLE_MS = 2000;
+    const idsDejaVus = new Set<string>();
+    let dernierTraitement = 0;
+
+    const onNotification = async (notif: NotificationTempsReel) => {
       if (notif.type !== 'new_prescription' && notif.type !== 'new_demande_cpa_externe') return;
+      const id = notif.id || (notif.data?.notificationId as string | undefined);
+      if (id) {
+        if (idsDejaVus.has(id)) return;
+        idsDejaVus.add(id);
+        if (idsDejaVus.size > 1000) {
+          const premier = idsDejaVus.values().next().value;
+          if (premier) idsDejaVus.delete(premier);
+        }
+      }
+      const maintenant = Date.now();
+      if (maintenant - dernierTraitement < THROTTLE_MS) return;
+      dernierTraitement = maintenant;
       const urgence = (notif.data?.urgence as string | number) ?? '';
       const estUrgent = urgence === 'URGENT' || urgence === 'URGENTE' || urgence === 'TRES_URGENT' || urgence === 'STAT' || Number(urgence) >= 4;
-      if (estUrgent) {
-        jouerSonPrescriptionUrgente();
-      } else {
-        jouerSonPrescription();
+      const patientId = (notif.data?.patientId as string | undefined) ?? '';
+      // Ré-émission d'une prescription/demande déjà planifiée ou déjà traitée pour ce patient :
+      // les gardes backend empêchent normalement la ré-ingestion, mais si un évènement temps réel
+      // est de toute façon rejoué on resynchronise l'état réel avant de sonner. On ne sonne que
+      // si le patient est réellement nouveau et actionnable — jamais pour un patient déjà planifié
+      // ou pris en charge (sinon chaque re-push = carillon + réapparition dans la cloche).
+      let fraiches: any[] | null = null;
+      try {
+        fraiches = await chargerNotifications();
+      } catch {
+        // État indisponible : on garde le comportement historique (sonner quand même).
       }
+      if (fraiches) {
+        setNotifications(fraiches);
+        const ligne = fraiches.find((n: any) => (n.patientId || n.patient?.id) === patientId);
+        if (ligne && estActionnable(ligne)) {
+          if (estUrgent) jouerSonPrescriptionUrgente();
+          else jouerSonPrescription();
+        }
+        setUnreadCount(fraiches.filter(estActionnable).length);
+        return;
+      }
+      if (estUrgent) jouerSonPrescriptionUrgente();
+      else jouerSonPrescription();
       fetchData();
     };
 

@@ -39,10 +39,9 @@ export function collecterEquipe(d: any): Personne[] {
   d.activitesPerOp?.forEach((a: any) => { ajouter(nomPersonne(a.chirurgien), 'Chirurgien', 'Surveillance per-opératoire'); ajouter(nomPersonne(a.anesthesiste), 'Anesthésiste', 'Surveillance per-opératoire') })
   d.checklistsApresOp?.forEach((c: any) => ajouter(c.validateurNom, 'Anesthésiste', 'Check-list Sign Out'))
   d.protocolesOperatoires?.forEach((p: any) => {
-    ajouter(nomPersonne(p.chirurgien), 'Chirurgien', 'Protocole opératoire')
-    ajouter(nomPersonne(p.anesthesiste), 'Anesthésiste', 'Protocole opératoire')
-    ajouter(nomPersonne(p.infirmiere), 'Infirmière', 'Protocole opératoire')
-    ajouter(nomPersonne(p.aideOperatoire), 'Aide opératoire', 'Protocole opératoire')
+    ajouter(nomPersonne(p.anesthesiste), 'Anesthésiste', 'Protocole anesthésique')
+    ajouter(nomPersonne(p.infirmiere), 'Infirmière', 'Protocole anesthésique')
+    ajouter(nomPersonne(p.aideOperatoire), 'Aide opératoire', 'Protocole anesthésique')
   })
   d.scoresSCCRE?.forEach((s: any) => ajouter(nomPersonne(s.anesthesiste), 'Anesthésiste', 'Score de réveil'))
   d.sortiesReveil?.forEach((s: any) => ajouter(nomPersonne(s.medecin), 'Anesthésiste', 'Sortie de réveil'))
@@ -100,9 +99,9 @@ export function construireChronologie(d: any): LigneChronologie[] {
     detail: `Statut ${c.statut}`, personnel: c.validateurNom || '—',
   }))
   d.protocolesOperatoires?.forEach((p: any) => lignes.push({
-    etape: 'Protocole opératoire', date: fmtDate(p.dateOperation), dateTri: dateTri(p.dateOperation),
-    detail: p.compteRenduIntervention?.substring(0, 80) || p.compteRenduAnesthesique?.substring(0, 80) || '—',
-    personnel: nomPersonne(p.chirurgien) || nomPersonne(p.anesthesiste) || '—',
+    etape: 'Protocole anesthésique', date: fmtDate(p.dateOperation), dateTri: dateTri(p.dateOperation),
+    detail: p.compteRenduAnesthesique?.substring(0, 80) || '—',
+    personnel: nomPersonne(p.anesthesiste) || '—',
   }))
   d.scoresSCCRE?.forEach((s: any) => lignes.push({
     etape: 'Score de réveil (SCCRE)', date: fmtDate(s.dateEvaluation), dateTri: dateTri(s.dateEvaluation),
