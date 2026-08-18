@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { NavItem } from "@/types/bloc";
 import { effacerSession, redirigerVersLogin } from "@/lib/auth/central-session";
 import { useRole } from "@/lib/hooks/useRole";
 import { RoleClinique } from "@/lib/auth/role-clinique";
+import { planningService } from "@/lib/api";
 
 type NavItemColore = NavItem & { couleur: { bg: string; texte: string }; rolesExclus?: RoleClinique[] };
 
@@ -41,6 +43,17 @@ export default function Sidebar() {
   // affiche tout le menu plutôt que de le faire clignoter (tout → filtré) une fois la session
   // chargée.
   const itemsVisibles = navItems.filter((item) => !role || !item.rolesExclus?.includes(role));
+
+  // Pastille "retards" sur Fil de travail — CPA/vérification veille/opération dont la date
+  // prévue est dépassée sans que l'étape correspondante soit faite (voir PlanningService.
+  // getRetards) : sans ça, un rendez-vous manqué ne se voyait qu'en ouvrant la page concernée.
+  const [retards, setRetards] = useState(0);
+  useEffect(() => {
+    const charger = () => planningService.getRetards().then((d: any) => setRetards(d?.total || 0)).catch(() => {});
+    charger();
+    const interval = setInterval(charger, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <aside className="w-64 fixed left-0 top-0 bottom-0 flex flex-col z-50 bg-[#1675F5]">
@@ -78,10 +91,15 @@ export default function Sidebar() {
                   : "text-white/90 hover:bg-white/15 font-medium"
               }`}
             >
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.couleur.bg} ${item.couleur.texte} group-hover:scale-110 transition-transform`}>
+              <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.couleur.bg} ${item.couleur.texte} group-hover:scale-110 transition-transform`}>
                 <span className="material-symbols-outlined text-[19px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>
                   {item.icon}
                 </span>
+                {item.href === '/bloc/rendez-vous' && retards > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-extrabold text-white ring-2 ring-[#1675F5]">
+                    {retards > 99 ? '99+' : retards}
+                  </span>
+                )}
               </span>
               <span className="text-sm">{item.label}</span>
             </Link>

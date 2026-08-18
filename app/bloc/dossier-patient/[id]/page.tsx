@@ -14,6 +14,16 @@ import { libelleStatutPatient, styleStatutPatient } from '@/lib/statut'
 import { formaterNomPatient } from '@/lib/patient'
 import BackButton from '@/components/bloc/layout/BackButton'
 
+// Durée prévue de l'intervention, stockée en minutes par le service prescripteur — affichée en
+// heures/minutes, plus lisible pour réserver un créneau de salle ("1 h 30" plutôt que "90 min").
+function formaterDuree(minutes?: number | null): string {
+  if (!minutes || minutes <= 0) return '—'
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (!h) return `${m} min`
+  return m ? `${h} h ${String(m).padStart(2, '0')}` : `${h} h`
+}
+
 export default function DossierPatientPage() {
   return (
     <Suspense fallback={<main className="p-4">Chargement du dossier...</main>}>
@@ -235,6 +245,14 @@ function DossierPatientPageContent() {
             </p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
+            <span className="text-xs font-bold text-gray-500 uppercase">Durée prévue</span>
+            <p className="font-bold">{formaterDuree(p.dureeInterventionMinutes)}</p>
+          </div>
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <span className="text-xs font-bold text-gray-500 uppercase">Type d'anesthésie prévu</span>
+            <p className="font-bold">{p.typeAnesthesie || '—'}</p>
+          </div>
+          <div className="p-3 bg-blue-50 rounded-lg">
             <span className="text-xs font-bold text-gray-500 uppercase">Chirurgien</span>
             <p className="font-bold">{p.chirurgien_nom || notification?.chirurgienNom || '—'}</p>
           </div>
@@ -257,7 +275,30 @@ function DossierPatientPageContent() {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+        {/* Renseignement clinique : contexte rédigé par le prescripteur, en pleine largeur car
+            c'est un texte libre qui peut être long. */}
+        <div className="p-3 bg-blue-50 rounded-lg text-sm mb-2">
+          <span className="text-xs font-bold text-gray-500 uppercase">Renseignement clinique</span>
+          <p className="font-bold whitespace-pre-line">{p.renseignementClinique || '—'}</p>
+        </div>
+
+        {/* Préparation de la salle : ce que l'équipe doit installer avant l'arrivée du patient. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mb-2">
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">medical_services</span> Matériel nécessaire
+            </span>
+            <p className="font-bold whitespace-pre-line mt-1">{p.materielNecessaire || '—'}</p>
+          </div>
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">airline_seat_flat</span> Position du patient
+            </span>
+            <p className="font-bold mt-1">{p.positionPatient || '—'}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
           <div className="p-3 bg-red-50 rounded-lg border border-red-200">
             <span className="text-xs font-bold text-red-700 uppercase flex items-center gap-1.5">
               <span className="material-symbols-outlined text-sm">warning</span> Alertes
@@ -269,6 +310,12 @@ function DossierPatientPageContent() {
               <span className="material-symbols-outlined text-sm">bloodtype</span> Risque hémorragique
             </span>
             <p className="font-bold text-orange-800 mt-1">{p.risqueHemorragique || 'Non évalué'}</p>
+          </div>
+          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+            <span className="text-xs font-bold text-amber-700 uppercase flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">coronavirus</span> Risque infectieux
+            </span>
+            <p className="font-bold text-amber-800 mt-1">{p.risqueInfectieux || 'Non évalué'}</p>
           </div>
         </div>
       </div>

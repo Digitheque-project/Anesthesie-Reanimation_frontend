@@ -1,4 +1,5 @@
 import { formaterNomPatient } from '@/lib/patient'
+import { estEchelleUrgente } from '@/lib/urgence'
 
 // Les demandes de CPA/VPA émises par des services externes (ex: Endoscopie) sont un modèle
 // distinct des prescriptions internes — normalisées ici au même format que les notifications
@@ -21,7 +22,7 @@ export const normaliserDemandeExterne = (d: any) => ({
   receivedAt: d.createdAt,
   dateIntervention: d.dateExamenSouhaitee,
   urgence: d.urgence,
-  estUrgent: (d.urgence ?? 0) >= 4,
+  estUrgent: estEchelleUrgente(d.urgence),
   statut: 'EN_ATTENTE',
   // Lecture persistée côté backend (voir DemandeCpaExterneService.marquerLu) — sans ça, une
   // demande externe réapparaissait indéfiniment dans la cloche même après avoir été "vue".

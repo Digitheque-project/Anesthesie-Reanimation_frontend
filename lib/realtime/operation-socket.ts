@@ -5,8 +5,10 @@ import { lireTokenStocke } from '@/lib/auth/central-session'
 // lib/notifications/socket.ts qui cible le service de notifications externe. Sert à
 // synchroniser en temps réel les postes travaillant sur le même patient pendant l'opération
 // (moments opératoires, constantes, checklists).
-const API_URL = process.env.NEXT_PUBLIC_API_URL || ''
-const API_BASE = API_URL.replace(/\/bloc\/api\/?$/, '')
+// NEXT_PUBLIC_API_URL est la racine nue du backend (voir lib/api/client.ts, qui y ajoute le
+// préfixe HTTP /bloc/api pour ses propres appels) — le WebSocket, lui, se connecte directement à
+// la racine, sans ce préfixe.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || ''
 
 let socket: Socket | null = null
 

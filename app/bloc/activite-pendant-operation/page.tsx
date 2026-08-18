@@ -11,6 +11,11 @@ import SurveillancePanel from '@/components/bloc/surveillance/SurveillancePanel'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import BackButton from '@/components/bloc/layout/BackButton'
+import PasserButton from '@/components/bloc/layout/PasserButton'
+import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
+import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
+import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
+import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { useRole } from '@/lib/hooks/useRole'
 
 export default function ActivitePendantOperationPage() {
@@ -33,15 +38,19 @@ function ActivitePendantOperationPageContent() {
   const patientNom = searchParams.get('patientNom') || 'Patient'
   const intervention = searchParams.get('intervention') || ''
   const [patient, setPatient] = useState<any>(null)
+  const [erreurPatient, setErreurPatient] = useState(false)
   // Pendant l'opération, seul l'anesthésiste a une interface active ici (formulaire clinique et
   // boutons de chronologie) — l'IBODE n'a aucune interface à ce stade (voir MomentsTimeline),
   // le Major consulte sans agir. Tous deux ne voient que l'historique en lecture seule.
   const { estAnesthesiste } = useRole()
 
-  useEffect(() => {
+  const chargerPatient = () => {
     if (!patientId) return
-    patientService.getById(patientId).then(setPatient).catch(console.error)
-  }, [patientId])
+    setErreurPatient(false)
+    patientService.getById(patientId).then(setPatient).catch((err) => { console.error(err); setErreurPatient(true) })
+  }
+
+  useEffect(() => { chargerPatient() }, [patientId])
 
   // État du formulaire (hors constantes, gérées par SurveillancePanel)
   const [form, setForm] = useState({
@@ -53,6 +62,25 @@ function ActivitePendantOperationPageContent() {
   })
 
   const [loading, setLoading] = useState(false)
+  const [showRecap, setShowRecap] = useState(false)
+
+  // Filet de sécurité contre la perte de saisie en cliquant "Retour" avant validation — ne
+  // couvre que ce formulaire (apports, sorties, ventilation) : les constantes de SurveillancePanel
+  // sont déjà sauvegardées en continu côté backend, pas besoin de brouillon pour elles.
+  const brouillonKey = patientId ? `activite-perop-brouillon:${patientId}` : null
+  useDraftAutosave(brouillonKey, form)
+  const [brouillonTrouve, setBrouillonTrouve] = useState<Brouillon<typeof form> | null>(null)
+  useEffect(() => {
+    if (!brouillonKey) return
+    const brouillon = chargerBrouillon<typeof form>(brouillonKey)
+    if (brouillon) setBrouillonTrouve(brouillon)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brouillonKey])
+  const restaurerBrouillon = () => {
+    if (!brouillonTrouve) return
+    setForm(brouillonTrouve.data)
+    setBrouillonTrouve(null)
+  }
   // Enregistrement ActivitePerOp de ce patient — créé tôt (dès l'arrivée sur l'écran) pour que
   // les constantes puissent y être rattachées et synchronisées en temps réel au fur et à mesure
   // de l'opération, plutôt qu'une seule grosse saisie à la toute fin.
@@ -99,6 +127,8 @@ function ActivitePendantOperationPageContent() {
           circuitFerme: form.ventilationCircuitFermeOn ? (form.ventilationCircuitFerme || 'Oui') : undefined,
         },
       })
+      setShowRecap(false)
+      if (brouillonKey) effacerBrouillon(brouillonKey)
 
       alert('✅ Activité enregistrée ! Passage à la check-list après intervention.')
       router.push(`/bloc/apres-operation?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`)
@@ -110,6 +140,38 @@ function ActivitePendantOperationPageContent() {
       setLoading(false)
     }
   }
+
+  const sectionsRecap: RecapSection[] = [
+    {
+      titre: 'Apports (entrées)',
+      icone: 'input',
+      champs: [
+        { label: 'Perfusions', valeur: form.perfusions },
+        { label: 'Transfusions', valeur: form.transfusions },
+      ],
+    },
+    {
+      titre: 'Sorties',
+      icone: 'output',
+      champs: [
+        { label: 'Journal des sorties', valeur: form.journalSorties },
+      ],
+    },
+    {
+      titre: 'Ventilation',
+      icone: 'ventilator',
+      champs: [
+        { label: 'Intub. Orotrachéale (IOT)', valeur: form.intubationOT ? 'Oui' : '' },
+        { label: 'Intub. Nasotrachéale (INT)', valeur: form.sArme ? 'Oui' : '' },
+        { label: 'Masque Laryngé', valeur: form.masqueLarynge ? 'Oui' : '' },
+        { label: 'Spontanée', valeur: form.ventilationSpontaneeOn ? (form.ventilationSpontanee || 'Oui') : '' },
+        { label: 'Assistée', valeur: form.ventilationAssisteeOn ? (form.ventilationAssistee || 'Oui') : '' },
+        { label: 'Contrôlée', valeur: form.ventilationControleeOn ? (form.ventilationControlee || 'Oui') : '' },
+        { label: 'PEEP', valeur: form.ventilationPEEPOn ? (form.ventilationPEEP || 'Oui') : '' },
+        { label: 'Circuit fermé', valeur: form.ventilationCircuitFermeOn ? (form.ventilationCircuitFerme || 'Oui') : '' },
+      ],
+    },
+  ]
 
   return (
     <main className="h-[calc(100vh-6rem)] flex flex-col">
@@ -130,6 +192,7 @@ function ActivitePendantOperationPageContent() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          <PasserButton onClick={restaurerBrouillon} disabled={!brouillonTrouve} />
           <div className="px-3 py-1.5 rounded-full flex items-center gap-2 border bg-tertiary/10 text-tertiary border-tertiary/20">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
@@ -137,25 +200,35 @@ function ActivitePendantOperationPageContent() {
             </span>
             <span className="text-[10px] font-extrabold tracking-wider">PROCÉDURE EN COURS</span>
           </div>
-          <button
-            type="button"
-            onClick={() => router.push(`/bloc/dossier-patient/${patientId}`)}
-            title="Voir le dossier patient à jour"
-            aria-label="Voir le dossier patient à jour"
-            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-          >
-            <span className="material-symbols-outlined text-lg">folder_shared</span>
-          </button>
+          {/* Le dossier s'ouvre en surimpression (VoirDossierButton — composant unique de toute
+              l'appli), et non plus par une navigation vers /bloc/dossier-patient/{id}. Deux
+              raisons : cette page peut être atteinte sans `patientId` (raccourci du tableau de
+              bord, voir RaccourcisBloc), auquel cas l'ancienne navigation menait à
+              « /bloc/dossier-patient/ » — une URL sans dossier, donc un bouton qui ne faisait
+              rien ; et quitter la page en pleine opération démontait le formulaire per-opératoire
+              en cours de saisie. Sans patientId, le bouton ne s'affiche simplement pas. */}
+          {/* Pendant l'opération, le dossier s'ouvre sur l'HISTORIQUE et non sur l'observation
+              médicale : au bloc, ce qu'on vient vérifier en cours d'intervention, c'est le
+              parcours du patient (CPA, vérification veille, actes déjà posés), pas la rédaction
+              d'une observation. Les autres écrans gardent l'onglet par défaut. */}
+          <VoirDossierButton
+            patientId={patientId}
+            variant="icon"
+            chuId={patient?.chuId}
+            initialTab="historique"
+          />
         </div>
       </header>
+
+      <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
 
       {/* Body : colonne gauche scrollable (anesthésiste uniquement) + colonne droite fixe
           (boutons de chronologie, ne défile jamais avec la page) — l'IBODE ne voit que les
           boutons, aucun formulaire clinique ni checklist. */}
-      <div className="flex-1 min-h-0 flex gap-6 p-6">
+      <div className="flex-1 min-h-0 flex items-start gap-6 p-6 overflow-y-auto">
         {estAnesthesiste && (
         <div className="flex-1 min-w-0 flex flex-col gap-6">
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-6">
+        <div className="space-y-6">
         {/* Section 1: APPORTS */}
         <section className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
           <div className="bg-emerald-50 px-6 py-3 border-b border-emerald-100 flex items-center gap-2">
@@ -262,7 +335,7 @@ function ActivitePendantOperationPageContent() {
         {/* VALIDER */}
         <div className="flex justify-end shrink-0">
           <button
-            onClick={handleSubmit}
+            onClick={() => setShowRecap(true)}
             disabled={loading || !activiteId}
             className="bg-gradient-to-r from-primary to-primary-container text-white px-8 py-4 rounded-xl font-headline font-extrabold shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50"
           >
@@ -279,6 +352,17 @@ function ActivitePendantOperationPageContent() {
           <MomentsTimeline patientId={patientId} />
         </div>
       </div>
+
+      <ConfirmationRecapModal
+        open={showRecap}
+        titre="Activité per-opératoire"
+        sousTitre="Apports, sorties et ventilation — relisez avant de confirmer"
+        sections={sectionsRecap}
+        onAnnuler={() => setShowRecap(false)}
+        onConfirmer={handleSubmit}
+        confirmEnCours={loading}
+        labelConfirmer="Confirmer et enregistrer"
+      />
     </main>
   )
 }

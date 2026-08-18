@@ -1,9 +1,19 @@
 import { apiClient } from './client'
 
+// Aucune donnée simulée ici — voir plus bas.
+//
+// Ce fichier repliait auparavant sur trois patients fictifs (« Dupont Jean », « Martin Sophie »,
+// « Bernard Pierre ») dès que l'appel à /notifications-cpa échouait, ne serait-ce que par
+// dépassement du délai. C'est la raison de leur réapparition dans la cloche et dans le fil de
+// prescription : ils n'ont jamais existé en base, ils étaient fabriqués par le frontend à chaque
+// fois que le backend était lent ou indisponible.
+//
+// Dans un logiciel de bloc opératoire, c'est inacceptable : rien ne distinguait à l'écran ces
+// patients inventés de vrais patients à opérer, et l'un d'eux était même marqué urgent
+// (« Martin Sophie », urgence 3), donc susceptible d'être orienté vers une VPA immédiate. Une
+// panne doit se voir comme une panne — jamais se déguiser en données cliniques.
 export const notificationService = {
   getAll: async (page = 1, limit = 100) => {
-    // Pas de repli sur des données simulées : afficher de faux patients ("fantômes") est pire
-    // que d'afficher une liste vide. L'erreur remonte à l'appelant qui gère l'état de chargement.
     const { data } = await apiClient.get(`/notifications-cpa?page=${page}&limite=${limit}`)
     return data
   },
@@ -23,6 +33,9 @@ export const notificationService = {
     return data
   },
 
+  // Le repli « simulation » qui renvoyait { success: true, id: 'vpa-simule-…' } est retiré :
+  // il faisait croire à l'utilisateur qu'une vérification pré-anesthésique avait été créée alors
+  // qu'aucune n'était enregistrée. L'échec doit remonter à l'appelant.
   creerVpaDirect: async (payload: any) => {
     // Pas de simulation : la création doit passer par l'API réelle, sinon on crée des VPA
     // "fantômes" qui n'existent pas côté serveur.

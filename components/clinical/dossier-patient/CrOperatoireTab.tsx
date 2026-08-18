@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { dossierPatientApi as api } from '@/lib/clinical/dossier-patient-api';
 import { ehr } from '@/lib/clinical/ehr-theme';
+import Checkbox from '@/components/ui/Checkbox'
 
 interface ChecklistMoment {
   items: Record<string, boolean>;
@@ -393,12 +394,11 @@ function ChecklistBlock({ label, items, data }: {
             color: data.items?.[item] ? ehr.text : ehr.textMuted,
             fontWeight: data.items?.[item] ? 600 : 500
           }}>
-            <input
-              type="checkbox"
+            <Checkbox
+              size="sm"
               checked={!!data.items?.[item]}
               disabled
               readOnly
-              style={{ accentColor: ehr.primary }}
             />
             {item}
           </label>

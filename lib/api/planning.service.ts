@@ -36,6 +36,11 @@ export const planningService = {
     return data
   },
 
+  getRetards: async () => {
+    const { data } = await apiClient.get('/planning/retards')
+    return data
+  },
+
   getPlanningSemaine: async (debut: string, fin: string, type?: 'CPA' | 'VERIFICATION_VEILLE') => {
     const { data } = await apiClient.get('/planning/semaine', { params: { debut, fin, type } })
     return data

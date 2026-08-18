@@ -6,11 +6,16 @@ import { apiClient } from '@/lib/api/client'
 import { patientService } from '@/lib/api'
 import { useOperationRealtime } from '@/lib/hooks/useOperationRealtime'
 import RealtimeUpdateBanner from '@/components/bloc/layout/RealtimeUpdateBanner'
+import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
 import { useRole } from '@/lib/hooks/useRole'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
 import BackButton from '@/components/bloc/layout/BackButton'
+import PasserButton from '@/components/bloc/layout/PasserButton'
+import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
+import Radio from '@/components/ui/Radio'
+import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 
 export default function VerificationPostOpPage() {
   return (
@@ -41,11 +46,16 @@ function VerificationPostOpPageContent() {
   const intervention = searchParams.get('intervention') || ''
   const [patient, setPatient] = useState<any>(null)
   const [loadingPatient, setLoadingPatient] = useState(true)
+  const [erreurPatient, setErreurPatient] = useState(false)
 
-  useEffect(() => {
+  const chargerPatient = () => {
     if (!patientId) { setLoadingPatient(false); return }
-    patientService.getById(patientId).then(setPatient).catch(console.error).finally(() => setLoadingPatient(false))
-  }, [patientId])
+    setLoadingPatient(true)
+    setErreurPatient(false)
+    patientService.getById(patientId).then(setPatient).catch((err) => { console.error(err); setErreurPatient(true) }).finally(() => setLoadingPatient(false))
+  }
+
+  useEffect(() => { chargerPatient() }, [patientId])
 
   const [form, setForm] = useState<{ dateCreation: string; [key: string]: string | boolean | null }>({
     dateCreation: new Date().toISOString().split('T')[0],
@@ -54,15 +64,32 @@ function VerificationPostOpPageContent() {
     documentsDisponibles: null, antibioprophylaxieFaite: null, constantesStables: null, ventilationOK: null,
   })
   const [loading, setLoading] = useState(false)
+  const [showRecap, setShowRecap] = useState(false)
   const [majDistante, setMajDistante] = useState(false)
   const { on } = useOperationRealtime(patientId)
   const { estAnesthesiste, roleName } = useRole()
 
   useEffect(() => on('checklist-pendant-op:maj', () => setMajDistante(true)), [on])
 
+  // Filet de sécurité contre la perte de saisie en cliquant "Retour" avant validation.
+  const brouillonKey = patientId ? `checklist-pendant-brouillon:${patientId}` : null
+  useDraftAutosave(brouillonKey, form)
+  const [brouillonTrouve, setBrouillonTrouve] = useState<Brouillon<typeof form> | null>(null)
+  useEffect(() => {
+    if (!brouillonKey) return
+    const brouillon = chargerBrouillon<typeof form>(brouillonKey)
+    if (brouillon) setBrouillonTrouve(brouillon)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brouillonKey])
+  const restaurerBrouillon = () => {
+    if (!brouillonTrouve) return
+    setForm(brouillonTrouve.data)
+    setBrouillonTrouve(null)
+  }
+
   const reponsesIncompletes = ITEMS.some(item => form[item.key as keyof typeof form] === null)
 
-  const handleSubmit = async () => {
+  const handleOuvrirRecap = () => {
     if (!estAnesthesiste) {
       alert('❌ La check-list avant incision est réservée à l\'anesthésiste.' + (roleName ? ` Votre rôle actuel est : ${roleName}.` : ''))
       return
@@ -71,9 +98,15 @@ function VerificationPostOpPageContent() {
       alert('❌ Répondez à chaque item Oui/Non avant de valider la check-list.')
       return
     }
+    setShowRecap(true)
+  }
+
+  const handleSubmit = async () => {
     setLoading(true)
     try {
       await apiClient.post('/checklists-pendant-op', { patientId, ...form })
+      setShowRecap(false)
+      if (brouillonKey) effacerBrouillon(brouillonKey)
       alert('✅ Checklist avant incision enregistrée !')
       router.push(`/bloc/activite-pendant-operation?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`)
     }
@@ -85,17 +118,32 @@ function VerificationPostOpPageContent() {
     finally { setLoading(false) }
   }
 
+  const sectionsRecap: RecapSection[] = [
+    {
+      titre: "Dernière pause d'équipe (Time-Out)",
+      icone: 'pause_circle',
+      champs: ITEMS.map(item => ({
+        label: item.titre,
+        valeur: form[item.key as keyof typeof form] === true ? 'Oui' : form[item.key as keyof typeof form] === false ? 'Non' : '',
+      })),
+    },
+  ]
+
   return (
     <main className="p-6">
       {/* Header */}
-      <header className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-        <BackButton className="order-first" />
-        <h1 className="text-3xl font-headline font-extrabold text-on-surface tracking-tight">Check-list avant incision</h1>
+      <header className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <BackButton className="order-first" />
+          <h1 className="text-3xl font-headline font-extrabold text-on-surface tracking-tight">Check-list avant incision</h1>
+        </div>
+        <PasserButton onClick={restaurerBrouillon} disabled={!brouillonTrouve} />
       </header>
 
       <PatientIdentityHeader patient={patient || { nom: patientNom }} loading={loadingPatient} intervention={intervention} patientId={patientId} />
 
       <RealtimeUpdateBanner visible={majDistante} onRecharger={() => window.location.reload()} />
+      <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
 
       {!estAnesthesiste && (
         <div className="mb-6 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 max-w-3xl">
@@ -120,10 +168,10 @@ function VerificationPostOpPageContent() {
               {item.desc && <p className="text-xs mb-3">{item.desc}</p>}
               <div className="flex space-x-6">
                 <label className="flex items-center text-sm font-medium cursor-pointer">
-                  <input className="mr-2 text-secondary focus:ring-secondary w-7 h-7" name={item.key} type="radio" checked={form[item.key as keyof typeof form] === true} onChange={() => setForm({ ...form, [item.key]: true })} /><span>Oui</span>
+                  <Radio size="lg" className="mr-2" accent="secondary" name={item.key} checked={form[item.key as keyof typeof form] === true} onChange={() => setForm({ ...form, [item.key]: true })} /><span>Oui</span>
                 </label>
                 <label className="flex items-center text-sm font-medium cursor-pointer">
-                  <input className="mr-2 text-secondary focus:ring-secondary w-7 h-7" name={item.key} type="radio" checked={form[item.key as keyof typeof form] === false} onChange={() => setForm({ ...form, [item.key]: false })} /><span>Non</span>
+                  <Radio size="lg" className="mr-2" accent="secondary" name={item.key} checked={form[item.key as keyof typeof form] === false} onChange={() => setForm({ ...form, [item.key]: false })} /><span>Non</span>
                 </label>
               </div>
             </div>
@@ -133,13 +181,23 @@ function VerificationPostOpPageContent() {
 
       {/* Footer Actions */}
       <div className="mt-12 flex justify-end items-center max-w-3xl">
-        <button onClick={handleSubmit} disabled={loading || !estAnesthesiste}
+        <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
           title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
           className="flex items-center space-x-2 px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed">
           <span className="material-symbols-outlined text-[24px]">check_circle</span>
           <span>{loading ? 'Validation...' : !estAnesthesiste ? 'Accès non autorisé' : 'Valider la check-list'}</span>
         </button>
       </div>
+
+      <ConfirmationRecapModal
+        open={showRecap}
+        titre="Check-list avant incision (Time-Out)"
+        sections={sectionsRecap}
+        onAnnuler={() => setShowRecap(false)}
+        onConfirmer={handleSubmit}
+        confirmEnCours={loading}
+        labelConfirmer="Confirmer et valider"
+      />
     </main>
   )
   }

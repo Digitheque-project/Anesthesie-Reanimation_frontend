@@ -118,6 +118,7 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<SurveillanceEnCours[]>([]);
+  const [erreurEnCours, setErreurEnCours] = useState(false);
   const [showValidationModal, setShowValidationModal] = useState(false);
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -137,13 +138,8 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
 
   useEffect(() => {
     setPatientId(patient.id);
-    async function fetchSurveillances() {
-      try {
-        const data = await getPrescriptionsPatient('surveillance', patient.id);
-        setPrescriptionsEnCours(data.filter((p: SurveillanceEnCours) => p.statut === 'ACTIVE'));
-      } catch {}
-    }
-    fetchSurveillances();
+    refreshPrescriptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient.id, setPatientId]);
 
   function showToast(msg: string) { setToast(msg); window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => setToast(''), 2800); }
@@ -178,7 +174,10 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
     try {
       const data = await getPrescriptionsPatient('surveillance', patient.id);
       setPrescriptionsEnCours(data.filter((p: SurveillanceEnCours) => p.statut === 'ACTIVE'));
-    } catch {}
+      setErreurEnCours(false);
+    } catch {
+      setErreurEnCours(true);
+    }
   }
 
   async function terminerPrescription(id: string) {
@@ -443,7 +442,12 @@ export default function SurveillanceForm({ patient, prescripteur, patientType }:
                   <span className="material-symbols-outlined">check_circle</span>
                 </button>
               </div>
-            )) : (
+            )) : erreurEnCours ? (
+              <div className="active-rx-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ color: 'var(--red)' }}>Échec du chargement des surveillances en cours</span>
+                <button onClick={refreshPrescriptions} style={{ background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Réessayer</button>
+              </div>
+            ) : (
               <div className="active-rx-item"><span style={{ color: 'var(--txt3)' }}>Aucune surveillance en cours</span></div>
             )}
           </div>

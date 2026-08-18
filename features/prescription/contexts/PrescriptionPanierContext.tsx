@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { normalizePayloadForEndpoint } from "@/features/prescription/lib/api";
-import { authFetch, getStoredToken, parseJwt } from "@/features/prescription/lib/auth";
+import { authFetch } from "@/features/prescription/lib/auth";
+import { getActiveSession } from "@/lib/clinical-auth/session";
+import { PHARMACY_SERVICE_ID } from "@/features/prescription/lib/constants";
 
 export type PanierItemStatus = "draft" | "sending" | "sent" | "error";
 
@@ -35,10 +37,6 @@ const ENDPOINT_MAP: Record<PanierItemType, string> = {
   transfusion: "prescriptions/transfusion",
 };
 
-// Repli utilisé uniquement si NEXT_PUBLIC_PHARMACY_SERVICE_ID n'est pas défini.
-const PHARMACY_SERVICE_ID_FALLBACK = "b0e542b2-4005-4518-bf75-37e6b39a2213";
-const PHARMACY_SERVICE_ID = process.env.NEXT_PUBLIC_PHARMACY_SERVICE_ID || PHARMACY_SERVICE_ID_FALLBACK;
-
 // surveillance/transfusion n'ont pas de service de destination connu (aucun serviceId de
 // dépôt de sang configuré à ce jour) — laissé vide plutôt qu'une valeur inventée.
 const SERVICE_DEST_MAP: Record<PanierItemType, { serviceId: string; serviceName: string }> = {
@@ -48,21 +46,17 @@ const SERVICE_DEST_MAP: Record<PanierItemType, { serviceId: string; serviceName:
   transfusion:    { serviceId: "", serviceName: "Dépôt de sang" },
 };
 
+// Résout le CHU/service de l'utilisateur connecté via la session centrale de blocope-front
+// (scoping correct sur le service bloc-opératoire), plutôt que de relire le token brut et
+// prendre son premier service (payload.services[0]) — faux si le compte a accès à plusieurs
+// services d'un même CHU.
 function getUserServiceInfo() {
-  const token = getStoredToken();
-  if (!token) return { chuId: undefined, chuNom: undefined, serviceId: undefined, serviceName: undefined, userNom: undefined, userPrenom: undefined };
-  const payload = parseJwt(token);
-  if (!payload) return { chuId: undefined, chuNom: undefined, serviceId: undefined, serviceName: undefined, userNom: undefined, userPrenom: undefined };
-  const services = payload.services as Array<Record<string, any>> | undefined;
-  const svc = services?.[0];
-  const chu = svc?.chu;
+  const session = getActiveSession();
   return {
-    chuId: chu?.id as string | undefined,
-    chuNom: (chu?.name as string | undefined) || "CHU Andrainjato",
-    serviceId: svc?.serviceId as string | undefined,
-    serviceName: svc?.serviceName as string | undefined,
-    userNom: (payload.nom as string | undefined) || undefined,
-    userPrenom: (payload.prenom as string | undefined) || (payload.prenoms as string | undefined) || undefined,
+    chuId: session?.chuId ?? undefined,
+    chuNom: session?.chuNom ?? undefined,
+    serviceId: session?.currentService?.serviceId,
+    serviceName: session?.currentService?.serviceName,
   };
 }
 

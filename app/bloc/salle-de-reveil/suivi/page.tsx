@@ -8,11 +8,15 @@ import { apiClient } from '@/lib/api/client'
 import { useRole } from '@/lib/hooks/useRole'
 import { obtenirSessionValide } from '@/lib/auth/central-session'
 import Checkbox from '@/components/ui/Checkbox'
+import Radio from '@/components/ui/Radio'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import BackButton from '@/components/bloc/layout/BackButton'
+import PasserButton from '@/components/bloc/layout/PasserButton'
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
 import SurveillancePanel from '@/components/bloc/surveillance/SurveillancePanel'
+import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
+import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 
 const SERVICES_CLINIQUES = [
   'Médecine Interne', 'Chirurgie', 'Réanimation', 'Soins Intensifs',
@@ -43,6 +47,7 @@ function SalleDeReveilPageContent() {
   const peutSurveiller = estAnesthesiste || estIbode
   const [nomPersonnel, setNomPersonnel] = useState('')
   const [patient, setPatient] = useState<any>(null)
+  const [erreurPatient, setErreurPatient] = useState(false)
   const [activiteId, setActiviteId] = useState<string | null>(null)
   // Pré-rempli depuis le vrai horodatage du moment "Arrivée en salle" (posé sur l'écran Arrivée
   // au bloc) — pas une valeur figée : reste modifiable si l'anesthésiste doit la corriger.
@@ -69,9 +74,40 @@ function SalleDeReveilPageContent() {
   const [showConfirmationRevoir, setShowConfirmationRevoir] = useState(false)
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
 
+  // Filet de sécurité contre la perte de saisie en cliquant "Retour" avant validation — tout ce
+  // qui n'est pas déjà enregistré via SurveillancePanel (sauvegardée en continu à part).
+  const brouillonKey = patientId ? `salle-reveil-brouillon:${patientId}` : null
+  const brouillonSnapshot = { scores, evs, eqa, eva, etatInitial, reponse, orientation, serviceChoisi, checklistSortie }
+  useDraftAutosave(brouillonKey, brouillonSnapshot)
+  const [brouillonTrouve, setBrouillonTrouve] = useState<Brouillon<typeof brouillonSnapshot> | null>(null)
   useEffect(() => {
-    if (patientId) patientService.getById(patientId).then(setPatient).catch(console.error)
-  }, [patientId])
+    if (!brouillonKey) return
+    const brouillon = chargerBrouillon<typeof brouillonSnapshot>(brouillonKey)
+    if (brouillon) setBrouillonTrouve(brouillon)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brouillonKey])
+  const restaurerBrouillon = () => {
+    if (!brouillonTrouve) return
+    const d = brouillonTrouve.data
+    setScores(d.scores)
+    setEvs(d.evs)
+    setEqa(d.eqa)
+    setEva(d.eva)
+    setEtatInitial(d.etatInitial)
+    setReponse(d.reponse)
+    setOrientation(d.orientation)
+    setServiceChoisi(d.serviceChoisi)
+    setChecklistSortie(d.checklistSortie)
+    setBrouillonTrouve(null)
+  }
+
+  const chargerPatient = () => {
+    if (!patientId) return
+    setErreurPatient(false)
+    patientService.getById(patientId).then(setPatient).catch((err) => { console.error(err); setErreurPatient(true) })
+  }
+
+  useEffect(() => { chargerPatient() }, [patientId])
 
   useEffect(() => {
     const session = obtenirSessionValide()
@@ -150,6 +186,7 @@ function SalleDeReveilPageContent() {
       })
       setShowConfirmationRevoir(false)
       setShowConfirmation(true)
+      if (brouillonKey) effacerBrouillon(brouillonKey)
     } catch (err: any) {
       console.error(err)
       const message = err.response?.data?.message || err.message || 'Erreur inconnue'
@@ -164,8 +201,13 @@ function SalleDeReveilPageContent() {
       <div className="flex items-center justify-between">
         <BackButton />
         <h1 className="font-headline font-extrabold tracking-tight text-on-surface text-2xl">🛏️ Salle de réveil — Surveillance</h1>
-        <VoirDossierButton patientId={patientId} variant="icon" />
+        <div className="flex items-center gap-3">
+          <PasserButton onClick={restaurerBrouillon} disabled={!brouillonTrouve} />
+          <VoirDossierButton patientId={patientId} variant="icon" />
+        </div>
       </div>
+
+      <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
 
       {/* Contexte patient */}
       <div className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 px-6 py-4 flex flex-wrap items-center gap-x-8 gap-y-3 justify-between">
@@ -217,11 +259,11 @@ function SalleDeReveilPageContent() {
             <p className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">Réponse observée</p>
             <div className="grid grid-cols-2 gap-3">
               <label className="flex items-center p-3 rounded-lg bg-surface-container-low cursor-pointer">
-                <Checkbox size="sm" checked={reponse.intubation} onChange={e => setReponse({...reponse, intubation: e.target.checked})} />
+                <Checkbox size="lg" checked={reponse.intubation} onChange={e => setReponse({...reponse, intubation: e.target.checked})} />
                 <span className="ml-3 text-sm">Extubation obtenue</span>
               </label>
               <label className="flex items-center p-3 rounded-lg bg-surface-container-low cursor-pointer">
-                <Checkbox size="sm" checked={reponse.curarisation} onChange={e => setReponse({...reponse, curarisation: e.target.checked})} />
+                <Checkbox size="lg" checked={reponse.curarisation} onChange={e => setReponse({...reponse, curarisation: e.target.checked})} />
                 <span className="ml-3 text-sm">Décurarisation obtenue</span>
               </label>
             </div>
@@ -312,6 +354,7 @@ function SalleDeReveilPageContent() {
           ].map(item => (
             <label key={item.key} className="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg cursor-pointer">
               <Checkbox
+                size="lg"
                 checked={checklistSortie[item.key as keyof typeof checklistSortie]}
                 onChange={e => setChecklistSortie({ ...checklistSortie, [item.key]: e.target.checked })} />
               <span className="text-sm font-medium text-on-surface">{item.label}</span>
@@ -351,11 +394,11 @@ function SalleDeReveilPageContent() {
             <h3 className="text-xl font-extrabold text-primary mb-6">Orientation du patient</h3>
             <div className="space-y-4">
               <label className="flex items-center space-x-3 p-4 rounded-xl border border-outline-variant/20 cursor-pointer hover:bg-surface-container-low">
-                <input type="radio" name="orientation" checked={orientation === 'origine'} onChange={() => setOrientation('origine')} className="w-7 h-7 text-primary" />
+                <Radio size="lg" name="orientation" checked={orientation === 'origine'} onChange={() => setOrientation('origine')} />
                 <span className="font-bold">Service d'origine</span>
               </label>
               <label className="flex items-center space-x-3 p-4 rounded-xl border border-outline-variant/20 cursor-pointer hover:bg-surface-container-low">
-                <input type="radio" name="orientation" checked={orientation === 'autres'} onChange={() => setOrientation('autres')} className="w-7 h-7 text-primary" />
+                <Radio size="lg" name="orientation" checked={orientation === 'autres'} onChange={() => setOrientation('autres')} />
                 <span className="font-bold">Autres services</span>
               </label>
               {orientation === 'autres' && (
@@ -383,13 +426,9 @@ function SalleDeReveilPageContent() {
             <h3 className="text-xl font-extrabold text-on-surface mb-2">Validation terminée !</h3>
             <p className="text-sm text-on-surface-variant mb-6">Toutes les informations ont été enregistrées avec succès.</p>
             <div className="flex gap-3">
-              <button onClick={() => router.push('/bloc/archives')}
+              <button onClick={() => router.push('/bloc/salle-de-reveil/liste')}
                 className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all">
-                📁 Voir les archives
-              </button>
-              <button onClick={() => router.push('/bloc')}
-                className="flex-1 py-3 border border-primary text-primary font-bold rounded-xl hover:bg-primary/5 transition-all">
-                🏠 Retour à l'accueil
+                🛏️ Retour à la liste des patients
               </button>
             </div>
           </div>

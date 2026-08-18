@@ -10,6 +10,7 @@ import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
 import BackButton from '@/components/bloc/layout/BackButton'
+import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
 
 export default function ArriveeBlocPage() {
   return (
@@ -37,6 +38,7 @@ function ArriveeBlocPageContent() {
   const patientNom = searchParams.get('patientNom') || 'Patient'
   const intervention = searchParams.get('intervention') || ''
   const [patient, setPatient] = useState<any>(null)
+  const [erreurPatient, setErreurPatient] = useState(false)
   const [activiteId, setActiviteId] = useState<string | null>(null)
   const [etatArrivee, setEtatArrivee] = useState('')
   const [momentsConfirmes, setMomentsConfirmes] = useState<Set<string>>(new Set())
@@ -48,10 +50,13 @@ function ArriveeBlocPageContent() {
   // cliniques à sa place — mêmes garde-fous que sur les autres écrans réservés à l'anesthésiste.
   const { estAnesthesiste } = useRole()
 
-  useEffect(() => {
+  const chargerPatient = () => {
     if (!patientId) return
-    patientService.getById(patientId).then(setPatient).catch(console.error)
-  }, [patientId])
+    setErreurPatient(false)
+    patientService.getById(patientId).then(setPatient).catch((err) => { console.error(err); setErreurPatient(true) })
+  }
+
+  useEffect(() => { chargerPatient() }, [patientId])
 
   useEffect(() => {
     if (!patientId) return
@@ -102,12 +107,15 @@ function ArriveeBlocPageContent() {
   }, [patientId])
 
   const choisirEtatArrivee = async (etat: string) => {
+    const precedent = etatArrivee
     setEtatArrivee(etat)
     if (!activiteId) return
     try {
       await apiClient.patch(`/activites-per-op/${activiteId}`, { etatArrivee: [etat] })
     } catch (err) {
       console.error(err)
+      setEtatArrivee(precedent)
+      alert("❌ Erreur lors de l'enregistrement de l'état d'arrivée — veuillez réessayer")
     }
   }
 
@@ -136,6 +144,7 @@ function ArriveeBlocPageContent() {
     <main className="p-6 max-w-4xl mx-auto">
       <BackButton className="mb-3" />
       <PatientIdentityHeader patient={patient || { nom: patientNom }} intervention={intervention} patientId={patientId} />
+      <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
 
       <div className="mt-4 space-y-6">
         {/* Arrivée / Installation */}

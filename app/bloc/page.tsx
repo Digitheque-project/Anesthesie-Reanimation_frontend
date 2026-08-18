@@ -11,6 +11,9 @@ import { formaterNomPatient } from '@/lib/patient'
 import { useRole } from '@/lib/hooks/useRole'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import { estPatientTraite } from '@/lib/notifications/patient-traite'
+import { dedupeParPatient } from '@/lib/notifications/dedupe'
+import { normaliserDemandeExterne } from '@/lib/notifications/normaliser-demande-externe'
+import { apiClient } from '@/lib/api/client'
 
 // Même règle de visibilité que le menu latéral (voir rolesExclus dans Sidebar.tsx) — sans ce
 // filtre, le tableau de bord affichait les compteurs et le planning de pages totalement absentes
@@ -26,13 +29,11 @@ const BLOCS_EXCLUS: Partial<Record<'prescription' | 'cpa' | 'bloc' | 'reveil', R
   reveil: [RoleClinique.MAJOR, RoleClinique.RESPONSABLE_CPA, RoleClinique.IBODE],
 }
 
-// Jamais l'ID en remplacement du nom (interdit) — voir formaterNomPatient.
-const nomPatient = (p: any) => {
-  const nom = (p?.nom || '').trim()
-  if (!nom) return 'Patient inconnu'
-  const prenom = (p?.prenom || '').trim()
-  return `${nom.toUpperCase()}${prenom ? `, ${prenom}` : ''}`
-}
+// Le nom patient passe par le formateur commun de l'application (lib/patient.ts). Le tableau de
+// bord entretenait sa propre variante, qui rendait « DUPONT, Jean » là où tous les autres écrans
+// — dont le fil de prescription — affichent « Dupont Jean » : le même patient ne se présentait
+// pas de la même façon selon l'écran.
+const nomPatient = formaterNomPatient
 const priorite = (niveau?: string): LignePlanning['priorite'] => niveau === 'TRES_URGENT' ? 'TRES_URGENT' : niveau === 'URGENT' ? 'URGENT' : 'NORMAL'
 const estAujourdhui = (date?: string | Date | null) => {
   if (!date) return false
@@ -56,9 +57,13 @@ export default function DashboardPage() {
   const chargerToutesLesDonnees = async () => {
     setLoading(true)
 
-    const [statsRes, notifsRes, cpaRes, pretRes, encoursRes, reveilRes, tresUrgentsRes] = await Promise.allSettled([
+    const [statsRes, notifsRes, demandesRes, cpaRes, pretRes, encoursRes, reveilRes, tresUrgentsRes] = await Promise.allSettled([
       rapportsService.getStatistiques(),
       notificationService.getAll(1, 100),
+      // Les demandes de CPA émises par les autres services (Endoscopie, Imagerie, Urgence...)
+      // n'étaient jamais interrogées ici, alors que le fil de prescription les fusionne depuis
+      // toujours : ces patients étaient purement absents du tableau de bord.
+      apiClient.get('/demandes-cpa-externes', { params: { statut: 'EN_ATTENTE' } }),
       patientService.getAll({ statut: 'EN_ATTENTE_CPA', limite: 50 }),
       patientService.getAll({ statut: 'PRET_POUR_BLOC', limite: 50 }),
       patientService.getAll({ statut: 'EN_COURS_OPERATION', limite: 50 }),
@@ -77,11 +82,24 @@ export default function DashboardPage() {
     }
 
     if (notifsRes.status === 'fulfilled') {
-      // Même règle que le fil Prescription (voir notification-cpa/page.tsx) : on n'affiche que
-      // les prescriptions encore à traiter — patients dont la CPA n'est pas encore traitée (voir
-      // estPatientTraite). Pas de filtre `lu` ici : "lue" dans la cloche ne signifie pas
-      // "traitée", un patient marqué lu mais dont la CPA reste à faire doit rester visible.
-      const enAttente = (notifsRes.value?.data || []).filter(
+      // EXACTEMENT les mêmes règles que le fil Prescription (voir notification-cpa/page.tsx) —
+      // c'est le seul moyen que les deux écrans racontent la même chose du même patient :
+      //   1. fusion des demandes de CPA externes ;
+      //   2. déduplication par patient (une ligne par patient, toutes sources confondues) ;
+      //   3. exclusion des patients déjà traités (estPatientTraite).
+      // Les points 1 et 2 manquaient ici : un patient porteur de plusieurs prescriptions
+      // apparaissait autant de fois qu'il en avait (jusqu'à 8 lignes pour un même patient sur les
+      // données réelles) là où le fil n'en montrait qu'une, et aucun patient venu d'un autre
+      // service n'apparaissait du tout.
+      // Seule différence assumée avec le fil : la fenêtre du jour (`estAujourdhui`), le bloc étant
+      // explicitement intitulé « Aujourd'hui ».
+      const demandesExternes = demandesRes.status === 'fulfilled'
+        ? (Array.isArray(demandesRes.value?.data) ? demandesRes.value.data : []).map(normaliserDemandeExterne)
+        : []
+      const enAttente = dedupeParPatient([
+        ...(notifsRes.value?.data || []),
+        ...demandesExternes,
+      ]).filter(
         (n: any) => n.statut === 'EN_ATTENTE' && !estPatientTraite(n) && estAujourdhui(n.createdAt)
       )
       setPrescriptions(enAttente.map((n: any): LignePlanning => {
@@ -90,10 +108,16 @@ export default function DashboardPage() {
           priorite: n.estUrgent ? 'URGENT' : priorite(n.patient?.niveauUrgence),
           nom: n.patientNom || nomPatient(n.patient),
           intervention: n.intervention || n.motif || '',
-          responsable: n.chirurgienNom || n.chirurgien?.nom || n.prescripteur || '',
-          heure: n.heurePrescription,
+          responsable: n.chirurgienNom || n.chirurgien?.nom || n.prescripteur || n.sourceServiceName || '',
+          // Les demandes externes portent `heure` et non `heurePrescription`.
+          heure: n.heurePrescription || n.heure,
           actionLabel: 'Traiter',
-          href: patientId ? `/bloc/dossier-patient/${patientId}?notifId=${n.id || ''}` : '/bloc/notification-cpa',
+          // Même destination que le fil de prescription (voir onVoirDossier dans
+          // notification-cpa/page.tsx) : une demande externe s'ouvre sur sa fiche dédiée, pas sur
+          // le dossier du patient — sinon le clic menait à un écran sans la demande à traiter.
+          href: n.origineExterne && n.id
+            ? `/bloc/demande-cpa-externe/${n.id}`
+            : patientId ? `/bloc/dossier-patient/${patientId}?notifId=${n.id || ''}` : '/bloc/notification-cpa',
         }
       }))
     }

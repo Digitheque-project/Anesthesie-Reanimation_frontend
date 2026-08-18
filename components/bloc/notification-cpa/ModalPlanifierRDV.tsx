@@ -35,7 +35,9 @@ export default function ModalPlanifierRDV({
         </p>
 
         <div className="space-y-4">
-          {/* Type de RDV */}
+          {/* Type de RDV — seule la CPA se planifie depuis cette fenêtre. L'onglet
+              « Vérification veille » qui figurait ici n'avait aucun effet : elle se planifie
+              depuis son onglet dédié de /bloc/rendez-vous. */}
           <div>
             <label className="text-xs font-bold text-gray-600 block mb-2">Type de consultation</label>
             <div className="flex gap-2">

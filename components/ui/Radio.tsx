@@ -30,7 +30,10 @@ export default function Radio({ accent = 'primary', size = 'md', className = '',
   return (
     <input
       type="radio"
-      className={`${SIZE_CLASSES[size]} shrink-0 border-2 border-outline-variant bg-white cursor-pointer transition-all duration-150 hover:border-on-surface-variant focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_CLASSES[accent]} ${className}`}
+      // `rounded-full` explicite : la forme ronde du radio natif dépend du navigateur, et une
+      // règle de reset CSS peut la carrer. On la fixe, comme sur Checkbox, pour garantir la même
+      // forme partout.
+      className={`${SIZE_CLASSES[size]} shrink-0 rounded-full border-2 border-outline-variant bg-white cursor-pointer transition-all duration-150 hover:border-on-surface-variant focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_CLASSES[accent]} ${className}`}
       {...props}
     />
   )

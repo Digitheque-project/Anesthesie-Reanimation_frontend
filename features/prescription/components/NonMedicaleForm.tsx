@@ -118,6 +118,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
   const urgenceClasses: Record<string, string> = { NORMAL: 'un', URGENT: 'uu', TRES_URGENT: 'utu' };
   const [apiError, setApiError] = useState('');
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<PrescriptionNonMedEnCours[]>([]);
+  const [erreurEnCours, setErreurEnCours] = useState(false);
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [nomMedecin, setNomMedecin] = useState('');
@@ -134,13 +135,8 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
 
   useEffect(() => {
     setPatientId(patient.id);
-    async function fetchPrescriptions() {
-      try {
-        const data = await getPrescriptionsPatient('non-medicale', patient.id);
-        setPrescriptionsEnCours(filterExpired(data));
-      } catch {}
-    }
-    fetchPrescriptions();
+    refreshPrescriptions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient.id, setPatientId]);
 
   function showToast(msg: string) { setToast(msg); window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => setToast(''), 2800); }
@@ -176,7 +172,10 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
     try {
       const data = await getPrescriptionsPatient('non-medicale', patient.id);
       setPrescriptionsEnCours(filterExpired(data));
-    } catch {}
+      setErreurEnCours(false);
+    } catch {
+      setErreurEnCours(true);
+    }
   }
 
   async function terminerPrescription(id: string) {
@@ -419,7 +418,12 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
                   <span className="material-symbols-outlined">check_circle</span>
                 </button>
               </div>
-            )) : (
+            )) : erreurEnCours ? (
+              <div className="active-rx-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ color: 'var(--red)' }}>Échec du chargement des prescriptions en cours</span>
+                <button onClick={refreshPrescriptions} style={{ background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Réessayer</button>
+              </div>
+            ) : (
               <div className="active-rx-item"><span style={{ color: 'var(--txt3)' }}>Aucune prescription en cours</span></div>
             )}
           </div>

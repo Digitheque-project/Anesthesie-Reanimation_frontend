@@ -173,12 +173,10 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
         <div className="flex items-center space-x-2 mb-4"><span className="material-symbols-outlined text-primary text-xl">monitor_heart</span><h3 className="font-headline font-bold uppercase text-xs tracking-widest">1. Surveillance</h3></div>
         <div className="space-y-2">
           {SURVEILLANCE_ITEMS.map((item) => (
-            <div key={item.key} className="flex items-center gap-3 py-1 border-b border-slate-50">
-              <Checkbox size="sm" checked={value.surveillance[item.key].coche} onChange={(e) => setSurveillance(item.key, { coche: e.target.checked })} />
+            <label key={item.key} className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+              <Checkbox size="lg" checked={value.surveillance[item.key].coche} onChange={(e) => setSurveillance(item.key, { coche: e.target.checked })} />
               <span className="text-sm font-medium text-on-surface-variant flex-1">{item.label}</span>
-              <input className="w-28 bg-slate-50 border-none rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary/30" placeholder={item.placeholder} type="text"
-                value={value.surveillance[item.key].valeur} onChange={(e) => setSurveillance(item.key, { valeur: e.target.value })} />
-            </div>
+            </label>
           ))}
         </div>
       </div>
@@ -188,36 +186,21 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
         <div className="flex items-center space-x-2 mb-4"><span className="material-symbols-outlined text-primary text-xl">water_drop</span><h3 className="font-headline font-bold uppercase text-xs tracking-widest">2. Drainages</h3></div>
         <div className="space-y-2">
           {DRAINAGES_ASPIRATIFS.map((item) => (
-            <div key={item.key} className="flex items-center gap-3 py-1 border-b border-slate-50">
-              <Checkbox size="sm" checked={value.drainages[item.key].actif} onChange={(e) => setDrainage(item.key, { actif: e.target.checked })} />
+            <label key={item.key} className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+              <Checkbox size="lg" checked={value.drainages[item.key].actif} onChange={(e) => setDrainage(item.key, { actif: e.target.checked })} />
               <span className="text-sm font-medium text-on-surface-variant flex-1">{item.label}</span>
-              <select className="bg-slate-50 border-none rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary/30" value={value.drainages[item.key].mode}
-                disabled={!value.drainages[item.key].actif} onChange={(e) => setDrainage(item.key, { mode: e.target.value })}>
-                <option value="SIPHON">Siphonnage</option>
-                <option value="ASPIRATION">Aspiratif</option>
-              </select>
-            </div>
+            </label>
           ))}
           {(['drainAbdomenGauche', 'drainAbdomenDroit'] as const).map((key) => (
-            <div key={key} className="flex items-center gap-3 py-1 border-b border-slate-50">
-              <Checkbox size="sm" checked={value.drainages[key].actif} onChange={(e) => setDrainage(key, { actif: e.target.checked })} />
+            <label key={key} className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+              <Checkbox size="lg" checked={value.drainages[key].actif} onChange={(e) => setDrainage(key, { actif: e.target.checked })} />
               <span className="text-sm font-medium text-on-surface-variant flex-1">Drain abdomen — {key === 'drainAbdomenGauche' ? 'Gauche' : 'Droite'}</span>
-              <select className="bg-slate-50 border-none rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary/30" value={value.drainages[key].mode}
-                disabled={!value.drainages[key].actif} onChange={(e) => setDrainage(key, { mode: e.target.value })}>
-                <option value="SIPHON">Siphonnage</option>
-                <option value="REDON">Redon</option>
-              </select>
-            </div>
+            </label>
           ))}
-          <div className="flex items-center gap-3 py-1">
-            <Checkbox size="sm" checked={value.drainages.membreSeinAutres.actif} onChange={(e) => setDrainage('membreSeinAutres', { actif: e.target.checked })} />
+          <label className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+            <Checkbox size="lg" checked={value.drainages.membreSeinAutres.actif} onChange={(e) => setDrainage('membreSeinAutres', { actif: e.target.checked })} />
             <span className="text-sm font-medium text-on-surface-variant flex-1">Membre - Sein - Autres</span>
-            <select className="bg-slate-50 border-none rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary/30" value={value.drainages.membreSeinAutres.mode}
-              disabled={!value.drainages.membreSeinAutres.actif} onChange={(e) => setDrainage('membreSeinAutres', { mode: e.target.value })}>
-              <option value="SIPHON">Siphonnage</option>
-              <option value="REDON">Redon</option>
-            </select>
-          </div>
+          </label>
         </div>
       </div>
 

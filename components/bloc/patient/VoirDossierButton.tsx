@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import DossierPatientModal from '@/components/clinical/dossier-patient/DossierPatientModal'
+import type { TabKey } from '@/components/clinical/dossier-patient/DossierPatientComplet'
 
 type Props = {
   patientId: string | null | undefined
@@ -13,6 +14,8 @@ type Props = {
   chuId?: string
   serviceId?: string
   hospitalisationId?: string
+  /** Onglet ouvert à l'ouverture du dossier. Défaut : « Observation médicale ». */
+  initialTab?: TabKey
 }
 
 // Bouton "voir dossier patient" réutilisable — ouvre le dossier intégré (identité, statut/CPA à
@@ -29,6 +32,7 @@ export default function VoirDossierButton({
   chuId,
   serviceId,
   hospitalisationId,
+  initialTab,
 }: Props) {
   const [open, setOpen] = useState(false)
   if (!patientId) return null
@@ -41,6 +45,7 @@ export default function VoirDossierButton({
       chuId={chuId}
       serviceId={serviceId}
       hospitalisationId={hospitalisationId}
+      initialTab={initialTab}
     />
   )
 

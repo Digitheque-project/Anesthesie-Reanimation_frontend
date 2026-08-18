@@ -176,7 +176,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
   const categoriesVisibles = categoriesAutorisees
 
   return (
-    <section className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm space-y-5 h-full flex flex-col">
+    <section className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm space-y-5 h-full min-h-0 flex flex-col overflow-y-auto">
       <h2 className="text-lg font-bold font-headline text-primary flex items-center gap-2 shrink-0">
         <span className="material-symbols-outlined">timeline</span> Chronologie de l'opération
       </h2>
@@ -245,12 +245,19 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
         </div>
       )}
 
-      <div className="flex flex-col">
+      {/* `flex-1 min-h-0` : la carte est en `h-full` (elle occupe toute la hauteur de la colonne),
+          mais tous ses blocs précédents sont `shrink-0` et l'historique était, lui, à hauteur
+          automatique plafonnée à `max-h-80`. Rien n'absorbait donc la hauteur restante : une large
+          bande vide s'étalait en bas de la carte, à côté du bouton « Valider ». L'historique
+          occupe désormais cet espace et défile à l'intérieur. */}
+      <div className="flex flex-col flex-1 min-h-0">
         <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2 shrink-0">Historique</h3>
         {moments.length === 0 ? (
-          <p className="text-xs text-on-surface-variant">Aucun moment horodaté pour l'instant.</p>
+          <div className="flex-1 min-h-0 flex items-center justify-center">
+            <p className="text-xs text-on-surface-variant italic text-center">Aucun moment horodaté pour l'instant.</p>
+          </div>
         ) : (
-          <ul className="space-y-1.5 overflow-y-auto max-h-80">
+          <ul className="space-y-1.5 overflow-y-auto flex-1 min-h-0">
             {moments.map((m) => {
               const style = CATEGORIE_STYLE[m.categorie] || CATEGORIE_STYLE.DIVERS
               return (

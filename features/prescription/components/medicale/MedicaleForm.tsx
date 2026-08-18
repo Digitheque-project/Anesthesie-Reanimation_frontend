@@ -32,7 +32,7 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
 });
 
 export default function MedicaleForm({ patient, prescripteur, patientType }: Props) {
-  const { addToPanier, setPatientId, panier, sendAll } = usePrescriptionPanier();
+  const { addToPanier, setPatientId, panier, sendAll, serviceDestOverride } = usePrescriptionPanier();
   const [activeTab, setActiveTab] = useState<MedTab>('nouvelle');
   const [medicaments, setMedicaments] = useState<Medicament[]>([]);
   const [remarqueGenerale, setRemarqueGenerale] = useState('');
@@ -44,6 +44,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
   const [apiError, setApiError] = useState('');
   const [toast, setToast] = useState('');
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<PrescriptionEnCours[]>([]);
+  const [erreurEnCours, setErreurEnCours] = useState(false);
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [quotaRefreshKey, setQuotaRefreshKey] = useState(0);
@@ -66,20 +67,21 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
 
   useEffect(() => {
     setPatientId(patient.id);
-    async function fetchPrescriptions() {
-      try {
-        const data = await getPrescriptionsPatient('medicale', patient.id);
-        setPrescriptionsEnCours(filterExpired(data));
-      } catch {}
-    }
-    fetchPrescriptions();
+    refreshPrescriptionsEnCours();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient.id, setPatientId]);
 
   async function refreshPrescriptionsEnCours() {
     try {
       const data = await getPrescriptionsPatient('medicale', patient.id);
       setPrescriptionsEnCours(filterExpired(data));
-    } catch {}
+      setErreurEnCours(false);
+    } catch {
+      // Échouait jusqu'ici en silence : la liste restait vide sans que personne ne sache si
+      // c'est parce qu'il n'y a réellement rien en cours, ou juste un échec réseau — risque
+      // clinique (croire qu'aucune prescription n'est active alors que le chargement a échoué).
+      setErreurEnCours(true);
+    }
   }
 
   async function terminerPrescription(id: string) {
@@ -113,6 +115,9 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
       prescripteurNom: prescripteur.nom,
       prescripteurPrenom: prescripteur.prenom,
       prescripteurService: prescripteur.service,
+      // En dehors d'un override CPA, l'API applique elle-même le défaut Pharmacie.
+      serviceIdDest: serviceDestOverride?.serviceId,
+      serviceNameDest: serviceDestOverride?.serviceName,
       medicaments: medicaments.map(m => ({
         nom: m.nom, dose: m.dose, quantite: m.quantite, quantiteType: normalizeQuantiteType(m.quantiteType),
         voie: m.voie, frequenceType: m.frequenceType, frequenceValeur: m.frequenceValeur,
@@ -327,7 +332,12 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
                   <span className="material-symbols-outlined">check_circle</span>
                 </button>
               </div>
-            )) : (
+            )) : erreurEnCours ? (
+              <div className="active-rx-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ color: 'var(--red)' }}>Échec du chargement des prescriptions en cours</span>
+                <button onClick={refreshPrescriptionsEnCours} style={{ background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Réessayer</button>
+              </div>
+            ) : (
               <div className="active-rx-item">
                 <span style={{ color: 'var(--txt3)' }}>Aucune prescription en cours</span>
               </div>

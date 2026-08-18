@@ -35,7 +35,12 @@ export default function Checkbox({ accent = 'primary', size = 'md', className = 
   return (
     <input
       type="checkbox"
-      className={`${SIZE_CLASSES[size]} shrink-0 rounded-md border-2 border-outline-variant bg-white cursor-pointer transition-all duration-150 hover:border-on-surface-variant focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_CLASSES[accent]} ${className}`}
+      // `rounded-full` et non `rounded-md` : dans une même interface, les cases à cocher
+      // côtoient toujours des boutons radio, ronds par nature (voir Radio). Une case carrée à
+      // côté d'un radio rond donnait deux formes concurrentes sur le même écran — la salle de
+      // réveil en montrait l'exemple, avec des cases carrées et des radios ronds côte à côte.
+      // Tout est rond, sur toutes les checklists du projet.
+      className={`${SIZE_CLASSES[size]} shrink-0 rounded-full border-2 border-outline-variant bg-white cursor-pointer transition-all duration-150 hover:border-on-surface-variant focus-visible:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-50 ${ACCENT_CLASSES[accent]} ${className}`}
       {...props}
     />
   )

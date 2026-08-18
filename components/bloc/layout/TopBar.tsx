@@ -12,6 +12,7 @@ import { dedupeParPatient } from '@/lib/notifications/dedupe';
 import { normaliserDemandeExterne } from '@/lib/notifications/normaliser-demande-externe';
 import { apiClient } from '@/lib/api/client';
 import { estPatientTraite } from '@/lib/notifications/patient-traite';
+import { estEchelleUrgente } from '@/lib/urgence';
 import Clock from '@/components/bloc/layout/Clock';
 
 export default function TopBar() {
@@ -114,7 +115,10 @@ export default function TopBar() {
       if (maintenant - dernierTraitement < THROTTLE_MS) return;
       dernierTraitement = maintenant;
       const urgence = (notif.data?.urgence as string | number) ?? '';
-      const estUrgent = urgence === 'URGENT' || urgence === 'URGENTE' || urgence === 'TRES_URGENT' || urgence === 'STAT' || Number(urgence) >= 4;
+      // Le seuil numérique suit l'échelle commune (3 et plus = urgent, voir lib/urgence.ts) :
+      // à ">= 4", une demande transmise en urgence 3 sonnait comme une arrivée ordinaire alors
+      // qu'elle est bien traitée comme urgente partout ailleurs.
+      const estUrgent = urgence === 'URGENT' || urgence === 'URGENTE' || urgence === 'TRES_URGENT' || urgence === 'STAT' || estEchelleUrgente(Number(urgence));
       const patientId = (notif.data?.patientId as string | undefined) ?? '';
       // Ré-émission d'une prescription/demande déjà planifiée ou déjà traitée pour ce patient :
       // les gardes backend empêchent normalement la ré-ingestion, mais si un évènement temps réel

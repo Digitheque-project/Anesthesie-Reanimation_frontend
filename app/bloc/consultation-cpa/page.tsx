@@ -14,11 +14,14 @@ import RoleGate from '@/components/bloc/auth/RoleGate';
 import { RoleClinique } from '@/lib/auth/role-clinique';
 import PrescriptionCpaModal from '@/components/bloc/prescription/PrescriptionCpaModal';
 import BackButton from '@/components/bloc/layout/BackButton';
+import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner';
+import PasserButton from '@/components/bloc/layout/PasserButton';
 import { exporterFichePdf } from '@/lib/export/export';
 import { formaterNomPatient, formaterIdDossier } from '@/lib/patient';
 import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire';
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader';
 import SommaireCpa from '@/components/bloc/consultation-cpa/SommaireCpa';
+import ConfirmationRecapModal from '@/components/ui/ConfirmationRecapModal';
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave';
 
 export default function ConsultationCpaPage() {
@@ -131,6 +134,7 @@ function ConsultationCpaPageContent() {
   const intervention = searchParams.get('intervention') || '';
 
   const [patient, setPatient] = useState<any>(null);
+  const [erreurPatient, setErreurPatient] = useState(false);
   const [form, setForm] = useState(DEFAULT_FORM);
   const [scoreMallampati, setScoreMallampati] = useState<number | null>(null);
   const [scoreASA, setScoreASA] = useState<number | string | null>(null);
@@ -154,6 +158,7 @@ function ConsultationCpaPageContent() {
   const [dateVPA, setDateVPA] = useState('');
   const [heureVPA, setHeureVPA] = useState('08:00');
   const [loading, setLoading] = useState(false);
+  const [showRecap, setShowRecap] = useState(false);
   const [showMedicamentModal, setShowMedicamentModal] = useState(false);
   const [medicaments, setMedicaments] = useState<any[]>([]);
   const [nouveauMedicament, setNouveauMedicament] = useState({ premedication: '', dose: '', voieAdmin: '', debut: '', frequence: '' });
@@ -177,6 +182,8 @@ function ConsultationCpaPageContent() {
   const { peutDeciderAptitudeCpa, estAnesthesisteConnecte, estResponsableCpa, estMajor, roleName } = useRole();
   const [dateInterventionInput, setDateInterventionInput] = useState('');
   const [savingDateIntervention, setSavingDateIntervention] = useState(false);
+  const [salleOperationInput, setSalleOperationInput] = useState('');
+  const [savingSalleOperation, setSavingSalleOperation] = useState(false);
   const [cpaExistante, setCpaExistante] = useState<any>(null);
   const [chargementCpa, setChargementCpa] = useState(true);
   const [historiqueCpa, setHistoriqueCpa] = useState<any[]>([]);
@@ -188,11 +195,29 @@ function ConsultationCpaPageContent() {
 
   const estResponsableOuMajor = estResponsableCpa || estMajor;
 
+  const chargerPatient = () => {
+    if (!patientId) return;
+    setErreurPatient(false);
+    patientService.getById(patientId).then(setPatient).catch((err) => { console.error(err); setErreurPatient(true); });
+  };
+
+  useEffect(() => { chargerPatient(); }, [patientId]);
+
+  // Retard : la date prévue (CPA ou opération) de ce patient est déjà dépassée sans que l'étape
+  // correspondante soit faite (voir PlanningService.getRetards / Fil de travail) — signalé ici
+  // directement sur l'écran où l'action à mener se trouve, en plus du bandeau du Fil de travail.
+  const [cpaEnRetard, setCpaEnRetard] = useState(false);
+  const [operationEnRetard, setOperationEnRetard] = useState(false);
   useEffect(() => {
-    if (patientId) {
-      patientService.getById(patientId).then(setPatient).catch(console.error);
-    }
-  }, [patientId]);
+    const idFinal = patientId || patient?.id;
+    if (!idFinal) return;
+    planningService.getRetards()
+      .then((d: any) => {
+        setCpaEnRetard((d?.cpaRetard || []).some((c: any) => c.patientId === idFinal));
+        setOperationEnRetard((d?.operationRetard || []).some((p: any) => p.patientId === idFinal));
+      })
+      .catch(console.error);
+  }, [patientId, patient?.id]);
 
   // Le Major/Responsable CPA remplit et valide la CPA en premier ; l'anesthésiste rouvre
   // ensuite cette même fiche (en lecture seule sur l'examen) pour n'y ajouter que les
@@ -320,6 +345,11 @@ function ConsultationCpaPageContent() {
     }
   }, [patient?.dateIntervention]);
 
+  // Pré-remplit le champ éditable avec la salle de bloc actuellement enregistrée
+  useEffect(() => {
+    setSalleOperationInput(patient?.salleOperation || '');
+  }, [patient?.salleOperation]);
+
   const estUrgent = patient?.niveauUrgence === 'URGENT' || patient?.niveauUrgence === 'TRES_URGENT';
 
   // La CPA se remplit en deux temps : le Major/Responsable CPA saisit l'examen et la décision
@@ -433,6 +463,22 @@ function ConsultationCpaPageContent() {
     }
   };
 
+  const handleEnregistrerSalleOperation = async () => {
+    const patientIdFinal = patientId || patient?.id;
+    if (!patientIdFinal || !salleOperationInput.trim()) return;
+    setSavingSalleOperation(true);
+    try {
+      const updated = await patientService.modifierSalleOperation(patientIdFinal, salleOperationInput.trim());
+      setPatient((p: any) => ({ ...p, salleOperation: updated?.salleOperation ?? p?.salleOperation }));
+      alert('✅ Salle de bloc mise à jour');
+    } catch (err: any) {
+      const message = err.response?.data?.message || err.message || 'Erreur inconnue';
+      alert('❌ Erreur: ' + JSON.stringify(message));
+    } finally {
+      setSavingSalleOperation(false);
+    }
+  };
+
   const setField = (key: keyof typeof DEFAULT_FORM) => (e: any) => setForm(f => ({ ...f, [key]: e.target.value }))
 
   const ajouterMedicament = () => {
@@ -483,6 +529,29 @@ function ConsultationCpaPageContent() {
     });
   };
 
+  // Vérifie tout ce qui bloquerait la sauvegarde (rôle, champs obligatoires) AVANT d'ouvrir la
+  // popup de relecture — la popup elle-même ne fait qu'enregistrer ce qui a déjà été validé ici.
+  const handleOuvrirRecap = () => {
+    const patientIdFinal = patientId || patient?.id;
+    if (!patientIdFinal) { alert('❌ Patient introuvable'); return; }
+    if (!cpaDejaRemplie) {
+      if (!peutEditerExamenEtDecision) { alert('❌ Seul un anesthésiste, un responsable CPA ou un major peut remplir et valider la CPA'); return; }
+      // Seuls « Patient mineur » (choix majeur/mineur) et la décision finale ci-dessous restent
+      // obligatoires sur toute la fiche — tous les autres champs (autorisation signée, examen
+      // clinique, voies aériennes, ASA, protocole, instructions...) sont volontairement laissés
+      // libres.
+      if (form.patientMineur === null) { alert('❌ Complétez ces champs avant de valider :\n— Patient mineur (OUI/NON)'); return; }
+      if (!decision) { alert('❌ Sélectionnez une décision (Apte / Inapte / Report)'); return; }
+      if ((decision === 'INAPTE' || decision === 'REPORT') && !motifRefus.trim()) {
+        alert(`❌ Le motif ${decision === 'INAPTE' ? 'du refus' : 'du report'} est obligatoire`); return;
+      }
+    } else {
+      // Deuxième étape : l'anesthésiste complète la CPA déjà remplie par le Major/Responsable CPA.
+      if (!peutEditerMedicamentsEtVpa) { alert("❌ Seul l'anesthésiste peut compléter les médicaments et la date de vérification veille"); return; }
+    }
+    setShowRecap(true);
+  };
+
   const handleValider = async () => {
     const patientIdFinal = patientId || patient?.id;
     if (!patientIdFinal) { alert('❌ Patient introuvable'); return; }
@@ -494,28 +563,6 @@ function ConsultationCpaPageContent() {
     setLoading(true);
     try {
       if (!cpaDejaRemplie) {
-        // Première étape : le Major/Responsable CPA (ou l'anesthésiste s'il réalise seul sa
-        // propre CPA) remplit l'examen et pose la décision.
-        if (!peutEditerExamenEtDecision) { alert('❌ Seul un anesthésiste, un responsable CPA ou un major peut remplir et valider la CPA'); setLoading(false); return; }
-          // Aucune valeur n'étant plus pré-cochée par défaut, ce champ cliniquement structurant
-          // doit être activement choisi avant de pouvoir valider — plutôt que de silencieusement
-          // retomber sur une valeur jamais vraiment observée.
-          const champsManquants: string[] = [];
-          // Seuls « Patient mineur » (choix majeur/mineur) et la décision finale ci-dessous
-          // restent obligatoires sur toute la fiche — tous les autres champs (autorisation
-          // signée, examen clinique, voies aériennes, ASA, protocole, instructions...) sont
-          // volontairement laissés libres.
-          if (form.patientMineur === null) champsManquants.push('Patient mineur (OUI/NON)');
-        if (champsManquants.length) {
-          alert('❌ Complétez ces champs avant de valider :\n— ' + champsManquants.join('\n— '));
-          setLoading(false);
-          return;
-        }
-        if (!decision) { alert('❌ Sélectionnez une décision (Apte / Inapte / Report)'); setLoading(false); return; }
-        if ((decision === 'INAPTE' || decision === 'REPORT') && !motifRefus.trim()) {
-          alert(`❌ Le motif ${decision === 'INAPTE' ? 'du refus' : 'du report'} est obligatoire`); setLoading(false); return;
-        }
-
         const payload = {
           patientId: patientIdFinal,
           dateConsultation: new Date().toISOString().split('T')[0],
@@ -614,7 +661,13 @@ function ConsultationCpaPageContent() {
                 nombre: r.nombre !== '' ? Number(r.nombre) : undefined,
               }))
             : undefined,
-          jeune: form.jeune || `Solides : ${form.jeuneSolides || 'À partir de minuit'} — Liquide : ${form.jeuneLiquides || "Jusqu'à H-2"}`,
+          // form.jeune (instructions spécifiques libres) et jeuneSolides/jeuneLiquides (règles
+          // structurées) sont complémentaires, pas alternatifs — l'ancien `||` perdait
+          // silencieusement solides/liquides dès que le texte libre était rempli.
+          jeune: [
+            `Solides : ${form.jeuneSolides || 'À partir de minuit'} — Liquide : ${form.jeuneLiquides || "Jusqu'à H-2"}`,
+            form.jeune,
+          ].filter(Boolean).join(' — '),
           preparationPhysique: form.preparationPhysique,
           tachesInfirmieres: form.tachesInfirmieres,
           // Contrairement aux médicaments (réservés à l'anesthésiste), la date de vérification
@@ -625,6 +678,7 @@ function ConsultationCpaPageContent() {
         };
 
         await apiClient.post('/cpa', payload);
+        setShowRecap(false);
         await planifierVerificationVeille(patientIdFinal);
         // Date de report : posée par qui décide le REPORT (Respo CPA/Major ou l'anesthésiste
         // solo), pas réservée à l'anesthésiste — contrairement à la vérification veille.
@@ -660,12 +714,20 @@ function ConsultationCpaPageContent() {
           if (allerDirectement) {
             router.push(`/bloc/arrivee-bloc?patientId=${patientIdFinal}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`);
           } else {
-            if (!proposerRaccourci) alert('✅ VPA validée avec succès !');
-            router.push(
-              estServiceNonOperatoire(patient?.serviceOrigine)
-                ? '/bloc/programme-non-operatoire'
-                : '/bloc/patient-du-jour'
-            );
+            const nonOperatoire = estServiceNonOperatoire(patient?.serviceOrigine);
+            if (decision === 'INAPTE' || (decision === 'REPORT' && nonOperatoire)) {
+              // INAPTE (toute origine) ou REPORT d'un patient non-opératoire : le dossier est
+              // archivé (CPA_INAPTE ou SORTI, voir CPAService.create) — jamais un succès de
+              // programmation, ne pas dire l'inverse ni renvoyer vers une liste où ce patient
+              // n'apparaîtra plus (voir Bug 4).
+              setTermine(true);
+            } else if (decision === 'REPORT') {
+              alert('🕓 CPA reportée — le patient reste en attente de CPA, à refaire.');
+              router.push('/bloc/rendez-vous');
+            } else {
+              if (!proposerRaccourci) alert('✅ VPA validée avec succès !');
+              router.push(nonOperatoire ? '/bloc/programme-non-operatoire' : '/bloc/patient-du-jour');
+            }
           }
         } else {
           // Patient normal venu d'un service non-opératoire (Endoscopie, Urgence, Imagerie) dont
@@ -687,8 +749,6 @@ function ConsultationCpaPageContent() {
       } else {
         // Deuxième étape : l'anesthésiste complète la CPA déjà remplie par le Major/Responsable
         // CPA — uniquement les médicaments d'anesthésie/réanimation et la vérification veille.
-        if (!peutEditerMedicamentsEtVpa) { alert("❌ Seul l'anesthésiste peut compléter les médicaments et la date de vérification veille"); setLoading(false); return; }
-
         await apiClient.patch(`/cpa/${cpaExistante.id}`, {
           medicamentsAnesthesieReanimation: medicamentsSelectionnes.length
             ? medicamentsSelectionnes.map(r => ({
@@ -701,6 +761,7 @@ function ConsultationCpaPageContent() {
             : undefined,
           dateVerificationVeille: (!estUrgent && decision === 'APTE' && dateVPA) ? dateVPA : undefined,
         });
+        setShowRecap(false);
         await planifierVerificationVeille(patientIdFinal);
         if (brouillonKey) effacerBrouillon(brouillonKey);
 
@@ -959,7 +1020,10 @@ function ConsultationCpaPageContent() {
 
   return (
     <main className="p-4 space-y-2">
-      <BackButton />
+      <div className="flex items-center justify-between gap-3">
+        <BackButton />
+        <PasserButton onClick={restaurerBrouillon} disabled={!brouillonTrouve} />
+      </div>
       <div className={`rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-2 ${estUrgent ? 'bg-tertiary/10 text-tertiary' : 'bg-primary/10 text-primary'}`}>
         <span className="material-symbols-outlined text-lg">{estUrgent ? 'bolt' : 'event_available'}</span>
         {estUrgent ? 'Visite Pré-Anesthésique (VPA) — patient urgent, consultation immédiate' : 'Consultation Pré-Anesthésique (CPA)'}
@@ -984,7 +1048,7 @@ function ConsultationCpaPageContent() {
             Une saisie non enregistrée du {new Date(brouillonTrouve.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} a été retrouvée pour ce patient.
           </span>
           <button type="button" onClick={restaurerBrouillon}
-            className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs font-bold hover:bg-amber-700 transition-colors">
+            className="px-3 py-1.5 bg-amber-400 text-amber-950 rounded-lg text-xs font-bold hover:bg-amber-500 transition-colors">
             Restaurer
           </button>
           <button type="button" onClick={ignorerBrouillon}
@@ -1014,9 +1078,31 @@ function ConsultationCpaPageContent() {
         </div>
       </div>
 
+      <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
+
+      {/* Alertes retard — date prévue déjà dépassée sans que l'étape correspondante soit faite. */}
+      {cpaEnRetard && !cpaDejaRemplie && (
+        <div className="p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex items-center gap-2 font-semibold">
+          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          La date prévue de cette CPA est déjà dépassée — complétez-la ci-dessous dès que possible.
+        </div>
+      )}
+      {operationEnRetard && (
+        <div className="p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
+          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <span className="flex-1 min-w-[220px] font-semibold">La date prévue de l&apos;opération est déjà dépassée.</span>
+          {estResponsableOuMajor && (
+            <button type="button" onClick={() => document.getElementById('date-operation-cpa')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className="px-3 py-1.5 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">
+              Modifier la date
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Date et heure prévues de l'opération — modifiable par le Responsable CPA ou le Major
           pendant la réalisation de la consultation (ex. créneau chirurgical décalé) */}
-      <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-3">
+      <div id="date-operation-cpa" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-3 scroll-mt-36">
         <span className="material-symbols-outlined text-primary">event</span>
         {estResponsableOuMajor ? (
           <>
@@ -1042,6 +1128,31 @@ function ConsultationCpaPageContent() {
         )}
       </div>
 
+      {/* Salle de bloc prévue pour l'intervention — même logique et mêmes rôles éditeurs que la
+          date/heure ci-dessus, distincte de la chambre d'hospitalisation du patient. */}
+      <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-3">
+        <span className="material-symbols-outlined text-primary">meeting_room</span>
+        {estResponsableOuMajor ? (
+          <>
+            <div className="flex-1 min-w-[220px]">
+              <label className="text-xs font-semibold text-on-surface-variant block mb-1">Salle de bloc prévue</label>
+              <input type="text" value={salleOperationInput} onChange={e => setSalleOperationInput(e.target.value)}
+                placeholder="Ex. Salle 3"
+                className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm font-bold" />
+            </div>
+            <button onClick={handleEnregistrerSalleOperation} disabled={savingSalleOperation || !salleOperationInput.trim()}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50 self-end">
+              <span className="material-symbols-outlined text-lg">save</span>
+              {savingSalleOperation ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          </>
+        ) : (
+          <div>
+            <p className="text-xs font-semibold text-on-surface-variant">Salle de bloc prévue</p>
+            <p className="text-sm font-bold text-on-surface">{patient?.salleOperation || '—'}</p>
+          </div>
+        )}
+      </div>
 
       <SommaireCpa />
 
@@ -1577,7 +1688,7 @@ function ConsultationCpaPageContent() {
               <div className="px-4 py-3 bg-amber-100/70 border-b border-amber-200 flex items-center gap-2">
                 <span className="material-symbols-outlined text-amber-600">gavel</span>
                 <h2 className="text-sm font-extrabold text-amber-900 uppercase tracking-widest">Décision Finale</h2>
-                <span className="ml-auto px-2 py-0.5 bg-amber-500 text-white text-[10px] font-extrabold uppercase rounded-full">Obligatoire</span>
+                <span className="ml-auto px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase rounded-full">Obligatoire</span>
               </div>
               <div className="p-4">
                 {!peutEditerExamenEtDecision && !cpaDejaRemplie && (
@@ -1593,9 +1704,9 @@ function ConsultationCpaPageContent() {
                 )}
                 <div className={`grid grid-cols-1 gap-2 ${estUrgent ? 'sm:grid-cols-2' : 'sm:grid-cols-3'}`}>
                   {[
-                    { key: 'APTE', label: "Apte à l'anesthésie", icon: 'check_circle', activeClass: 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30' },
-                    { key: 'INAPTE', label: 'Inapte à ce jour', icon: 'cancel', activeClass: 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-500/30' },
-                    ...(estUrgent ? [] : [{ key: 'REPORT', label: 'CPA à reporter', sousLabel: '(pas l\'opération — à refaire après examens)', icon: 'schedule', activeClass: 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/30' }]),
+                    { key: 'APTE', label: "Apte à l'anesthésie", icon: 'check_circle', activeClass: 'bg-emerald-50 border-emerald-400 text-emerald-700 shadow-sm' },
+                    { key: 'INAPTE', label: 'Inapte à ce jour', icon: 'cancel', activeClass: 'bg-red-50 border-red-400 text-red-700 shadow-sm' },
+                    ...(estUrgent ? [] : [{ key: 'REPORT', label: 'CPA à reporter', sousLabel: '(pas l\'opération — à refaire après examens)', icon: 'schedule', activeClass: 'bg-orange-50 border-orange-400 text-orange-700 shadow-sm' }]),
                   ].map(opt => (
                     <button key={opt.key} onClick={() => {
                         setDecision(opt.key as any);
@@ -1608,7 +1719,7 @@ function ConsultationCpaPageContent() {
                       }`}>
                       <span className="material-symbols-outlined text-2xl" style={decision === opt.key ? { fontVariationSettings: "'FILL' 1" } : undefined}>{opt.icon}</span>
                       <span className="font-bold text-sm text-center">{opt.label}</span>
-                      {opt.sousLabel && <span className={`text-[10px] font-medium text-center leading-tight ${decision === opt.key ? 'text-white/85' : 'text-on-surface-variant/70'}`}>{opt.sousLabel}</span>}
+                      {opt.sousLabel && <span className="text-[10px] font-medium text-center leading-tight text-on-surface-variant/70">{opt.sousLabel}</span>}
                     </button>
                   ))}
                 </div>
@@ -1623,12 +1734,12 @@ function ConsultationCpaPageContent() {
                     <div className="grid grid-cols-2 gap-2">
                       {(decision === 'APTE'
                         ? [
-                            { key: 'RETENUE', label: "Date d'opération retenue", icon: 'event_available', activeClass: 'bg-emerald-500 border-emerald-500 text-white' },
-                            { key: 'REPORTEE', label: "Date d'opération reportée", icon: 'event_busy', activeClass: 'bg-orange-500 border-orange-500 text-white' },
+                            { key: 'RETENUE', label: "Date d'opération retenue", icon: 'event_available', activeClass: 'bg-emerald-50 border-emerald-400 text-emerald-700' },
+                            { key: 'REPORTEE', label: "Date d'opération reportée", icon: 'event_busy', activeClass: 'bg-orange-50 border-orange-400 text-orange-700' },
                           ]
                         : [
-                            { key: 'REPORTEE', label: "Date d'opération reportée", icon: 'event_busy', activeClass: 'bg-orange-500 border-orange-500 text-white' },
-                            { key: 'REFUSEE', label: 'Opération refusée (impossible)', icon: 'block', activeClass: 'bg-red-600 border-red-600 text-white' },
+                            { key: 'REPORTEE', label: "Date d'opération reportée", icon: 'event_busy', activeClass: 'bg-orange-50 border-orange-400 text-orange-700' },
+                            { key: 'REFUSEE', label: 'Opération refusée (impossible)', icon: 'block', activeClass: 'bg-red-50 border-red-400 text-red-700' },
                           ]
                       ).map(opt => (
                         <button key={opt.key} type="button" onClick={() => setDecisionOperation(opt.key as any)} disabled={!peutEditerExamenEtDecision}
@@ -1806,7 +1917,7 @@ function ConsultationCpaPageContent() {
                     ? 'Enregistrer les médicaments et la vérification veille'
                     : 'Valider la CPA';
               return (
-                <button onClick={handleValider} disabled={loading || chargementCpa || !peutSoumettre}
+                <button onClick={handleOuvrirRecap} disabled={loading || chargementCpa || !peutSoumettre}
                   className="px-8 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50">
                   {libelle}
                 </button>
@@ -1815,6 +1926,17 @@ function ConsultationCpaPageContent() {
           </div>
         </div>
       </div>
+
+      <ConfirmationRecapModal
+        open={showRecap}
+        titre={estUrgent ? 'Visite Pré-Anesthésique (VPA)' : 'Consultation Pré-Anesthésique (CPA)'}
+        sousTitre="Relisez la fiche complète avant de confirmer — rien n'est encore enregistré"
+        sections={construireSectionsCpa()}
+        onAnnuler={() => setShowRecap(false)}
+        onConfirmer={handleValider}
+        confirmEnCours={loading}
+        labelConfirmer={cpaDejaRemplie ? 'Confirmer et enregistrer' : 'Confirmer et valider la CPA'}
+      />
     </main>
   );
 }

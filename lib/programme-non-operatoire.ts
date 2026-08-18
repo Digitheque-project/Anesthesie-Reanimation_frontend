@@ -7,14 +7,30 @@
 // on ne maîtrise pas l'orthographe exacte du nom de service tel qu'enregistré côté SSO central.
 const DIACRITIQUES = new RegExp('[\\u0300-\\u036f]', 'g')
 
-const MOTS_CLES_NON_OPERATOIRE = ['imagerie', 'scanner', 'endoscopie', 'urgence']
+// Doit rester identique à la liste du backend (src/patient-bloc/service-non-operatoire.ts) —
+// deux listes divergentes classeraient le même patient dans deux programmes différents selon
+// l'écran. "radiologie", "irm", "tdm" et "echographie" désignent le même plateau technique
+// qu'"imagerie"/"scanner" : sans eux, un CHU ayant enregistré son service sous "Radiologie"
+// voyait ses patients apparaître dans le Programme opératoire.
+const MOTS_CLES_NON_OPERATOIRE = [
+  'imagerie',
+  'radiologie',
+  'scanner',
+  'tomodensitometrie',
+  'tdm',
+  'irm',
+  'echographie',
+  'endoscopie',
+  'urgence',
+]
+
+function normaliser(valeur: string): string {
+  return valeur.normalize('NFD').replace(DIACRITIQUES, '').toLowerCase()
+}
 
 export function estServiceNonOperatoire(serviceOrigine?: string | null): boolean {
   if (!serviceOrigine) return false
-  const normalise = serviceOrigine
-    .normalize('NFD')
-    .replace(DIACRITIQUES, '')
-    .toLowerCase()
+  const normalise = normaliser(serviceOrigine)
   return MOTS_CLES_NON_OPERATOIRE.some((mot) => normalise.includes(mot))
 }
 
@@ -25,13 +41,17 @@ export function estServiceNonOperatoire(serviceOrigine?: string | null): boolean
 // - Endoscopie et Urgence : c'est le même anesthésiste du Bloc qui surveille le patient →
 //   ils suivent le flux complet de la chirurgie (transfert en salle de réveil du Bloc,
 //   surveillance, sortie), comme les patients opérés.
-const MOTS_CLES_PROPRE_SALLE_REVEIL = ['imagerie', 'scanner']
+const MOTS_CLES_PROPRE_SALLE_REVEIL = [
+  'imagerie',
+  'radiologie',
+  'scanner',
+  'tomodensitometrie',
+  'tdm',
+  'irm',
+]
 
 export function aSaPropreSalleDeReveil(serviceOrigine?: string | null): boolean {
   if (!serviceOrigine) return false
-  const normalise = serviceOrigine
-    .normalize('NFD')
-    .replace(DIACRITIQUES, '')
-    .toLowerCase()
+  const normalise = normaliser(serviceOrigine)
   return MOTS_CLES_PROPRE_SALLE_REVEIL.some((mot) => normalise.includes(mot))
 }

@@ -1,4 +1,6 @@
 import { getStoredToken } from '@/features/prescription/lib/auth';
+import { getActiveSession } from '@/lib/clinical-auth/session';
+import { PHARMACY_SERVICE_ID } from '@/features/prescription/lib/constants';
 export { authFetch } from '@/features/prescription/lib/auth';
 
 // Ne PAS retomber sur NEXT_PUBLIC_API_URL : dans blocope-front, cette variable pointe déjà
@@ -74,8 +76,28 @@ function resolveImagerieEndpoint(payload: Record<string, unknown>, fallback = 'p
 }
 
 export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
-  const body = (data as Record<string, unknown>) || {};
+  const input = (data as Record<string, unknown>) || {};
+  // Le CHU/service de l'utilisateur connecté est toujours disponible via la session centrale ;
+  // on ne l'écrase jamais si l'appelant l'a déjà fourni explicitement (ex. serviceDestOverride
+  // côté panier, qui construit son propre payload avant d'appeler cette fonction).
+  const session = getActiveSession();
+  const body: Record<string, unknown> = {
+    ...input,
+    chuId: input.chuId ?? session?.chuId ?? undefined,
+    chuNom: input.chuNom ?? session?.chuNom ?? undefined,
+    serviceIdSource: input.serviceIdSource ?? session?.currentService?.serviceId,
+    serviceNameSource: input.serviceNameSource ?? session?.currentService?.serviceName,
+  };
   const endpointPath = getRoutePath(endpoint);
+
+  // Une prescription médicamenteuse sans service destinataire explicite (ex. pas de
+  // serviceDestOverride venant de la CPA) part par défaut vers la Pharmacie — comme le fait
+  // déjà le panier (SERVICE_DEST_MAP) pour les envois groupés, mais jusqu'ici absent des appels
+  // directs creerPrescriptionMedicale() ("Valider" et "Créer Ordonnance").
+  if (endpointPath === 'prescriptions/medicale' && !body.serviceIdDest) {
+    body.serviceIdDest = PHARMACY_SERVICE_ID;
+    body.serviceNameDest = body.serviceNameDest ?? 'Pharmacie';
+  }
 
   if (isRoute(endpointPath, 'prescriptions/eeg')) {
     return {

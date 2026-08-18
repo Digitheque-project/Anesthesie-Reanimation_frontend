@@ -8,6 +8,7 @@ import { formaterNomPatient } from '@/lib/patient';
 import RoleGate from '@/components/bloc/auth/RoleGate';
 import { RoleClinique } from '@/lib/auth/role-clinique';
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
+import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVenirModal';
 
 interface PatientReveil {
   id: string;
@@ -35,6 +36,10 @@ export default function ListeSalleReveil() {
     return `${d.getFullYear()}-${mois}-${jour}`;
   });
   const [tri, setTri] = useState<Tri>('RECENT');
+  // Vue d'ensemble de la charge à venir (patients à opérer, triés par date) — même popup que sur
+  // Programme opératoire / non-chirurgical et Fil de travail : utile ici pour anticiper les
+  // prochaines arrivées en salle de réveil sans changer d'écran.
+  const [showProgrammeAVenir, setShowProgrammeAVenir] = useState(false);
 
   useEffect(() => {
     chargerPatients();
@@ -92,12 +97,19 @@ export default function ListeSalleReveil() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">🛏️ Tous les patients en salle de réveil</h1>
-        <button
-          onClick={chargerPatients}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
-        >
-          🔄 Actualiser
-        </button>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setShowProgrammeAVenir(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
+            <span className="material-symbols-outlined text-lg">calendar_month</span>
+            Voir le programme à venir
+          </button>
+          <button
+            onClick={chargerPatients}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+          >
+            🔄 Actualiser
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
@@ -195,6 +207,11 @@ export default function ListeSalleReveil() {
           </table>
         </div>
       )}
+
+      <ProgrammeAVenirModal
+        open={showProgrammeAVenir}
+        onClose={() => setShowProgrammeAVenir(false)}
+      />
     </div>
     </RoleGate>
   );

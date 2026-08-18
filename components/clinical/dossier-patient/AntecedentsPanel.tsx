@@ -3,6 +3,7 @@
 import React, { useCallback, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { ehr } from '@/lib/clinical/ehr-theme';
+import Checkbox from '@/components/ui/Checkbox'
 
 export type AntecedentsData = {
   adulteOpen: boolean;
@@ -466,11 +467,11 @@ export function AntecedentsPanel({ value, onChange }: Props) {
         <div style={subBlueTitle}>MODE DE VIE</div>
         <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: ehr.text, cursor: 'pointer' }}>
-            <input type="checkbox" checked={value.modeVieTabac} onChange={e => patch({ modeVieTabac: e.target.checked })} />
+            <Checkbox size="sm" checked={value.modeVieTabac} onChange={e => patch({ modeVieTabac: e.target.checked })} />
             Tabac
           </label>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: ehr.text, cursor: 'pointer' }}>
-            <input type="checkbox" checked={value.modeVieAlcool} onChange={e => patch({ modeVieAlcool: e.target.checked })} />
+            <Checkbox size="sm" checked={value.modeVieAlcool} onChange={e => patch({ modeVieAlcool: e.target.checked })} />
             Alcool
           </label>
         </div>

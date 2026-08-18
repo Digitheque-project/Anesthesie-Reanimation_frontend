@@ -6,6 +6,7 @@ import { planningService, patientService } from '@/lib/api';
 import { formaterNomPatient } from '@/lib/patient';
 import { styleUrgence } from '@/lib/urgence';
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
+import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVenirModal';
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus';
 import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate';
 
@@ -21,6 +22,11 @@ export default function RendezVousPage() {
   const [onglet, setOnglet] = useState<Onglet>('CPA');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [creneaux, setCreneaux] = useState<any[]>([]);
+  // Retards : CPA/vérification veille/opération dont la date prévue est dépassée sans que
+  // l'étape correspondante soit faite (voir PlanningService.getRetards) — fusionnés dans la
+  // liste affichée (le fetch normal de l'onglet CPA exclut au contraire tout ce qui est déjà
+  // passé) et marqués en rouge, pour qu'un rendez-vous manqué ne disparaisse jamais silencieusement.
+  const [retards, setRetards] = useState<{ cpaRetard: any[]; verificationVeilleRetard: any[]; operationRetard: any[] }>({ cpaRetard: [], verificationVeilleRetard: [], operationRetard: [] });
   const [loading, setLoading] = useState(false);
   const [recherche, setRecherche] = useState('');
   // Filtre optionnel par date d'intervention prévue, pour l'onglet Vérification veille
@@ -38,6 +44,10 @@ export default function RendezVousPage() {
   // chaque intervention) — on prévient du total + de la prochaine, avec un bouton pour tout
   // afficher d'un coup (voirTousVerif), exactement comme l'alerte RDV CPA.
   const [voirTousVerif, setVoirTousVerif] = useState(false);
+  // Vue d'ensemble de la charge à venir (tous patients à opérer, triés par date) — même popup
+  // que sur Programme opératoire / non-chirurgical, utile ici pour anticiper sans devoir changer
+  // d'écran pendant qu'on traite les rendez-vous CPA ou les vérifications veille.
+  const [showProgrammeAVenir, setShowProgrammeAVenir] = useState(false);
   // Le loading plein écran n'apparaît qu'au tout premier chargement : les rafraîchissements
   // d'arrière-plan (temps réel, retour de focus) ne doivent pas faire clignoter "Chargement...".
   const aDejaCharge = useRef(false);
@@ -55,6 +65,15 @@ export default function RendezVousPage() {
   }, [onglet]);
 
   useEffect(() => { charger(); }, [selectedDate, onglet, voirTousCpa]);
+
+  const chargerRetards = () => {
+    planningService.getRetards()
+      .then((d: any) => setRetards({ cpaRetard: d?.cpaRetard || [], verificationVeilleRetard: d?.verificationVeilleRetard || [], operationRetard: d?.operationRetard || [] }))
+      .catch(console.error);
+  };
+  useEffect(() => { chargerRetards(); }, []);
+  useRefetchOnFocus(chargerRetards);
+  useRefetchOnRealtimeUpdate(chargerRetards);
 
   const charger = async () => {
     if (!aDejaCharge.current) setLoading(true);
@@ -117,19 +136,40 @@ export default function RendezVousPage() {
   // ici ou depuis un autre poste connecté — voir useRefetchOnRealtimeUpdate.
   useRefetchOnRealtimeUpdate(charger);
 
+  // Fusionne les retards dans la liste affichée et les marque `enRetard` — l'onglet CPA exclut
+  // sinon totalement tout ce qui est déjà passé (voir PlanningService.getProchainsRdvCpa), et un
+  // rendez-vous manqué disparaissait donc silencieusement au lieu d'attirer l'attention.
+  const creneauxAvecRetards = useMemo(() => {
+    if (onglet === 'CPA') {
+      const idsDejaPresents = new Set(creneaux.map((c: any) => c.id));
+      const retardsAAjouter = retards.cpaRetard
+        .filter((c: any) => !idsDejaPresents.has(c.id))
+        .map((c: any) => ({ ...c, enRetard: true }));
+      return [...retardsAAjouter, ...creneaux];
+    }
+    if (onglet === 'VERIFICATION_VEILLE') {
+      const idsEnRetard = new Set(retards.verificationVeilleRetard.map((p: any) => p.patientId));
+      return creneaux.map((c: any) => (idsEnRetard.has(c.patient?.id) ? { ...c, enRetard: true } : c));
+    }
+    return creneaux;
+  }, [creneaux, retards, onglet]);
+
   // Recherche multi-champs côté client (nom patient, type, chirurgien) — même pattern que
   // app/bloc/rapports/page.tsx.
   const creneauxFiltres = useMemo(() => {
-    let filtres = creneaux;
+    let filtres = creneauxAvecRetards;
     if (onglet === 'VERIFICATION_VEILLE' && !voirTousVerif && filtreDateVerif) {
-      filtres = filtres.filter((c: any) => c.dateIntervention && new Date(c.dateIntervention).toISOString().split('T')[0] === filtreDateVerif);
+      // Un patient en retard a par définition une date déjà passée : il ne correspondra jamais
+      // au filtre "date du jour" et disparaîtrait sinon silencieusement (voir commentaire plus
+      // haut sur creneauxAvecRetards) — on l'exempte donc de ce filtre de date.
+      filtres = filtres.filter((c: any) => c.enRetard || (c.dateIntervention && new Date(c.dateIntervention).toISOString().split('T')[0] === filtreDateVerif));
     }
     const q = recherche.trim().toLowerCase();
     if (!q) return filtres;
     return filtres.filter((c: any) =>
       [formaterNomPatient(c.patient), c.type, c.chirurgien?.nom].some((v) => String(v || '').toLowerCase().includes(q))
     );
-  }, [creneaux, recherche, onglet, filtreDateVerif, voirTousVerif]);
+  }, [creneauxAvecRetards, recherche, onglet, filtreDateVerif, voirTousVerif]);
 
   // Alerte « vérifications la veille à faire » : calculée à partir de la liste déjà chargée
   // (tous les patients CPA validée, non urgents, en attente de vérification) — le total, et la
@@ -164,25 +204,53 @@ export default function RendezVousPage() {
             {onglet === 'VERIFICATION_VEILLE' ? 'Tous les patients CPA validée, en attente de vérification' : voirTousCpa ? 'Tous les rendez-vous CPA à venir' : formaterDate(selectedDate)}
           </p>
         </div>
-        {onglet === 'CPA' ? (
-          <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
-            className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" />
-        ) : (
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-bold text-on-surface-variant flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-lg">filter_alt</span>
-              Filtrer par date d'intervention
-            </label>
-            <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
+        <div className="flex flex-wrap items-center gap-2">
+          {onglet === 'CPA' ? (
+            <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
               className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" />
-            {filtreDateVerif && !voirTousVerif && (
-              <button onClick={() => setFiltreDateVerif('')} className="text-xs font-bold text-primary hover:underline">
-                Effacer
-              </button>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold text-on-surface-variant flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-lg">filter_alt</span>
+                Filtrer par date d'intervention
+              </label>
+              <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
+                className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" />
+              {filtreDateVerif && !voirTousVerif && (
+                <button onClick={() => setFiltreDateVerif('')} className="text-xs font-bold text-primary hover:underline">
+                  Effacer
+                </button>
+              )}
+            </div>
+          )}
+          <button type="button" onClick={() => setShowProgrammeAVenir(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
+            <span className="material-symbols-outlined text-lg">calendar_month</span>
+            Voir le programme à venir
+          </button>
+        </div>
       </div>
+
+      {/* Alerte retards — date prévue déjà dépassée sans que l'étape correspondante soit faite.
+          Rouge et distincte des bandeaux "à venir" ci-dessous (ambre, neutres) : ce n'est plus un
+          rappel, c'est un rendez-vous manqué. Les lignes concernées sont déjà dans le tableau
+          (voir creneauxAvecRetards) — ce bandeau sert surtout à attirer l'attention dessus. */}
+      {onglet === 'CPA' && retards.cpaRetard.length > 0 && (
+        <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
+          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <span className="flex-1 min-w-[220px] font-semibold">
+            {retards.cpaRetard.length} CPA en retard — la date prévue est dépassée{retards.cpaRetard.length > 1 ? ', ces patients restent' : ' — ce patient reste'} affiché{retards.cpaRetard.length > 1 ? 's' : ''} ci-dessous, en tête de liste.
+          </span>
+        </div>
+      )}
+      {onglet === 'VERIFICATION_VEILLE' && retards.verificationVeilleRetard.length > 0 && (
+        <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
+          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <span className="flex-1 min-w-[220px] font-semibold">
+            {retards.verificationVeilleRetard.length} vérification{retards.verificationVeilleRetard.length > 1 ? 's' : ''} veille en retard — la date d'intervention prévue est déjà dépassée sans que la vérification soit faite.
+          </span>
+        </div>
+      )}
 
       {/* Alerte RDV CPA déjà planifiés (patients retirés du fil de prescription dès la réservation) */}
       {onglet === 'CPA' && alerteCpa && alerteCpa.total > 0 && (
@@ -284,7 +352,7 @@ export default function RendezVousPage() {
                 const style = styleUrgence(niveau);
                 const nom = formaterNomPatient(c.patient);
                 return (
-                  <tr key={c.id || i} className={`hover:bg-surface-container/30 transition-colors border-l-4 ${style.bordure}`}>
+                  <tr key={c.id || i} className={`hover:bg-surface-container/30 transition-colors border-l-4 ${c.enRetard ? 'bg-red-50/50 border-red-400' : style.bordure}`}>
                     <td className="px-6 py-4 font-extrabold text-primary text-sm whitespace-nowrap">
                       {c.heureDebut || (c.dateIntervention ? new Date(c.dateIntervention).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—')}
                     </td>
@@ -308,12 +376,19 @@ export default function RendezVousPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
-                        c.statut === 'PLANIFIE' ? 'bg-blue-100 text-blue-700' :
-                        c.statut === 'TERMINE' ? 'bg-green-100 text-green-700' :
-                        c.statut === 'VERIF_MEDICAMENT' ? 'bg-amber-100 text-amber-700' :
-                        c.statut === 'EN_ATTENTE' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
-                      }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : (c.statut || '—')}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {c.enRetard && (
+                          <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
+                            <span className="material-symbols-outlined text-xs">error</span> En retard
+                          </span>
+                        )}
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
+                          c.statut === 'PLANIFIE' ? 'bg-blue-100 text-blue-700' :
+                          c.statut === 'TERMINE' ? 'bg-green-100 text-green-700' :
+                          c.statut === 'VERIF_MEDICAMENT' ? 'bg-amber-100 text-amber-700' :
+                          c.statut === 'EN_ATTENTE' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
+                        }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : (c.statut || '—')}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -333,6 +408,15 @@ export default function RendezVousPage() {
           </table>
         </div>
       </div>
+
+      <ProgrammeAVenirModal
+        open={showProgrammeAVenir}
+        onClose={() => setShowProgrammeAVenir(false)}
+        onChoisirDate={(date) => {
+          if (onglet === 'CPA') { setSelectedDate(date); setVoirTousCpa(false); }
+          else { setFiltreDateVerif(date); setVoirTousVerif(false); }
+        }}
+      />
     </div>
   );
 }

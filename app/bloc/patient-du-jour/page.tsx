@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import PatientStatsCards from '@/components/bloc/patient-du-jour/PatientStatsCards'
 import PatientFilters from '@/components/bloc/patient-du-jour/PatientFilters'
 import PatientsListTable from '@/components/bloc/patient-du-jour/PatientsListTable'
+import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVenirModal'
 import { patientService, notificationService } from '@/lib/api'
 import type { FiltresPatient } from '@/types/bloc'
 import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire'
@@ -15,6 +16,7 @@ export default function PatientDuJourPage() {
   const [loading, setLoading] = useState(true)
   const [filtres, setFiltres] = useState<FiltresPatient>({ statut: '', specialite: '', recherche: '', sexe: '', heureDebut: '', heureFin: '' })
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [showProgrammeAVenir, setShowProgrammeAVenir] = useState(false)
   // Le loading plein écran n'apparaît qu'au tout premier chargement : les rafraîchissements
   // d'arrière-plan (temps réel, retour de focus) ne doivent pas faire clignoter "Chargement...".
   const aDejaCharge = useRef(false)
@@ -55,9 +57,9 @@ export default function PatientDuJourPage() {
           typeChirurgie: p.typeChirurgie || '',
           etat: p.niveauUrgence === 'TRES_URGENT' ? 'TRES_URGENT' : p.niveauUrgence === 'URGENT' ? 'URGENT' : 'NORMAL',
           statut: p.statut || '',
-          chirurgien: notif?.chirurgien?.nom || p.chirurgien_nom || '',
+          chirurgien: notif?.chirurgien?.nom || notif?.chirurgienNom || p.chirurgien_nom || '',
           dateIntervention: p.dateIntervention || null,
-          salle: p.chambre || '',
+          salle: p.salleOperation || '',
         }
       })
 
@@ -107,13 +109,20 @@ export default function PatientDuJourPage() {
 
   return (
     <div className="p-8 flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-on-surface font-headline tracking-tight">
-          Programme Opératoire
-        </h1>
-        <p className="text-on-surface-variant text-sm font-medium mt-1">
-          Liste des patients à opérer — {new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-on-surface font-headline tracking-tight">
+            Programme Opératoire
+          </h1>
+          <p className="text-on-surface-variant text-sm font-medium mt-1">
+            Liste des patients à opérer — {new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+        <button type="button" onClick={() => setShowProgrammeAVenir(true)}
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
+          <span className="material-symbols-outlined text-lg">calendar_month</span>
+          Voir le programme à venir
+        </button>
       </div>
 
       <PatientStatsCards stats={stats} />
@@ -128,6 +137,12 @@ export default function PatientDuJourPage() {
       ) : (
         <PatientsListTable patients={patientsFiltres} />
       )}
+
+      <ProgrammeAVenirModal
+        open={showProgrammeAVenir}
+        onClose={() => setShowProgrammeAVenir(false)}
+        onChoisirDate={setSelectedDate}
+      />
     </div>
   )
 }

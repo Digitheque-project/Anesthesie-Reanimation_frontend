@@ -235,3 +235,65 @@
 .psx .cr:hover {
 	background: rgba(5, 102, 141, 0.06);
 }
+
+/* ── Cases à cocher et boutons radio : forme et taille uniformes ────────────
+ * Les classes `.rc` (carte d'option) et `.tog` (interrupteur) attendues par les
+ * formulaires portés viennent du globals.css de l'application d'origine, qui n'a
+ * jamais été porté ici : elles ne sont définies nulle part. Les contrôles
+ * retombaient donc sur le rendu natif du navigateur — radios ronds à côté de
+ * cases carrées, toutes à la taille par défaut, soit deux formes et deux tailles
+ * concurrentes dans un même formulaire (Surveillance, Transfusion, Non médicale...).
+ * On aligne ici tout le module sur la même règle que les checklists du bloc
+ * (components/ui/Checkbox et Radio) : rond, même diamètre, même accent.
+ */
+.psx input[type="checkbox"],
+.psx input[type="radio"] {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 1.5rem;
+	height: 1.5rem;
+	flex: 0 0 auto;
+	margin: 0;
+	border: 2px solid var(--border, #cbd5e1);
+	border-radius: 9999px;
+	background: #fff;
+	cursor: pointer;
+	display: inline-grid;
+	place-content: center;
+	transition: border-color 0.12s ease, background 0.12s ease;
+}
+.psx input[type="checkbox"]:hover:not(:disabled),
+.psx input[type="radio"]:hover:not(:disabled) {
+	border-color: var(--navy, #05668d);
+}
+/* La pastille centrale marque l'état coché — identique pour les deux types, la
+ * distinction radio/checkbox restant portée par le comportement, pas la forme. */
+.psx input[type="checkbox"]::before,
+.psx input[type="radio"]::before {
+	content: "";
+	width: 0.75rem;
+	height: 0.75rem;
+	border-radius: 9999px;
+	transform: scale(0);
+	transition: transform 0.12s ease;
+	background: #fff;
+}
+.psx input[type="checkbox"]:checked,
+.psx input[type="radio"]:checked {
+	background: var(--navy, #05668d);
+	border-color: var(--navy, #05668d);
+}
+.psx input[type="checkbox"]:checked::before,
+.psx input[type="radio"]:checked::before {
+	transform: scale(1);
+}
+.psx input[type="checkbox"]:focus-visible,
+.psx input[type="radio"]:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 4px rgba(5, 102, 141, 0.25);
+}
+.psx input[type="checkbox"]:disabled,
+.psx input[type="radio"]:disabled {
+	cursor: not-allowed;
+	opacity: 0.5;
+}

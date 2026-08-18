@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { apiClient } from '@/lib/api/client'
 import ModalPlanifierRDV from '@/components/bloc/notification-cpa/ModalPlanifierRDV'
 import { useRole } from '@/lib/hooks/useRole'
-import { libelleUrgence, styleUrgence, niveauUrgenceNotification } from '@/lib/urgence'
+import { libelleUrgence, styleUrgence, niveauUrgenceNotification, estEchelleUrgente } from '@/lib/urgence'
 import { formaterNomPatient } from '@/lib/patient'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
@@ -184,7 +184,7 @@ function DemandeCpaExternePageContent() {
         onValider={handleValiderPlanification}
         patientNom={formaterNomPatient(demande)}
         intervention={demande.motif || demande.typeAnesthesie || ''}
-        estUrgent={(demande.urgence ?? 0) >= 4}
+        estUrgent={estEchelleUrgente(demande.urgence)}
       />
     </main>
   )

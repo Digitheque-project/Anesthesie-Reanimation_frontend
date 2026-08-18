@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { DossierPatientComplet } from "@/components/clinical/dossier-patient/DossierPatientComplet";
+import {
+  DossierPatientComplet,
+  type TabKey,
+} from "@/components/clinical/dossier-patient/DossierPatientComplet";
 
 interface DossierPatientModalProps {
   open: boolean;
@@ -11,6 +15,8 @@ interface DossierPatientModalProps {
   chuId?: string;
   serviceId?: string;
   hospitalisationId?: string;
+  /** Onglet ouvert par défaut (défaut : « Observation médicale »). */
+  initialTab?: TabKey;
 }
 
 // Ouvre le dossier patient en surimpression plutôt qu'en changeant de page — le but précis est
@@ -26,6 +32,7 @@ export default function DossierPatientModal({
   chuId,
   serviceId,
   hospitalisationId,
+  initialTab,
 }: DossierPatientModalProps) {
   useEffect(() => {
     if (!open) return;
@@ -43,7 +50,12 @@ export default function DossierPatientModal({
 
   if (!open || !patientId) return null;
 
-  return (
+  // Rendue via un portail vers document.body plutôt qu'en place dans l'arbre du composant : un
+  // ancêtre avec `backdrop-filter`/`filter`/`transform` (ex. l'en-tête de l'écran per-opératoire,
+  // qui a un `backdrop-blur`) crée sinon un nouveau "containing block" pour ce `position: fixed`,
+  // et la popup se retrouve écrasée dans la boîte de cet ancêtre au lieu de couvrir l'écran — elle
+  // apparaissait alors coincée derrière l'interface plutôt qu'en vraie fenêtre de premier plan.
+  return createPortal(
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-3 sm:p-6 animate-fadeIn"
       role="dialog"
@@ -68,10 +80,12 @@ export default function DossierPatientModal({
           chuId={chuId}
           serviceId={serviceId}
           hospitalisationId={hospitalisationId}
+          initialTab={initialTab}
           onBack={onClose}
           backLabel="Fermer"
         />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -21,7 +21,9 @@ export default function TableauNotifications({
 }: TableauNotificationsProps) {
   const router = useRouter()
 
-  const estPatientTresUrgent = (notif: any) => Boolean(notif.estUrgent || notif.urgence === 3)
+  // `estUrgent` est désormais calculé sur l'échelle commune (voir lib/urgence.ts) pour les deux
+  // origines — inutile de rattraper au cas par cas le niveau 3, qu'il manquait autrefois.
+  const estPatientTresUrgent = (notif: any) => Boolean(notif.estUrgent)
   // TRÈS URGENT déclenche la VPA directe ; URGENT/NORMAL restent sur la planification CPA
   // classique — seul l'affichage (libellé/couleur) distingue les 3 niveaux.
 

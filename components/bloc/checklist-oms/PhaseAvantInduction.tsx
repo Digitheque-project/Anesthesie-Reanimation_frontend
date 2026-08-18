@@ -2,6 +2,8 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import type { ChecklistData } from "./types";
+import Checkbox from "@/components/ui/Checkbox";
+import Radio from "@/components/ui/Radio";
 
 type RadioValue = "oui" | "non" | "na" | null;
 
@@ -28,13 +30,12 @@ function RadioGroup({
           key={option.value}
           className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface"
         >
-          <input
-            type="radio"
+          <Radio
             name={name}
             value={option.value}
             checked={value === option.value}
             onChange={() => onChange(option.value)}
-            className={critical ? "size-4 accent-error" : "size-4 accent-primary"}
+            accent={critical ? "error" : "primary"}
           />
           {option.label}
         </label>
@@ -58,27 +59,23 @@ function CheckboxYesNo({
   setNon: (value: boolean) => void;
   critical?: boolean;
 }) {
-  const accentClass = critical ? "accent-error" : "accent-primary";
-
   return (
     <div className="space-y-3 rounded-lg border border-outline-variant/10 bg-white p-3">
       <p className="text-sm font-medium leading-relaxed text-on-surface">{label}</p>
       <div className="flex flex-wrap gap-4">
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={oui}
             onChange={(event) => setOui(event.target.checked)}
-            className={`size-4 ${accentClass}`}
+            accent={critical ? "error" : "primary"}
           />
           Oui
         </label>
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={non}
             onChange={(event) => setNon(event.target.checked)}
-            className={`size-4 ${accentClass}`}
+            accent={critical ? "error" : "primary"}
           />
           Non
         </label>

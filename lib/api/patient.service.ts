@@ -42,6 +42,11 @@ export const patientService = {
     return data;
   },
 
+  async modifierSalleOperation(id: string, salleOperation: string) {
+    const { data } = await apiClient.patch(`/patients/${cleanPatientId(id)}`, { salleOperation });
+    return data;
+  },
+
   async retourServiceOrigine(id: string) {
     const { data } = await apiClient.patch(`/patients/${cleanPatientId(id)}/retour-service-origine`);
     return data;

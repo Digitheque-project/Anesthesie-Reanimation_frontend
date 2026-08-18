@@ -2,6 +2,8 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import type { ChecklistData } from "./types";
+import Checkbox from "@/components/ui/Checkbox";
+import Radio from "@/components/ui/Radio";
 
 type RadioValue = "oui" | "non" | null;
 
@@ -23,20 +25,18 @@ function CheckboxYesNo({
       <p className="text-sm font-medium leading-relaxed text-on-surface">{label}</p>
       <div className="flex flex-wrap gap-4">
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={oui}
             onChange={(event) => setOui(event.target.checked)}
-            className="size-4 accent-secondary"
+            accent="secondary"
           />
           Oui
         </label>
         <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={non}
             onChange={(event) => setNon(event.target.checked)}
-            className="size-4 accent-secondary"
+            accent="secondary"
           />
           Non
         </label>
@@ -57,24 +57,22 @@ function RadioGroup({
   return (
     <div className="flex flex-wrap gap-4">
       <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface">
-        <input
-          type="radio"
+        <Radio
           name={name}
           value="oui"
           checked={value === "oui"}
           onChange={() => onChange("oui")}
-          className="size-4 accent-secondary"
+          accent="secondary"
         />
         Oui
       </label>
       <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-on-surface">
-        <input
-          type="radio"
+        <Radio
           name={name}
           value="non"
           checked={value === "non"}
           onChange={() => onChange("non")}
-          className="size-4 accent-secondary"
+          accent="secondary"
         />
         Non
       </label>

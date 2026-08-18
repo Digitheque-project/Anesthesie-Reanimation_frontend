@@ -25,6 +25,7 @@ export default function NotificationCPAPage() {
   const router = useRouter()
   const { peutPlanifierCpa, roleName } = useRole()
   const [loading, setLoading] = useState(true)
+  const [erreur, setErreur] = useState<string | null>(null)
   const [showFiltres, setShowFiltres] = useState(false)
   // Le fil de prescription ne doit montrer que les prescriptions pas encore traitées : une fois
   // le RDV CPA planifié, le patient bascule vers la liste "Rendez-vous CPA" et ne doit plus
@@ -52,7 +53,7 @@ export default function NotificationCPAPage() {
   }, [])
 
   const determinerSon = (n: any): TypeNotificationSon =>
-    (n.estUrgent || n.urgence === 3) ? 'PATIENT_URGENT' : n.origineExterne ? 'CPA_NORMALE' : 'PRESCRIPTION_NORMALE'
+    n.estUrgent ? 'PATIENT_URGENT' : n.origineExterne ? 'CPA_NORMALE' : 'PRESCRIPTION_NORMALE'
 
   // Priorité d'affichage si plusieurs nouvelles notifications arrivent dans le même cycle : un
   // patient urgent prime toujours, puis une demande CPA externe, puis une prescription normale.
@@ -94,7 +95,15 @@ export default function NotificationCPAPage() {
       const actionnables = toutes.filter((n: any) => !estPatientTraite(n))
 
       setNotifications(actionnables)
-    } catch (err) { console.error(err) }
+      setErreur(null)
+    } catch (err) {
+      console.error(err)
+      // L'échec doit être visible : sans repli sur des données simulées (voir
+      // lib/api/notification.service.ts), une liste vide se confondrait sinon avec « aucune
+      // prescription à traiter » — c'est-à-dire exactement l'inverse de ce qu'il faut comprendre.
+      const e = err as { message?: string; response?: { data?: { message?: string } } }
+      setErreur(e.response?.data?.message || e.message || 'Erreur inconnue')
+    }
     finally {
       aDejaCharge.current = true
       setLoading(false)
@@ -174,7 +183,8 @@ export default function NotificationCPAPage() {
   }
 
   // 🟢 FONCTION MODIFIÉE : Vérifier si patient STAT
-  const estPatientStat = (notif: any) => Boolean(notif.estUrgent || notif.urgence === 3)
+  // `estUrgent` porte désormais l'échelle commune pour les deux origines (voir lib/urgence.ts).
+  const estPatientStat = (notif: any) => Boolean(notif.estUrgent)
 
   // 🟢 FONCTION MODIFIÉE : Action selon type
   const handleActionPrescription = (notif: any) => {
@@ -227,6 +237,21 @@ export default function NotificationCPAPage() {
               {f==='tous'?'Tous':f==='urgent'?'Priorité':f==='EN_ATTENTE'?'En attente':f==='RDV_PLANIFIE'?'RDV Planifiés':'Réalisés'}
             </button>
           ))}
+        </div>
+      )}
+
+      {erreur && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+          <span className="material-symbols-outlined text-red-600">cloud_off</span>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-red-800">Liste des prescriptions indisponible</p>
+            <p className="text-xs text-red-700 mt-0.5">
+              {erreur} — la liste ci-dessous peut être incomplète ou périmée. Ne vous y fiez pas pour décider d'une prise en charge.
+            </p>
+          </div>
+          <button onClick={charger} className="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700">
+            Réessayer
+          </button>
         </div>
       )}
 

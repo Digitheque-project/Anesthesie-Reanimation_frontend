@@ -7,6 +7,7 @@ export interface ActiveSession {
   claims: { userId: string; name: string; firstname: string; email: string }
   currentService: { serviceId: string; serviceName: string; roleName: string } | null
   chuId: string | null
+  chuNom: string | null
 }
 
 export function getActiveSession(): ActiveSession | null {
@@ -17,5 +18,6 @@ export function getActiveSession(): ActiveSession | null {
     claims: { userId: payload.userId, name: payload.name, firstname: payload.firstname, email: payload.email },
     currentService: { serviceId: acces.serviceId, serviceName: acces.serviceName, roleName: acces.roleName },
     chuId: acces.chu?.id ?? null,
+    chuNom: acces.chu?.name ?? null,
   }
 }

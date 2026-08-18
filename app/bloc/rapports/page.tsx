@@ -70,11 +70,15 @@ export default function RapportsPage() {
   useEffect(() => { setSession(obtenirSessionValide()) }, [])
   useEffect(() => { charger() }, [])
 
-  const charger = async () => {
+  // Accepte des dates explicites (au lieu de toujours relire dateDebut/dateFin de l'état) — le
+  // bouton "Réinitialiser" appelait cette fonction via setTimeout juste après avoir vidé l'état,
+  // mais la fermeture JS déjà capturée au clic gardait les anciennes valeurs : les champs se
+  // vidaient visuellement, le tableau de bord restait calé sur l'ancienne période.
+  const charger = async (debut = dateDebut, fin = dateFin) => {
     setLoading(true)
     setErreurChargement(false)
     try {
-      const data = await rapportsService.getTableauDeBord(dateDebut || undefined, dateFin || undefined)
+      const data = await rapportsService.getTableauDeBord(debut || undefined, fin || undefined)
       setDashboard(data)
     } catch (err) {
       console.error('Erreur chargement tableau de bord:', err)
@@ -192,7 +196,7 @@ export default function RapportsPage() {
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-red-800 print:hidden">
           <span className="material-symbols-outlined">error</span>
           <span>Le tableau de bord n'a pas pu être chargé (erreur technique) — ce n'est pas forcément qu'il n'y a aucune activité. Réessayez ou contactez le support si le problème persiste.</span>
-          <button onClick={charger} className="ml-auto px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg">Réessayer</button>
+          <button onClick={() => charger()} className="ml-auto px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg">Réessayer</button>
         </div>
       )}
 
@@ -206,11 +210,11 @@ export default function RapportsPage() {
           <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Date fin</label>
           <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)} className="bg-surface-container-low border-none rounded-lg p-2 text-sm" />
         </div>
-        <button onClick={charger} className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
+        <button onClick={() => charger()} className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
           <span className="material-symbols-outlined text-lg">filter_alt</span> Appliquer
         </button>
         {(dateDebut || dateFin) && (
-          <button onClick={() => { setDateDebut(''); setDateFin(''); setTimeout(charger, 0) }} className="text-xs font-bold text-on-surface-variant hover:text-primary underline">
+          <button onClick={() => { setDateDebut(''); setDateFin(''); charger('', '') }} className="text-xs font-bold text-on-surface-variant hover:text-primary underline">
             Réinitialiser
           </button>
         )}

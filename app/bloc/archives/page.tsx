@@ -93,21 +93,35 @@ export default function ArchivesPage() {
   const chargerPatients = async () => {
     setLoadingPatients(true)
     try {
+      // Le sexe n'existe pas dans notre base (identité enrichie depuis le service Accueil) :
+      // impossible de le filtrer côté backend. Quand ce filtre est actif, on charge un lot bien
+      // plus large pour que le filtrage côté client porte sur l'archive entière plutôt que sur
+      // les 20 dernières fiches — sinon des patients plus anciens correspondant au filtre
+      // n'étaient jamais visibles, et le total affiché restait celui, non filtré, du backend.
+      const filtreSexeActif = filtreSexe !== 'Tous'
       const [data, inaptes] = await Promise.all([
         patientService.getAll({
           statut: 'SORTI',
           page: 1,
-          limite: LIMITE_PATIENTS,
+          limite: filtreSexeActif ? 1000 : LIMITE_PATIENTS,
           recherche: recherche || undefined,
+          dateDebut: dateDebut || undefined,
+          dateFin: dateFin || undefined,
         }),
         chargerPatientsInaptes(),
       ])
       const lignes = data.data || []
-      setPatients(filtresActifsPatients([...inaptes, ...lignes]))
-      setTotal((data.total || 0) + inaptes.length)
+      const fusion = filtresActifsPatients([...inaptes, ...lignes])
+      setPatients(fusion)
       setTotalInaptes(inaptes.length)
       setPageActuelle(1)
-      setHasMore(lignes.length < (data.total || 0))
+      if (filtreSexeActif) {
+        setTotal(fusion.length)
+        setHasMore(false)
+      } else {
+        setTotal((data.total || 0) + inaptes.length)
+        setHasMore(lignes.length < (data.total || 0))
+      }
     } catch (err) {
       console.error('Erreur:', err)
     } finally {
@@ -118,7 +132,7 @@ export default function ArchivesPage() {
   // Appelée en arrivant en bas de la liste — ajoute la page suivante à la suite de celle déjà
   // affichée, sans jamais remplacer ce qui est déjà chargé.
   const chargerPlusPatients = async () => {
-    if (loadingPlus || loadingPatients || !hasMore) return
+    if (loadingPlus || loadingPatients || !hasMore || filtreSexe !== 'Tous') return
     setLoadingPlus(true)
     try {
       const pageSuivante = pageActuelle + 1
@@ -127,6 +141,8 @@ export default function ArchivesPage() {
         page: pageSuivante,
         limite: LIMITE_PATIENTS,
         recherche: recherche || undefined,
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
       })
       const lignes = data.data || []
       setPatients(prev => [...prev, ...filtresActifsPatients(lignes)])
@@ -176,7 +192,14 @@ export default function ArchivesPage() {
   // affichée), pour les exports Excel/CSV/PDF/impression du tableau complet.
   const chargerTousLesPatients = async () => {
     const [data, inaptes] = await Promise.all([
-      patientService.getAll({ statut: 'SORTI', page: 1, limite: 1000, recherche: recherche || undefined }),
+      patientService.getAll({
+        statut: 'SORTI',
+        page: 1,
+        limite: 1000,
+        recherche: recherche || undefined,
+        dateDebut: dateDebut || undefined,
+        dateFin: dateFin || undefined,
+      }),
       chargerPatientsInaptes(),
     ])
     return filtresActifsPatients([...inaptes, ...(data.data || [])])

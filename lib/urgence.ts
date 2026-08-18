@@ -60,16 +60,37 @@ export function styleUrgence(niveau?: string | null): StyleUrgence {
   return URGENCE_STYLE[niveau] || URGENCE_STYLE.NORMAL
 }
 
-// Détermine le niveau d'urgence (TRES_URGENT/URGENT/NORMAL) d'une notification/prescription à
-// partir du champ numérique `urgence` (1 = faible, 2 = moyen, 3+ = élevé) ou, à défaut, du
-// booléen `estUrgent` transmis par les notifications internes CPA.
+// Échelle numérique des services demandeurs (1 = faible ... 5 = immédiat), identique à celle du
+// backend (backend_bloc_operatoire/src/common/urgence.ts) :
+//   1-2 → NORMAL   3-4 → URGENT   5 → TRES_URGENT
+// Elle existait ici en deux versions divergentes (">= 3 → TRES_URGENT" pour la couleur du badge,
+// ">= 4" pour `estUrgent`), toutes deux différentes de celle du backend : une demande transmise
+// en urgence 3 s'affichait "TRÈS URGENT" en rouge alors qu'elle n'était marquée urgente ni dans
+// la cloche, ni sur le créneau, ni dans la fiche patient.
+export function niveauDepuisEchelle(urgence?: number | null): 'TRES_URGENT' | 'URGENT' | 'NORMAL' {
+  const valeur = Number(urgence)
+  if (!Number.isFinite(valeur)) return 'NORMAL'
+  if (valeur >= 5) return 'TRES_URGENT'
+  if (valeur >= 3) return 'URGENT'
+  return 'NORMAL'
+}
+
+// Un niveau "urgent" au sens des badges, sons et créneaux d'urgence : tout sauf NORMAL.
+export function estEchelleUrgente(urgence?: number | null): boolean {
+  return niveauDepuisEchelle(urgence) !== 'NORMAL'
+}
+
+// Détermine le niveau d'urgence (TRES_URGENT/URGENT/NORMAL) d'une notification/prescription. Le
+// champ `niveauUrgence`, stocké directement sur la notification, est prioritaire — sans lui,
+// TRES_URGENT ne pouvait pas se distinguer d'URGENT une fois réduit au booléen `estUrgent` (voir
+// Bug 5). Repli sur l'échelle numérique `urgence` puis sur `estUrgent`, pour les notifications
+// créées avant l'ajout de ce champ.
 export function niveauUrgenceNotification(n: any): 'TRES_URGENT' | 'URGENT' | 'NORMAL' {
-  const urgence = n?.urgence
-  if (typeof urgence === 'number') {
-    if (urgence >= 3) return 'TRES_URGENT'
-    if (urgence === 2) return 'URGENT'
-    return 'NORMAL'
+  if (n?.niveauUrgence === 'TRES_URGENT' || n?.niveauUrgence === 'URGENT' || n?.niveauUrgence === 'NORMAL') {
+    return n.niveauUrgence
   }
+  const urgence = n?.urgence
+  if (typeof urgence === 'number') return niveauDepuisEchelle(urgence)
   if (n?.estUrgent) return 'URGENT'
   return 'NORMAL'
 }

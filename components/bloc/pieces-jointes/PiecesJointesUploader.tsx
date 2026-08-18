@@ -54,7 +54,20 @@ export default function PiecesJointesUploader({ value, onChange, disabled }: Pro
     try {
       const blob = await recupererFichier(pj.nomFichier)
       const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
+      // Un fichier au contenu non prévisualisable en toute sécurité (HTML/SVG/script déguisé en
+      // pièce jointe) ne doit jamais être ouvert inline — seuls les types réellement affichables
+      // sans risque d'exécution (image, PDF) le sont ; tout le reste est forcé en téléchargement.
+      const previsualisable = blob.type.startsWith('image/') || blob.type === 'application/pdf'
+      if (previsualisable) {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      } else {
+        const lien = document.createElement('a')
+        lien.href = url
+        lien.download = pj.nomFichier
+        document.body.appendChild(lien)
+        lien.click()
+        lien.remove()
+      }
       setTimeout(() => URL.revokeObjectURL(url), 60_000)
     } catch (err: any) {
       console.error(err)
@@ -108,7 +121,7 @@ export default function PiecesJointesUploader({ value, onChange, disabled }: Pro
             <span className="material-symbols-outlined text-base">attach_file</span>
             {envoiEnCours ? 'Envoi...' : 'Joindre'}
           </button>
-          <input ref={inputRef} type="file" className="hidden" onChange={gererSelection} />
+          <input ref={inputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={gererSelection} />
         </div>
       )}
     </div>
