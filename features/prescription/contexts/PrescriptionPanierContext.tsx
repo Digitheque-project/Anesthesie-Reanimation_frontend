@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useRef } from 
 import { normalizePayloadForEndpoint } from "@/features/prescription/lib/api";
 import { authFetch } from "@/features/prescription/lib/auth";
 import { getActiveSession } from "@/lib/clinical-auth/session";
-import { resolvePharmacyServiceId } from "@/features/prescription/lib/constants";
+import { resolvePharmacyServiceId, resolveBanqueSangServiceId } from "@/features/prescription/lib/constants";
 import { PRESCRIPTION_API_URL } from "@/lib/gateway";
 
 export type PanierItemStatus = "draft" | "sending" | "sent" | "error";
@@ -38,17 +38,17 @@ const ENDPOINT_MAP: Record<PanierItemType, string> = {
   transfusion: "prescriptions/transfusion",
 };
 
-// surveillance/transfusion n'ont pas de service de destination connu (aucun serviceId de
-// dépôt de sang configuré à ce jour) — laissé vide plutôt qu'une valeur inventée. Le service
-// Pharmacie, lui, est résolu dynamiquement par NOM auprès du registre central (voir
-// resolvePharmacyServiceId dans lib/constants.ts) plutôt qu'un id figé.
+// surveillance n'a pas de service de destination connu — laissé vide plutôt qu'une valeur
+// inventée. Pharmacie et Banque de sang sont résolus dynamiquement par NOM auprès du registre
+// central (voir resolvePharmacyServiceId / resolveBanqueSangServiceId dans lib/constants.ts)
+// plutôt qu'un id figé.
 async function resolveServiceDest(type: PanierItemType): Promise<{ serviceId: string; serviceName: string }> {
   switch (type) {
     case "medicale":
     case "non-medicale":
       return { serviceId: await resolvePharmacyServiceId(), serviceName: "Pharmacie" };
     case "transfusion":
-      return { serviceId: "", serviceName: "Dépôt de sang" };
+      return { serviceId: await resolveBanqueSangServiceId(), serviceName: "Banque de sang" };
     default:
       return { serviceId: "", serviceName: "" };
   }
