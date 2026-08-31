@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { lireTokenStocke } from '@/lib/auth/central-session'
+import { SERVICE_CHU_API_BASE_URL } from '@/lib/gateway'
 
 // Port de front-clinique/src/lib/services/service-chu-api.ts.
-// Client HTTP pour le microservice « service-service » (liste des services du CHU).
+// Client HTTP pour le registre des services du CHU, via la gateway (voir lib/gateway.ts).
+// Corrigé le 31/08/2026 : pointait vers une page Swagger (/chu/api/docs) au lieu d'une vraie
+// donnée — cette route ne renvoyait donc jamais une vraie liste de services.
 export type ServiceChu = {
   id: string
   name: string
@@ -12,8 +15,7 @@ export type ServiceChu = {
 }
 
 function resolveServiceApiBase(): string {
-  const fromEnv = process.env.NEXT_PUBLIC_SERVICE_CHU_API_BASE_URL?.trim()
-  return fromEnv ? fromEnv.replace(/\/$/, '') : ''
+  return SERVICE_CHU_API_BASE_URL
 }
 
 export const serviceChuApi = axios.create({

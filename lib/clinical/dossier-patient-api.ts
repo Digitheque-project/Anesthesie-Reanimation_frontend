@@ -1,14 +1,12 @@
 import axios from 'axios'
+import { DOSSIER_PATIENT_API_URL } from '@/lib/gateway'
 
 // Port de front-clinique/src/lib/clinical/dossier-patient-api.ts.
 // Client HTTP pour l'API « dossier patient » (observations, diagnostics, suivi,
-// CR opératoire, résultats, sortie, historique). Définir
-// NEXT_PUBLIC_DOSSIER_PATIENT_API_URL pour l'activer.
+// CR opératoire, résultats, sortie, historique) — via la gateway (voir lib/gateway.ts).
 
 function resolveDossierApiBase(): string | null {
-  const fromEnv = process.env.NEXT_PUBLIC_DOSSIER_PATIENT_API_URL?.trim()
-  if (fromEnv) return fromEnv.replace(/\/$/, '')
-  return null
+  return DOSSIER_PATIENT_API_URL || null
 }
 
 export function isDossierPatientApiConfigured(): boolean {
@@ -24,7 +22,7 @@ dossierPatientApi.interceptors.request.use((config) => {
   const base = resolveDossierApiBase()
   if (!base) {
     return Promise.reject(
-      Object.assign(new Error('NEXT_PUBLIC_DOSSIER_PATIENT_API_URL non défini'), {
+      Object.assign(new Error('NEXT_PUBLIC_GATEWAY_URL non défini'), {
         code: 'NO_DOSSIER_API',
       }),
     )

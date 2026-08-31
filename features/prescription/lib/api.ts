@@ -1,22 +1,19 @@
 import { getStoredToken } from '@/features/prescription/lib/auth';
 import { getActiveSession } from '@/lib/clinical-auth/session';
 import { PHARMACY_SERVICE_ID } from '@/features/prescription/lib/constants';
+import { PRESCRIPTION_API_URL } from '@/lib/gateway';
 export { authFetch } from '@/features/prescription/lib/auth';
 
-// Ne PAS retomber sur NEXT_PUBLIC_API_URL : dans blocope-front, cette variable pointe déjà
-// vers le backend propre du bloc opératoire (backend_bloc_operatoire), un service distinct.
-// Repli localhost réservé au dev (comme lib/api/client.ts) : en production, si la variable
-// d'env manque, mieux vaut pointer vers le vrai backend de prod que vers un localhost qui
-// échouerait silencieusement pour tout le monde.
+// Via la gateway (voir lib/gateway.ts) — ne PAS retomber sur NEXT_PUBLIC_API_URL : dans
+// blocope-front, cette variable pointe déjà vers le backend propre du bloc opératoire, un
+// service distinct. Repli localhost réservé au dev (comme lib/api/client.ts).
 const RAW_API_URL =
-  process.env.NEXT_PUBLIC_PRESCRIPTION_API_URL ||
-  (process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3001'
-    : 'https://prescriptionback-production.up.railway.app');
+  PRESCRIPTION_API_URL ||
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : '');
 // Chaque endpoint ci-dessous ajoute deja le prefixe "/prescriptions". Si l'URL
-// configuree (NEXT_PUBLIC_PRESCRIPTION_API_URL) se termine deja par
-// "/prescriptions" (ou par un "/"), on la normalise pour eviter le doublon
-// "/prescriptions/prescriptions" qui provoque des 404.
+// configuree se termine deja par "/prescriptions" (ou par un "/"), on la
+// normalise pour eviter le doublon "/prescriptions/prescriptions" qui
+// provoque des 404.
 const API_URL = RAW_API_URL.replace(/\/+$/, '').replace(/\/prescriptions$/, '');
 
 // ── MAPPINGS ─────────────────────────────────────────────────────

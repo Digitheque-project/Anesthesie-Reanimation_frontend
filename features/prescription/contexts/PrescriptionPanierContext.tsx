@@ -5,6 +5,7 @@ import { normalizePayloadForEndpoint } from "@/features/prescription/lib/api";
 import { authFetch } from "@/features/prescription/lib/auth";
 import { getActiveSession } from "@/lib/clinical-auth/session";
 import { PHARMACY_SERVICE_ID } from "@/features/prescription/lib/constants";
+import { PRESCRIPTION_API_URL } from "@/lib/gateway";
 
 export type PanierItemStatus = "draft" | "sending" | "sent" | "error";
 
@@ -67,12 +68,10 @@ const LABEL_MAP: Record<PanierItemType, string> = {
   transfusion: "Transfusion",
 };
 
-// Repli localhost réservé au dev (voir features/prescription/lib/api.ts, même logique).
+// Via la gateway (voir features/prescription/lib/api.ts, même logique).
 const RAW_API_URL =
-  process.env.NEXT_PUBLIC_PRESCRIPTION_API_URL ||
-  (process.env.NODE_ENV === "development"
-    ? "http://localhost:3001"
-    : "https://prescriptionback-production.up.railway.app");
+  PRESCRIPTION_API_URL ||
+  (process.env.NODE_ENV === "development" ? "http://localhost:3001" : "");
 // Meme normalisation que dans lib/api.ts : on retire un eventuel suffixe
 // "/prescriptions" pour eviter le doublon "/prescriptions/prescriptions" (404).
 const API_URL = RAW_API_URL.replace(/\/+$/, "").replace(/\/prescriptions$/, "");

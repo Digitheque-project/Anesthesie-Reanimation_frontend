@@ -1,13 +1,11 @@
 import axios from 'axios';
 import { lireTokenStocke, effacerSession, redirigerVersLogin } from '../auth/central-session';
+import { API_URL as GATEWAY_API_URL } from '../gateway';
 
-// NEXT_PUBLIC_API_URL est la racine nue de ce backend (ex. https://blocbackfront.onrender.com,
-// sans /bloc/api) — le préfixe global de toutes ses routes (voir main.ts,
-// app.setGlobalPrefix('bloc/api')) est ajouté une bonne fois pour toutes ici, pas dans la
-// variable d'environnement elle-même. Voir aussi lib/realtime/operation-socket.ts, qui réutilise
-// la même variable pour se connecter au WebSocket sur la racine nue (sans ce préfixe HTTP).
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3333' : 'https://blocbackfront.onrender.com');
-const API_URL = `${API_BASE.replace(/\/+$/, '')}/bloc/api`;
+// Passe par la gateway (voir lib/gateway.ts) — NEXT_PUBLIC_API_URL n'existe plus, une seule
+// variable (NEXT_PUBLIC_GATEWAY_URL) pour tout le front. Repli localhost pour le dev sans
+// gateway configurée.
+const API_URL = GATEWAY_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:3333/bloc/api' : '');
 
 export const apiClient = axios.create({
   baseURL: API_URL,

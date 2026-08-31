@@ -16,11 +16,12 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     return NextResponse.json({ message: 'Missing user id.' }, { status: 400 })
   }
 
-  const base = (process.env.USER_SERVICE_API_URL || process.env.NEXT_PUBLIC_USER_SERVICE_API_URL || '')
-    .trim()
-    .replace(/\/+$/, '')
+  // Via la gateway — une seule variable pour tout le front (voir lib/gateway.ts pour
+  // l'équivalent côté client).
+  const gatewayUrl = (process.env.NEXT_PUBLIC_GATEWAY_URL || '').trim().replace(/\/+$/, '')
+  const base = gatewayUrl ? `${gatewayUrl}/users` : ''
   if (!base) {
-    return NextResponse.json({ message: 'User service URL non configuré.' }, { status: 500 })
+    return NextResponse.json({ message: 'NEXT_PUBLIC_GATEWAY_URL non configuré.' }, { status: 500 })
   }
 
   try {

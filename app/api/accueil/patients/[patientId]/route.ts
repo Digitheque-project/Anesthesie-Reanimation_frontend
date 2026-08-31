@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { decoderToken } from '@/lib/auth/central-session'
 
 // Port de front-clinique/src/app/api/accueil/patients/[patientId]/route.ts.
-// URL du back "accueil" côté SERVEUR (pas d'appel navigateur -> pas de CORS).
-const ACCUEIL_API_URL = (
-  process.env.ACCUEIL_API_URL ||
-  process.env.NEXT_PUBLIC_ACCUEIL_API_URL ||
-  ''
-).replace(/\/+$/, '')
+// URL du back "accueil" côté SERVEUR (pas d'appel navigateur -> pas de CORS), via la gateway —
+// une seule variable pour tout le front (voir lib/gateway.ts pour l'équivalent côté client).
+const ACCUEIL_API_URL = process.env.NEXT_PUBLIC_GATEWAY_URL
+  ? `${process.env.NEXT_PUBLIC_GATEWAY_URL.replace(/\/+$/, '')}/accueil`
+  : ''
 
 interface AccueilPatient {
   id: string
@@ -50,7 +49,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pat
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   }
   if (!ACCUEIL_API_URL) {
-    return NextResponse.json({ message: 'ACCUEIL_API_URL non configuré.' }, { status: 502 })
+    return NextResponse.json({ message: 'NEXT_PUBLIC_GATEWAY_URL non configuré.' }, { status: 502 })
   }
 
   const { searchParams } = new URL(request.url)

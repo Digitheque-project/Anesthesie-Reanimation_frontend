@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { lireTokenStocke } from '@/lib/auth/central-session'
+import { PRISE_EN_CHARGE_API_URL } from '@/lib/gateway'
 
 // Port de front-clinique/src/lib/api/instances/prise-en-charge.ts.
 export interface PriseEnChargeInfo {
@@ -17,7 +18,7 @@ export interface PriseEnChargeInfo {
 }
 
 function priseEnChargeBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_PRISE_EN_CHARGE_API_URL?.replace(/\/+$/, '') || ''
+  return PRISE_EN_CHARGE_API_URL
 }
 
 export async function fetchPriseEnChargeById(priseEnChargeId: string): Promise<PriseEnChargeInfo | null> {

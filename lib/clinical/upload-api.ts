@@ -1,14 +1,13 @@
 import axios from 'axios'
+import { UPLOAD_API_URL } from '@/lib/gateway'
 
 // Client HTTP pour le service externe générique de stockage de fichiers ("CHU Upload API" —
-// POST/GET/PUT/DELETE /files/{filename}). Défini NEXT_PUBLIC_UPLOAD_API_URL pour l'activer.
+// POST/GET/PUT/DELETE /files/{filename}), via la gateway (voir lib/gateway.ts).
 // Le service ne connaît ni patient ni CHU : c'est à l'appelant d'associer chaque nom de fichier
 // retourné à l'enregistrement concerné (ex. CPA.piecesJointes) et de conserver ce nom.
 
 function resolveUploadApiBase(): string | null {
-  const fromEnv = process.env.NEXT_PUBLIC_UPLOAD_API_URL?.trim()
-  if (fromEnv) return fromEnv.replace(/\/$/, '')
-  return null
+  return UPLOAD_API_URL || null
 }
 
 export function isUploadApiConfigured(): boolean {
@@ -37,7 +36,7 @@ function extraireNomFichier(data: any): string {
 
 export async function envoyerFichier(fichier: File): Promise<{ nomFichier: string }> {
   const base = resolveUploadApiBase()
-  if (!base) throw Object.assign(new Error('NEXT_PUBLIC_UPLOAD_API_URL non défini'), { code: 'NO_UPLOAD_API' })
+  if (!base) throw Object.assign(new Error('NEXT_PUBLIC_GATEWAY_URL non défini'), { code: 'NO_UPLOAD_API' })
   const formData = new FormData()
   formData.append('file', fichier)
   const { data } = await axios.post(`${base}/files`, formData, {
@@ -52,7 +51,7 @@ export async function envoyerFichier(fichier: File): Promise<{ nomFichier: strin
 // et l'appelant en fait une URL locale (URL.createObjectURL) pour affichage/téléchargement.
 export async function recupererFichier(nomFichier: string): Promise<Blob> {
   const base = resolveUploadApiBase()
-  if (!base) throw Object.assign(new Error('NEXT_PUBLIC_UPLOAD_API_URL non défini'), { code: 'NO_UPLOAD_API' })
+  if (!base) throw Object.assign(new Error('NEXT_PUBLIC_GATEWAY_URL non défini'), { code: 'NO_UPLOAD_API' })
   const { data } = await axios.get(`${base}/files/${encodeURIComponent(nomFichier)}`, {
     headers: tokenAuthHeaders(),
     responseType: 'blob',
@@ -63,6 +62,6 @@ export async function recupererFichier(nomFichier: string): Promise<Blob> {
 
 export async function supprimerFichier(nomFichier: string): Promise<void> {
   const base = resolveUploadApiBase()
-  if (!base) throw Object.assign(new Error('NEXT_PUBLIC_UPLOAD_API_URL non défini'), { code: 'NO_UPLOAD_API' })
+  if (!base) throw Object.assign(new Error('NEXT_PUBLIC_GATEWAY_URL non défini'), { code: 'NO_UPLOAD_API' })
   await axios.delete(`${base}/files/${encodeURIComponent(nomFichier)}`, { headers: tokenAuthHeaders(), timeout: 30_000 })
 }

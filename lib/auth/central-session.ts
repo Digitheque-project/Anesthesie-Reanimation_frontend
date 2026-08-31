@@ -4,7 +4,12 @@
 // token — la vérification de signature a lieu côté backend (CentralAuthGuard).
 
 const STORAGE_KEY = 'centralAccessToken'
-const SERVICE_ID = process.env.NEXT_PUBLIC_SERVICE_ID || ''
+// Nom STABLE du service, pas son id : un id peut changer côté registre central (déjà arrivé
+// silencieusement pour Endoscopie, voir Anesthesie-Reanimation_backend) — un nom reste stable
+// sans redéploiement. Cette valeur est CRITIQUE : trouverAccesService() en dépend pour trouver
+// notre entrée dans le token de CHAQUE utilisateur — une valeur périmée déconnecterait tout le
+// monde silencieusement.
+const SERVICE_NAME = process.env.NEXT_PUBLIC_SERVICE_NAME || 'Anesthésie - Réanimation'
 
 export interface ServiceAcces {
   serviceId: string
@@ -49,7 +54,7 @@ export function estExpire(payload: CentralTokenPayload): boolean {
 }
 
 export function trouverAccesService(payload: CentralTokenPayload): ServiceAcces | null {
-  return payload.services?.find(s => s.serviceId === SERVICE_ID) || null
+  return payload.services?.find(s => s.serviceName === SERVICE_NAME) || null
 }
 
 export function lireTokenStocke(): string | null {
