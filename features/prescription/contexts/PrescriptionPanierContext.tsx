@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useRef } from 
 import { normalizePayloadForEndpoint } from "@/features/prescription/lib/api";
 import { authFetch } from "@/features/prescription/lib/auth";
 import { getActiveSession } from "@/lib/clinical-auth/session";
-import { PHARMACY_SERVICE_ID } from "@/features/prescription/lib/constants";
+import { resolvePharmacyServiceId } from "@/features/prescription/lib/constants";
 import { PRESCRIPTION_API_URL } from "@/lib/gateway";
 
 export type PanierItemStatus = "draft" | "sending" | "sent" | "error";
@@ -39,13 +39,20 @@ const ENDPOINT_MAP: Record<PanierItemType, string> = {
 };
 
 // surveillance/transfusion n'ont pas de service de destination connu (aucun serviceId de
-// dépôt de sang configuré à ce jour) — laissé vide plutôt qu'une valeur inventée.
-const SERVICE_DEST_MAP: Record<PanierItemType, { serviceId: string; serviceName: string }> = {
-  medicale:       { serviceId: PHARMACY_SERVICE_ID, serviceName: "Pharmacie" },
-  "non-medicale": { serviceId: PHARMACY_SERVICE_ID, serviceName: "Pharmacie" },
-  surveillance:   { serviceId: "", serviceName: "" },
-  transfusion:    { serviceId: "", serviceName: "Dépôt de sang" },
-};
+// dépôt de sang configuré à ce jour) — laissé vide plutôt qu'une valeur inventée. Le service
+// Pharmacie, lui, est résolu dynamiquement par NOM auprès du registre central (voir
+// resolvePharmacyServiceId dans lib/constants.ts) plutôt qu'un id figé.
+async function resolveServiceDest(type: PanierItemType): Promise<{ serviceId: string; serviceName: string }> {
+  switch (type) {
+    case "medicale":
+    case "non-medicale":
+      return { serviceId: await resolvePharmacyServiceId(), serviceName: "Pharmacie" };
+    case "transfusion":
+      return { serviceId: "", serviceName: "Dépôt de sang" };
+    default:
+      return { serviceId: "", serviceName: "" };
+  }
+}
 
 // Résout le CHU/service de l'utilisateur connecté via la session centrale de blocope-front
 // (scoping correct sur le service bloc-opératoire), plutôt que de relire le token brut et
@@ -158,8 +165,8 @@ export function PrescriptionPanierProvider({ children }: { children: React.React
     const endpoint = item.endpoint;
     const url = `${API_URL}/${endpoint}`;
     const userInfo = getUserServiceInfo();
-    const dest = SERVICE_DEST_MAP[item.type] || { serviceId: "", serviceName: "" };
-    const normalizedPayload = normalizePayloadForEndpoint(endpoint, {
+    const dest = await resolveServiceDest(item.type);
+    const normalizedPayload = await normalizePayloadForEndpoint(endpoint, {
       ...item.payload,
       chuId: item.payload.chuId || userInfo.chuId,
       chuNom: item.payload.chuNom || userInfo.chuNom,

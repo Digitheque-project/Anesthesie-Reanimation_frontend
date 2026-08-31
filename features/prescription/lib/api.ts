@@ -1,6 +1,6 @@
 import { getStoredToken } from '@/features/prescription/lib/auth';
 import { getActiveSession } from '@/lib/clinical-auth/session';
-import { PHARMACY_SERVICE_ID } from '@/features/prescription/lib/constants';
+import { resolvePharmacyServiceId } from '@/features/prescription/lib/constants';
 import { PRESCRIPTION_API_URL } from '@/lib/gateway';
 export { authFetch } from '@/features/prescription/lib/auth';
 
@@ -72,7 +72,7 @@ function resolveImagerieEndpoint(payload: Record<string, unknown>, fallback = 'p
   return fallback;
 }
 
-export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
+export async function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
   const input = (data as Record<string, unknown>) || {};
   // Le CHU/service de l'utilisateur connecté est toujours disponible via la session centrale ;
   // on ne l'écrase jamais si l'appelant l'a déjà fourni explicitement (ex. serviceDestOverride
@@ -92,7 +92,7 @@ export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
   // déjà le panier (SERVICE_DEST_MAP) pour les envois groupés, mais jusqu'ici absent des appels
   // directs creerPrescriptionMedicale() ("Valider" et "Créer Ordonnance").
   if (endpointPath === 'prescriptions/medicale' && !body.serviceIdDest) {
-    body.serviceIdDest = PHARMACY_SERVICE_ID;
+    body.serviceIdDest = await resolvePharmacyServiceId();
     body.serviceNameDest = body.serviceNameDest ?? 'Pharmacie';
   }
 
@@ -398,7 +398,7 @@ async function handleResponse(res: Response) {
 }
 
 export async function creerPrescriptionMedicale(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/medicale', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/medicale', data);
   const res = await fetch(`${API_URL}/prescriptions/medicale`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -416,7 +416,7 @@ export async function creerOrdonnanceMedicale(prescriptionId: string, medicament
 }
 
 export async function creerPrescriptionNonMedicale(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/non-medicale', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/non-medicale', data);
   const res = await fetch(`${API_URL}/prescriptions/non-medicale`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -424,7 +424,7 @@ export async function creerPrescriptionNonMedicale(data: unknown) {
 }
 
 export async function creerPrescriptionSurveillance(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/surveillance', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/surveillance', data);
   const res = await fetch(`${API_URL}/prescriptions/surveillance`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -432,7 +432,7 @@ export async function creerPrescriptionSurveillance(data: unknown) {
 }
 
 export async function creerPrescriptionTransfusion(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/transfusion', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/transfusion', data);
   const res = await fetch(`${API_URL}/prescriptions/transfusion`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -442,7 +442,7 @@ export async function creerPrescriptionTransfusion(data: unknown) {
 export async function creerPrescriptionBloc(data: unknown) {
   const body = data as Record<string, unknown>;
   const mappedData = {
-    ...normalizePayloadForEndpoint('/prescriptions/bloc', data),
+    ...(await normalizePayloadForEndpoint('/prescriptions/bloc', data)),
     actes: body.actes,
   };
   const res = await fetch(`${API_URL}/prescriptions/bloc`, {
@@ -452,7 +452,7 @@ export async function creerPrescriptionBloc(data: unknown) {
 }
 
 export async function creerPrescriptionLabo(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/labo', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/labo', data);
   const res = await fetch(`${API_URL}/prescriptions/labo`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -462,7 +462,7 @@ export async function creerPrescriptionLabo(data: unknown) {
 export async function creerPrescriptionImagerie(data: unknown) {
   const body = data as Record<string, unknown>;
   const endpoint = resolveImagerieEndpoint(body, 'prescriptions/imagerie');
-  const mappedData = normalizePayloadForEndpoint(endpoint, data);
+  const mappedData = await normalizePayloadForEndpoint(endpoint, data);
   const res = await fetch(`${API_URL}/${endpoint}`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -471,7 +471,7 @@ export async function creerPrescriptionImagerie(data: unknown) {
 
 // New dedicated imagerie routes
 export async function creerPrescriptionScanner(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/imagerie/scanner', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/imagerie/scanner', data);
   const res = await fetch(`${API_URL}/prescriptions/imagerie/scanner`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -479,7 +479,7 @@ export async function creerPrescriptionScanner(data: unknown) {
 }
 
 export async function creerPrescriptionEchographie(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/imagerie/echographie', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/imagerie/echographie', data);
   const res = await fetch(`${API_URL}/prescriptions/imagerie/echographie`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -487,7 +487,7 @@ export async function creerPrescriptionEchographie(data: unknown) {
 }
 
 export async function creerPrescriptionRadiographie(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/imagerie/radiographie', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/imagerie/radiographie', data);
   const res = await fetch(`${API_URL}/prescriptions/imagerie/radiographie`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -495,7 +495,7 @@ export async function creerPrescriptionRadiographie(data: unknown) {
 }
 
 export async function creerPrescriptionGesteInterventionnel(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/imagerie/geste-interventionnel', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/imagerie/geste-interventionnel', data);
   const res = await fetch(`${API_URL}/prescriptions/imagerie/geste-interventionnel`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -503,7 +503,7 @@ export async function creerPrescriptionGesteInterventionnel(data: unknown) {
 }
 
 export async function creerPrescriptionRadioSpeciale(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/imagerie/radio-speciale', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/imagerie/radio-speciale', data);
   const res = await fetch(`${API_URL}/prescriptions/imagerie/radio-speciale`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -511,7 +511,7 @@ export async function creerPrescriptionRadioSpeciale(data: unknown) {
 }
 
 export async function creerPrescriptionAnapath(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/anapath', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/anapath', data);
   const res = await fetch(`${API_URL}/prescriptions/anapath`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
@@ -604,7 +604,7 @@ export async function creerPrescriptionAnapathExtemporane(data: unknown) {
 }
 
 export async function creerPrescriptionEEG(data: unknown) {
-  const mappedData = normalizePayloadForEndpoint('/prescriptions/eeg', data);
+  const mappedData = await normalizePayloadForEndpoint('/prescriptions/eeg', data);
   const res = await fetch(`${API_URL}/prescriptions/eeg`, {
     method: 'POST', headers: headers(), body: JSON.stringify(mappedData),
   });
