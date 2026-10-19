@@ -28,6 +28,10 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+# Le serveur standalone de Next.js ecoute sur $HOSTNAME, que Docker remplit avec le nom
+# interne du conteneur : l'hebergeur (Render) ne pouvait pas le joindre (502). On ecoute donc
+# sur toutes les interfaces ; le port reste celui fourni par l'hebergeur ($PORT).
+ENV HOSTNAME=0.0.0.0
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
