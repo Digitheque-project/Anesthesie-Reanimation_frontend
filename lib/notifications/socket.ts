@@ -27,6 +27,8 @@ export function connecterNotificationsTempsReel(): Socket | null {
   if (socket?.connected) return socket
 
   socket = io(`${NOTIFICATION_WS_URL}/notifications`, {
+    // Jeton relu à chaque (re)connexion : le service de notifications en déduit l'utilisateur, ses services et ses rôles (salons).
+    auth: (cb) => cb({ token: obtenirSessionValide()?.token ?? '' }),
     query: { serviceId: session.acces.serviceId },
     transports: ['websocket', 'polling'],
     reconnection: true,
