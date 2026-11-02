@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import {
+  Archive, ArrowRight, BarChart2, BedDouble, ClipboardList, HeartPulse, Inbox, Stethoscope, User, Activity,
+  type LucideIcon,
+} from 'lucide-react'
 import { rapportsService, notificationService, patientService } from '@/lib/api'
-import WelcomeBanner from '@/components/bloc/dashboard/WelcomeBanner'
-import EtatGlobalPatients, { type SectionResume } from '@/components/bloc/dashboard/EtatGlobalPatients'
 import AlerteBandeau, { type PatientTresUrgent } from '@/components/bloc/dashboard/AlerteBandeau'
-import GroupePlanningTable, { LignePlanning } from '@/components/bloc/dashboard/GroupePlanningTable'
+import BoutonChangerService from '@/components/bloc/dashboard/BoutonChangerService'
+import type { LignePlanning } from '@/components/bloc/dashboard/GroupePlanningTable'
+import { navItems } from '@/components/bloc/layout/Sidebar'
 import { obtenirSessionValide } from '@/lib/auth/central-session'
 import { formaterNomPatient } from '@/lib/patient'
 import { useRole } from '@/lib/hooks/useRole'
@@ -163,78 +169,219 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  const urgencesParNiveau: { niveauurgence?: string; niveauUrgence?: string; count: string }[] = stats.urgencesParNiveau || []
-  const compte = (niveau: string) => Number(urgencesParNiveau.find(u => (u.niveauUrgence || u.niveauurgence) === niveau)?.count || 0)
-  const tresUrgentCount = compte('TRES_URGENT')
-  const urgentCount = compte('URGENT')
-  const normalCount = compte('NORMAL')
-  const total = stats.totalPatientsActifs ?? (tresUrgentCount + urgentCount + normalCount)
+  // Une liste unique « Aujourd'hui », chaque patient marqué de son étape du parcours, au
+  // lieu de quatre tableaux empilés (même présentation que la consultation externe).
+  const etapes = useMemo(() => ([
+    visible('prescription') && { cle: 'prescription' as const, ...ETAPES.prescription, lignes: prescriptions },
+    visible('cpa') && { cle: 'cpa' as const, ...ETAPES.cpa, lignes: patientsCpa },
+    visible('bloc') && { cle: 'bloc' as const, ...ETAPES.bloc, lignes: patientsBloc },
+    visible('reveil') && { cle: 'reveil' as const, ...ETAPES.reveil, lignes: patientsReveil },
+  ].filter(Boolean) as EtapeAffichee[]), [prescriptions, patientsCpa, patientsBloc, patientsReveil, role]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [filtre, setFiltre] = useState<EtapeCle | 'tous'>('tous')
+  const lignes = useMemo(() => etapes
+    .filter((e) => filtre === 'tous' || e.cle === filtre)
+    .flatMap((e) => e.lignes.map((l) => ({ ...l, etape: e })))
+    .sort((a, b) => RANG_PRIORITE[a.priorite] - RANG_PRIORITE[b.priorite]), [etapes, filtre])
+
+  // Date calculée après montage (page prérendue : sinon date du build, et erreur d'hydratation).
+  const [aujourdhui, setAujourdhui] = useState('')
+  useEffect(() => {
+    setAujourdhui(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
+  }, [])
+  const nomAgent = session ? `${session.payload.firstname} ${session.payload.name}`.trim() : ''
+  const raccourcis = navItems.filter((i) => i.href !== '/bloc' && (!role || !i.rolesExclus?.includes(role)))
 
   return (
-    <div className="p-8 space-y-6">
-      <WelcomeBanner
-        nom={session ? `${session.payload.firstname} ${session.payload.name}` : ''}
-        role={session?.acces.roleName || null}
-      />
+    <div className="min-h-full bg-slate-50">
+      <div className="mx-auto max-w-[1400px] space-y-6 p-4 sm:p-6 lg:p-8">
 
-      {!loading && <AlerteBandeau patients={patientsTresUrgents} />}
-
-      <EtatGlobalPatients
-        loading={loading}
-        sections={([
-          visible('prescription') && { titre: 'Prescription — Aujourd\'hui', icon: 'notification_important', accent: 'tertiary', lignes: prescriptions },
-          visible('cpa') && { titre: 'CPA — Aujourd\'hui', icon: 'fact_check', accent: 'quaternary', lignes: patientsCpa },
-          visible('bloc') && { titre: 'Bloc opératoire — Aujourd\'hui', icon: 'medical_services', accent: 'primary', lignes: patientsBloc },
-          visible('reveil') && { titre: 'Salle de réveil', icon: 'bed', accent: 'secondary', lignes: patientsReveil },
-        ].filter(Boolean)) as SectionResume[]}
-      />
-
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-on-surface">Planning du jour</h2>
+        {/* En-tête */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-[22px] font-extrabold leading-tight text-gray-900">Tableau de bord</h1>
+            <p className="mt-0.5 text-[13px] capitalize text-slate-500">
+              {[nomAgent, session?.acces.roleName, aujourdhui].filter(Boolean).join(' · ')}
+            </p>
+          </div>
+          <BoutonChangerService />
         </div>
-        <div className="grid grid-cols-1 gap-6">
-          {visible('prescription') && (
-            <GroupePlanningTable
-              icon="notification_important"
-              titre="Fil de prescription — Aujourd'hui"
-              accent="tertiary"
-              lignes={prescriptions}
-              loading={loading}
-              emptyMessage="Aucune prescription reçue aujourd'hui"
+
+        {!loading && <AlerteBandeau patients={patientsTresUrgents} />}
+
+        {/* Compteurs : un par étape du parcours */}
+        <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          {etapes.map((e) => (
+            <CarteChiffre
+              key={e.cle}
+              icone={e.icone}
+              libelle={e.compteur}
+              valeur={e.lignes.length}
+              detail={detailUrgences(e.lignes)}
+              couleur={e.couleur}
+              actif={filtre === e.cle}
+              onClick={() => setFiltre((f) => (f === e.cle ? 'tous' : e.cle))}
             />
-          )}
-          {visible('cpa') && (
-            <GroupePlanningTable
-              icon="fact_check"
-              titre="Patients prêts pour la CPA"
-              accent="quaternary"
-              lignes={patientsCpa}
-              loading={loading}
-              emptyMessage="Aucun patient en attente de consultation pré-anesthésique"
-            />
-          )}
-          {visible('bloc') && (
-            <GroupePlanningTable
-              icon="medical_services"
-              titre="Bloc Opératoire — Aujourd'hui"
-              accent="primary"
-              lignes={patientsBloc}
-              loading={loading}
-              emptyMessage="Aucun patient prêt ou en cours d'intervention aujourd'hui"
-            />
-          )}
-          {visible('reveil') && (
-            <GroupePlanningTable
-              icon="bed"
-              titre="Salle de Réveil"
-              accent="secondary"
-              lignes={patientsReveil}
-              loading={loading}
-              emptyMessage="Personne en salle de réveil actuellement"
-            />
-          )}
+          ))}
         </div>
+
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
+          {/* Patients du jour */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0px_4px_16px_rgba(17,17,26,0.05)] xl:col-span-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+              <div>
+                <h2 className="text-[14px] font-extrabold text-slate-800">Patients du jour</h2>
+                <p className="mt-0.5 text-[11px] font-semibold text-[#005b82]">
+                  {lignes.length} patient{lignes.length > 1 ? 's' : ''}{filtre !== 'tous' ? ` · ${ETAPES[filtre].badge}` : ''}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {(['tous', ...etapes.map((e) => e.cle)] as const).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setFiltre(c)}
+                    className={`rounded-full px-3 py-1 text-[11px] font-bold transition-colors ${filtre === c ? 'bg-[#CFE9EF] text-[#005b82]' : 'text-slate-500 hover:bg-slate-100'}`}
+                  >
+                    {c === 'tous' ? 'Tous' : ETAPES[c].badge}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {loading ? (
+              <div className="space-y-3 p-6">
+                {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-slate-100" />)}
+              </div>
+            ) : lignes.length === 0 ? (
+              <div className="p-10 text-center text-[13px] font-medium text-slate-400">
+                Aucun patient à traiter aujourd&apos;hui.
+              </div>
+            ) : (
+              <div className="space-y-1 p-3">
+                {lignes.map((l, i) => <LignePatient key={`${l.etape.cle}-${l.href}-${i}`} ligne={l} />)}
+              </div>
+            )}
+          </div>
+
+          {/* Navigation rapide */}
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0px_4px_16px_rgba(17,17,26,0.05)]">
+              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#005b82]">Navigation rapide</h3>
+              <div className="space-y-2">
+                {raccourcis.map((r, i) => {
+                  const Icone = ICONES_MENU[r.href] ?? ClipboardList
+                  const principal = i === 0
+                  return (
+                    <Link
+                      key={r.href}
+                      href={r.href}
+                      className={`group flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${principal ? 'bg-[#CFE9EF] hover:bg-[#daeaf5]' : 'bg-slate-50 hover:bg-slate-100'}`}
+                    >
+                      <Icone className={`h-4 w-4 ${principal ? 'text-[#005b82]' : 'text-slate-500'}`} />
+                      <span className={`text-[13px] font-bold ${principal ? 'text-[#005b82]' : 'text-slate-700'}`}>{r.label}</span>
+                      <ArrowRight className={`ml-auto h-3.5 w-3.5 opacity-60 group-hover:opacity-100 ${principal ? 'text-[#005b82]' : 'text-slate-400'}`} />
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Présentation (même style que le tableau de bord de la consultation externe) ── */
+
+type EtapeCle = 'prescription' | 'cpa' | 'bloc' | 'reveil'
+type EtapeAffichee = { cle: EtapeCle; lignes: LignePlanning[] } & (typeof ETAPES)[EtapeCle]
+
+const ETAPES = {
+  prescription: { compteur: 'Prescriptions du jour', badge: 'Prescription', icone: Inbox, couleur: 'bg-blue-50 text-blue-600', pastille: 'bg-blue-50 text-blue-700' },
+  cpa: { compteur: 'CPA à faire', badge: 'CPA', icone: Stethoscope, couleur: 'bg-amber-50 text-amber-600', pastille: 'bg-amber-50 text-amber-700' },
+  bloc: { compteur: 'Au bloc aujourd’hui', badge: 'Bloc', icone: HeartPulse, couleur: 'bg-emerald-50 text-emerald-600', pastille: 'bg-emerald-50 text-emerald-700' },
+  reveil: { compteur: 'Salle de réveil', badge: 'Réveil', icone: BedDouble, couleur: 'bg-violet-50 text-violet-600', pastille: 'bg-violet-50 text-violet-700' },
+} satisfies Record<EtapeCle, { compteur: string; badge: string; icone: LucideIcon; couleur: string; pastille: string }>
+
+const RANG_PRIORITE: Record<LignePlanning['priorite'], number> = { TRES_URGENT: 0, URGENT: 1, NORMAL: 2 }
+
+const ICONES_MENU: Record<string, LucideIcon> = {
+  '/bloc/notification-cpa': Inbox,
+  '/bloc/rendez-vous': ClipboardList,
+  '/bloc/patient-du-jour': HeartPulse,
+  '/bloc/programme-non-operatoire': Activity,
+  '/bloc/salle-de-reveil': BedDouble,
+  '/bloc/archives': Archive,
+  '/bloc/rapport': BarChart2,
+}
+
+function detailUrgences(lignes: LignePlanning[]): string {
+  const tu = lignes.filter((l) => l.priorite === 'TRES_URGENT').length
+  const u = lignes.filter((l) => l.priorite === 'URGENT').length
+  if (!tu && !u) return lignes.length ? 'aucune urgence' : 'aucun patient'
+  return [tu && `${tu} très urgent${tu > 1 ? 's' : ''}`, u && `${u} urgent${u > 1 ? 's' : ''}`].filter(Boolean).join(' · ')
+}
+
+function CarteChiffre({ icone: Icone, libelle, valeur, detail, couleur, actif, onClick }: {
+  icone: LucideIcon; libelle: string; valeur: number; detail: string; couleur: string; actif: boolean; onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-4 rounded-2xl border bg-white p-5 text-left shadow-[0px_4px_16px_rgba(17,17,26,0.05)] transition-colors ${actif ? 'border-[#005b82]/40 ring-2 ring-[#005b82]/10' : 'border-gray-100 hover:border-gray-200'}`}
+    >
+      <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${couleur}`}>
+        <Icone className="h-5 w-5" />
+      </div>
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{libelle}</p>
+        <p className="text-2xl font-black leading-tight text-slate-800">{valeur < 10 ? `0${valeur}` : valeur}</p>
+        <p className="mt-0.5 text-[10px] font-medium text-slate-400">{detail}</p>
+      </div>
+    </button>
+  )
+}
+
+function LignePatient({ ligne }: { ligne: LignePlanning & { etape: EtapeAffichee } }) {
+  const router = useRouter()
+  const urgent = ligne.priorite !== 'NORMAL'
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => router.push(ligne.href)}
+      onKeyDown={(e) => { if (e.key === 'Enter') router.push(ligne.href) }}
+      className="flex cursor-pointer items-center gap-4 rounded-xl border-l-[6px] border-transparent px-3 py-3 transition-colors hover:bg-slate-50"
+    >
+      <div className="flex min-w-[52px] flex-col items-center">
+        <span className="text-[11px] font-bold uppercase text-[#005b82]">Auj.</span>
+        <span className={`text-[14px] font-bold ${urgent ? 'text-red-600' : 'text-slate-700'}`}>{ligne.heure || '—'}</span>
+      </div>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50">
+        <User className="h-4 w-4 text-slate-400" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-semibold text-slate-800">{ligne.nom || 'Patient inconnu'}</p>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${ligne.etape.pastille}`}>
+            {ligne.etape.badge}
+          </span>
+          {ligne.intervention && <span className="max-w-[220px] truncate text-[11px] text-slate-400">{ligne.intervention}</span>}
+          {ligne.responsable && <span className="max-w-[160px] truncate text-[11px] text-slate-400">· {ligne.responsable}</span>}
+        </div>
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        {urgent && (
+          <span className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-red-700">
+            {ligne.priorite === 'TRES_URGENT' ? 'Très urgent' : 'Urgent'}
+          </span>
+        )}
+        <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+          {ligne.actionLabel} <ArrowRight className="h-3 w-3" />
+        </span>
       </div>
     </div>
   )

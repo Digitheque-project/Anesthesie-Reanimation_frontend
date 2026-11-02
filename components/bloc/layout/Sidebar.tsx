@@ -21,7 +21,7 @@ type NavItemColore = NavItem & { couleur: { bg: string; texte: string }; rolesEx
 // la prescription ni au suivi de RDV/salle de réveil. L'Anesthésiste n'est jamais exclu : il garde
 // l'accès à tout le menu. Le Major remplace totalement l'anesthésiste (même rôle clinique), il
 // garde donc lui aussi l'accès à tout le menu.
-const navItems: NavItemColore[] = [
+export const navItems: NavItemColore[] = [
   { label: 'Tableau de bord', href: '/bloc', icon: 'space_dashboard', couleur: { bg: 'bg-blue-100', texte: 'text-blue-600' } },
   { label: 'Prescription', href: '/bloc/notification-cpa', icon: 'mark_email_unread', couleur: { bg: 'bg-amber-100', texte: 'text-amber-600' }, rolesExclus: [RoleClinique.IBODE] },
   { label: 'Fil de travail', href: '/bloc/rendez-vous', icon: 'event_note', couleur: { bg: 'bg-violet-100', texte: 'text-violet-600' }, rolesExclus: [RoleClinique.IBODE] },
