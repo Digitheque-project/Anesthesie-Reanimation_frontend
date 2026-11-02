@@ -1,5 +1,5 @@
-import { Icone } from '@/components/ui/Icone'
 'use client'
+import { Icone } from '@/components/ui/Icone'
 
 interface StatsGridProps {
   stats: {

@@ -1,5 +1,5 @@
-import { Icone } from '@/components/ui/Icone'
 'use client'
+import { Icone } from '@/components/ui/Icone'
 
 // Bannière non destructive signalant qu'un autre poste a mis à jour ce document pendant que
 // l'utilisateur le remplit — jamais d'écrasement silencieux du formulaire en cours de saisie,
