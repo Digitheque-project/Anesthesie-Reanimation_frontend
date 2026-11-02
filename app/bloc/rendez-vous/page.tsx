@@ -105,7 +105,29 @@ export default function RendezVousPage() {
           sousType: 'VERIF_MEDICAMENT',
           statut: 'VERIF_MEDICAMENT',
         }));
-        setCreneaux([...medRows, ...rows]);
+        // Patients URGENTS / TRÈS URGENTS dont la CPA reste à faire : comptés sur le tableau de
+        // bord, mais absents de toute liste (ce fil ne gardait que les patients normaux à
+        // créneau réservé, le programme opératoire ne les prend qu'une fois prêts). Toujours
+        // visibles ici, en tête, quelle que soit la date : leur CPA est une VPA immédiate.
+        const urgents = await Promise.all(['TRES_URGENT', 'URGENT'].map((niveau) =>
+          patientService.getAll({ statut: 'EN_ATTENTE_CPA', niveauUrgence: niveau, limite: 200 })
+            .then((r: any) => (Array.isArray(r?.data) ? r.data : []))
+            .catch(() => []),
+        ));
+        const urgentRows = urgents.flat().map((p: any) => ({
+          id: `vpa-${p.patientId}`,
+          heureDebut: null,
+          dateIntervention: p.dateIntervention || null,
+          patient: { id: p.patientId, nom: p.nom, prenom: p.prenom, niveauUrgence: p.niveauUrgence, statut: p.statut },
+          type: 'CPA',
+          chirurgien: p.chirurgien_nom ? { nom: p.chirurgien_nom } : null,
+          intervention: p.libelle || p.typeChirurgie || '',
+          estUrgence: true,
+          niveau: p.niveauUrgence,
+          sousType: 'VPA_URGENTE',
+          statut: 'VPA_URGENTE',
+        }));
+        setCreneaux([...urgentRows, ...medRows, ...rows]);
       } else if (onglet === 'VERIFICATION_VEILLE') {
         // La vérification veille ne dépend plus d'un créneau planifié à une date précise : tout
         // patient dont la CPA a été validée ET dont les médicaments ont été vérifiés par
@@ -349,9 +371,15 @@ export default function RendezVousPage() {
                   {recherche ? 'Aucun résultat pour cette recherche' : 'Aucun rendez-vous'}
                 </td></tr>
               ) : creneauxFiltres.map((c: any, i: number) => {
-                const niveau = c.estUrgence ? 'URGENT' : 'NORMAL';
+                const niveau = c.niveau === 'TRES_URGENT' ? 'TRES_URGENT' : c.estUrgence ? 'URGENT' : 'NORMAL';
                 const style = styleUrgence(niveau);
                 const nom = formaterNomPatient(c.patient);
+                // VPA immédiate pour un patient urgent : même destination que le bandeau rouge du
+                // tableau de bord (consultation CPA en mode STAT).
+                const vpa = c.sousType === 'VPA_URGENTE';
+                const lienAction = vpa
+                  ? `/bloc/consultation-cpa?${new URLSearchParams({ patientId: String(c.patient?.id ?? ''), patientNom: nom, statut: 'STAT', ...(c.intervention ? { intervention: c.intervention } : {}) })}`
+                  : `${ongletActif.cible}?patientId=${c.patient?.id}&patientNom=${encodeURIComponent(nom)}`;
                 return (
                   <tr key={c.id || i} className={`hover:bg-surface-container/30 transition-colors border-l-4 ${c.enRetard ? 'bg-red-50/50 border-red-400' : style.bordure}`}>
                     <td className="px-6 py-4 font-extrabold text-primary text-sm whitespace-nowrap">
@@ -373,7 +401,7 @@ export default function RendezVousPage() {
                     <td className="px-6 py-4 text-sm">{c.chirurgien?.nom || '—'}</td>
                     <td className="px-6 py-4">
                       <span className={`px-3 py-1 text-[10px] font-black rounded uppercase ${style.badge}`}>
-                        {niveau === 'URGENT' ? 'URGENT' : 'NORMAL'}
+                        {niveau === 'TRES_URGENT' ? 'TRÈS URGENT' : niveau === 'URGENT' ? 'URGENT' : 'NORMAL'}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -387,17 +415,18 @@ export default function RendezVousPage() {
                           c.statut === 'PLANIFIE' ? 'bg-blue-100 text-blue-700' :
                           c.statut === 'TERMINE' ? 'bg-green-100 text-green-700' :
                           c.statut === 'VERIF_MEDICAMENT' ? 'bg-amber-100 text-amber-700' :
-                          c.statut === 'EN_ATTENTE' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-700'
-                        }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : (c.statut || '—')}</span>
+                          c.statut === 'EN_ATTENTE' ? 'bg-amber-100 text-amber-700' :
+                          c.statut === 'VPA_URGENTE' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                        }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : c.statut === 'VPA_URGENTE' ? 'VPA immédiate' : (c.statut || '—')}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => router.push(`${ongletActif.cible}?patientId=${c.patient?.id}&patientNom=${encodeURIComponent(nom)}`)}
-                          className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary/90 transition-colors whitespace-nowrap"
+                          onClick={() => router.push(lienAction)}
+                          className={`px-4 py-2 text-white rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${vpa ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-primary/90'}`}
                         >
-                          {c.sousType === 'VERIF_MEDICAMENT' ? 'Vérifier médicament' : ongletActif.actionLabel}
+                          {vpa ? 'Faire la VPA' : c.sousType === 'VERIF_MEDICAMENT' ? 'Vérifier médicament' : ongletActif.actionLabel}
                         </button>
                         <VoirDossierButton patientId={c.patient?.id} variant="icon" />
                       </div>

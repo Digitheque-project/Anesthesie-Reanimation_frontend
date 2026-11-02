@@ -147,7 +147,12 @@ export default function DashboardPage() {
     // la date à laquelle la CPA doit être réalisée.
     if (cpaRes.status === 'fulfilled') {
       const liste = cpaRes.value?.data || []
-      setPatientsCpa(liste.map(versLignePatient('EN_ATTENTE_CPA', 'Faire la CPA', '/bloc/consultation-cpa')))
+      // Patient urgent : sa CPA est une VPA immédiate (mode STAT), comme depuis le bandeau rouge
+      // et le fil de travail — jamais une CPA classique à planifier.
+      setPatientsCpa(liste.map((p: any) => {
+        const ligne = versLignePatient('EN_ATTENTE_CPA', 'Faire la CPA', '/bloc/consultation-cpa')(p)
+        return ligne.priorite === 'NORMAL' ? ligne : { ...ligne, actionLabel: 'Faire la VPA', href: `${ligne.href}&statut=STAT` }
+      }))
     }
 
     // Prévu aujourd'hui, ou sans date programmée (à planifier en priorité)
