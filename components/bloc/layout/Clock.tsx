@@ -21,27 +21,17 @@ export default function Clock() {
   })
   const date = maintenant.toLocaleDateString('fr-FR', {
     weekday: 'short',
-    day: '2-digit',
+    day: 'numeric',
     month: 'short',
-    year: 'numeric',
   })
 
   return (
-    <div
-      // Pastille pleine et plus grande que le reste de la barre : l'heure doit se voir d'un
-      // coup d'œil dans une salle de bloc. tabular-nums évite le "saut" du chiffre des secondes.
-      className="hidden sm:flex items-center gap-3 pl-4 pr-5 py-2 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white border border-primary/30 shadow-md shadow-primary/25 select-none"
-      aria-label={`Heure actuelle : ${heure}`}
-    >
-      <Icone nom="schedule" className="text-white/95 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }} />
-      <div className="flex flex-col gap-0.5 leading-none">
-        <span className="text-2xl font-extrabold tabular-nums tracking-tight drop-shadow-sm">
-          {heure}
-        </span>
-        <span className="text-[11px] text-white/85 font-bold uppercase tracking-wide">
-          {date}
-        </span>
-      </div>
-    </div>
+    // Discrète, dans le style de la barre de la consultation externe ; tabular-nums évite le
+    // « saut » du chiffre des secondes.
+    <span className="flex select-none items-center gap-1.5 text-[13px]" aria-label={`Heure actuelle : ${heure}`}>
+      <Icone nom="schedule" className="text-[15px] text-[#006A8C]" />
+      <span className="font-extrabold tabular-nums text-[#004A66]">{heure}</span>
+      <span className="font-semibold text-gray-400">{date}</span>
+    </span>
   )
 }

@@ -179,33 +179,35 @@ export default function TopBar() {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-64 z-40 bg-white/90 backdrop-blur-md border-b border-outline-variant/30 px-8 py-4 flex justify-between items-center shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden border border-primary/10">
-          <Image src="/images/chu.jpeg" alt="CHU" width={40} height={40} className="object-cover" />
-        </div>
-        <div>
-          <h1 className="text-lg font-extrabold text-primary font-headline tracking-tight">Service Anesthésie-Réanimation</h1>
-          <p className="text-[10px] text-on-surface-variant font-medium">{session?.acces.chu?.name || 'CHU'}</p>
+    // Même barre que la consultation externe : blanche, sur toute la largeur, collée en haut (h-16).
+    <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#F1F5F9] bg-white px-4 shadow-[0px_4px_10px_rgba(0,0,0,0.015)] sm:px-6 lg:px-7">
+      <div className="flex min-w-0 items-center gap-3">
+        <Image src="/images/chu.jpeg" alt="CHU" width={36} height={36} className="h-9 w-9 shrink-0 rounded-full border border-[#CFE9EF] object-cover" />
+        <div className="truncate text-[18px] font-black tracking-tight text-[#004A66] lg:text-[20px]">
+          Anesthésie-Réanimation
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        {/* Horloge temps réel — visible en permanence sur toutes les interfaces du bloc */}
+      {/* Centre : salutation, et l'heure — utile au bloc, où l'heure exacte compte. */}
+      <div className="hidden items-center gap-3 text-[13px] font-semibold text-gray-500 md:flex">
+        <span className="truncate">Bonjour{session?.payload.firstname ? ` ${session.payload.firstname}` : ''}</span>
+        <span className="text-gray-300">·</span>
         <Clock />
+      </div>
 
+      <div className="flex items-center gap-5 lg:gap-10">
         {/* Wrapper `relative` : ancre la pop-up de notifications juste sous la cloche
             (NotificationModal se positionne en `absolute right-0 top-full`), au lieu d'un
             tiroir plein écran indépendant du bouton qui l'ouvre. */}
         <div className="relative">
           <button
             onClick={handleClocheClick}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40"
+            className="relative block cursor-pointer"
             aria-label="Voir les notifications"
           >
-            <Icone nom={unreadCount > 0 ? 'notifications_active' : 'notifications'} className={`text-primary text-2xl ${unreadCount > 0 ? 'animate-pulse' : ''}`} style={{ fontVariationSettings: "'FILL' 1" }} />
+            <Icone nom="notifications" className={`text-[24px] text-gray-700 ${unreadCount > 0 ? 'animate-pulse' : ''}`} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center ring-2 ring-white">
+              <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-[#E11D48] px-1 text-[10px] font-bold text-white">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
@@ -220,21 +222,21 @@ export default function TopBar() {
           />
         </div>
 
-        <div className="flex items-center gap-3 pl-2 border-l border-outline-variant/30">
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-bold text-on-surface leading-tight">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-col text-right">
+            <span className="truncate text-[13px] font-extrabold leading-tight text-gray-900">
               {session ? `${session.payload.firstname} ${session.payload.name}` : '—'}
-            </p>
-            <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-tighter">
+            </span>
+            <span className="mt-0.5 hidden truncate text-[10px] font-bold uppercase leading-tight tracking-widest text-gray-400 sm:block">
               {session?.acces.roleName || ''}
-            </p>
+            </span>
           </div>
           {/* Avatar par initiales — /images/avatar-default.png n'a jamais existé dans public/images/
               (fichier manquant, jamais commité), ce qui faisait échouer l'optimiseur d'image
               Next.js sur CHAQUE page (erreur 400) et laissait un mot tronqué "Avata" à la place.
               Même langage visuel que les initiales patient de PatientsListTable, sans dépendance
               à un fichier qui peut manquer. */}
-          <div className="w-10 h-10 rounded-full bg-primary-container overflow-hidden ring-2 ring-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#CFE9EF] bg-[#F0F7FF] text-sm font-bold text-[#006A8C]">
             {session ? `${session.payload.firstname?.charAt(0) || ''}${session.payload.name?.charAt(0) || ''}`.toUpperCase() : ''}
           </div>
         </div>

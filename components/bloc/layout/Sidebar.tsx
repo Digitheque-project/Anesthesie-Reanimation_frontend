@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -57,27 +56,9 @@ export default function Sidebar() {
   }, []);
 
   return (
-    <aside className="w-64 fixed left-0 top-0 bottom-0 flex flex-col z-50 bg-[#1675F5]">
-      {/* Logo and Brand */}
-      <div className="px-6 py-4 flex flex-col items-center shrink-0">
-        <div className="relative w-14 h-14 mb-2">
-          <Image
-          src="/images/chu.jpeg"
-          alt="CHU"
-          width={56}
-          height={56}
-          className="rounded-full object-cover border-2 border-white shadow-md bg-white" />
-        </div>
-        <h1 className="font-headline font-extrabold text-white text-center text-sm tracking-tight leading-tight">
-          Service Anesthésie-Réanimation
-        </h1>
-        <p className="text-[9px] font-bold tracking-[0.15em] text-white/70 uppercase mt-0.5">
-          PLATEFORME MÉDICALE
-        </p>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 px-4 flex flex-col justify-start gap-1 min-h-0 pt-2">
+    // Même menu que la consultation externe : blanc, collé sous la barre du haut (h-16).
+    <aside className="sticky top-16 mt-2 flex h-[calc(100vh-4.5rem)] w-[260px] shrink-0 flex-col overflow-y-auto rounded-tr-[24px] border-r border-[#F1F5F9] bg-white shadow-[1px_0px_5px_rgba(0,0,0,0.01)]">
+      <nav className="flex-1 space-y-1.5 px-4 py-5">
         {itemsVisibles.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -86,34 +67,33 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all group ${
-                isActive
-                  ? "bg-white text-primary font-bold shadow-sm"
-                  : "text-white/90 hover:bg-white/15 font-medium"
+              className={`flex items-center gap-4 rounded-[12px] px-4 py-3.5 transition-colors duration-200 ${
+                isActive ? 'bg-[#F0F7FF] font-bold text-[#006A8C]' : 'font-medium text-[#475569] hover:bg-gray-50'
               }`}
             >
-              <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.couleur.bg} ${item.couleur.texte} group-hover:scale-110 transition-transform`}>
-                <Icone nom={item.icon} className="text-[19px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined} />
-                {item.href === '/bloc/rendez-vous' && retards > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-extrabold text-white ring-2 ring-[#1675F5]">
-                    {retards > 99 ? '99+' : retards}
-                  </span>
-                )}
-              </span>
-              <span className="text-sm">{item.label}</span>
+              <Icone nom={item.icon} className={`text-[20px] ${isActive ? 'text-[#006A8C]' : 'text-[#64748B]'}`} />
+              <span className="text-[14px]">{item.label}</span>
+              {item.href === '/bloc/rendez-vous' && retards > 0 && (
+                <span
+                  title={`${retards} étape${retards > 1 ? 's' : ''} en retard`}
+                  className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#E11D48] px-1.5 text-[10px] font-bold text-white"
+                >
+                  {retards > 99 ? '99+' : retards}
+                </span>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Bottom Actions */}
-      <div className="mt-auto p-3 border-t border-white/20 space-y-1 shrink-0">
+      <div className="space-y-5 px-5 py-6">
         <button
-          className="w-full flex items-center gap-3 px-4 py-2 text-white/90 hover:text-red-200 transition-all group"
+          type="button"
+          className="flex w-full items-center gap-3 px-4 text-[#E11D48] transition-colors hover:text-red-700"
           onClick={() => { effacerSession(); redirigerVersLogin(); }}
         >
-          <Icone nom="logout" className="text-[20px]" />
-          <span className="text-xs font-medium">Déconnexion</span>
+          <Icone nom="logout" className="text-[18px]" />
+          <span className="text-[13px] font-bold">Déconnexion</span>
         </button>
       </div>
     </aside>

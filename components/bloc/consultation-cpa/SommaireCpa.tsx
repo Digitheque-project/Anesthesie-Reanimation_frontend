@@ -58,11 +58,9 @@ export default function SommaireCpa() {
   return (
     <nav
       aria-label="Sections de la consultation"
-      // top-24 (96px) reprend exactement le pt-24 du <main> dans app/bloc/layout.tsx, qui
-      // compense la hauteur du TopBar fixe — sans ce raccord, le sommaire se collait trop
-      // haut et se faisait à moitié recouvrir par le TopBar (z-40) au lieu de se loger juste
-      // en dessous.
-      className="sticky top-24 z-30 -mx-4 px-4 py-2 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant/20 shadow-sm"
+      // top-16 (64px) = hauteur du TopBar collant (h-16, voir app/bloc/layout.tsx) : le sommaire
+      // se loge juste en dessous au lieu d'être à moitié recouvert par le TopBar (z-40).
+      className="sticky top-16 z-30 -mx-4 px-4 py-2 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant/20 shadow-sm"
     >
       {/* Les onglets passent à la ligne suivante dès qu'ils ne tiennent plus (flex-wrap) au lieu
           de défiler sur une seule ligne à scrollbar masquée : tous les onglets restent visibles
