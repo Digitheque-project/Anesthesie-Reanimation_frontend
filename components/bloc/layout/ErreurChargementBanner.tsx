@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 interface ErreurChargementBannerProps {
   visible: boolean
   onRecharger: () => void
@@ -15,7 +16,7 @@ export default function ErreurChargementBanner({
   if (!visible) return null
   return (
     <div className="mb-3 p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
-      <span className="material-symbols-outlined text-lg text-red-600">error</span>
+      <Icone nom="error" className="text-lg text-red-600" />
       <span className="flex-1 min-w-[220px] font-semibold">{message}</span>
       <button
         type="button"

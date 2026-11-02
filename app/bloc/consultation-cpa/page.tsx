@@ -23,6 +23,7 @@ import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHead
 import SommaireCpa from '@/components/bloc/consultation-cpa/SommaireCpa';
 import ConfirmationRecapModal from '@/components/ui/ConfirmationRecapModal';
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave';
+import { Icone } from '@/components/ui/Icone';
 
 export default function ConsultationCpaPage() {
   return (
@@ -996,7 +997,7 @@ function ConsultationCpaPageContent() {
     return (
       <main className="p-4">
         <div className="max-w-md mx-auto mt-16 bg-surface-container-lowest rounded-2xl shadow-lg p-8 text-center space-y-5">
-          <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
+          <Icone nom="task_alt" className="text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }} />
           <div>
             <h1 className="text-lg font-bold font-headline">{estUrgent ? 'VPA' : 'CPA'} enregistrée</h1>
             <p className="text-sm text-on-surface-variant mt-1">
@@ -1006,11 +1007,11 @@ function ConsultationCpaPageContent() {
           <div className="flex flex-col gap-2">
             <button type="button" onClick={() => router.push('/bloc')}
               className="w-full flex items-center justify-center gap-2 p-3 bg-primary text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">
-              <span className="material-symbols-outlined text-lg">home</span> Retour à l'accueil
+              <Icone nom="home" className="text-lg" /> Retour à l'accueil
             </button>
             <button type="button" onClick={() => router.push(`/bloc/dossier-patient/${patientId}/complet`)}
               className="w-full flex items-center justify-center gap-2 p-3 bg-surface-container-low text-on-surface rounded-xl font-bold text-sm hover:bg-surface-container transition-colors">
-              <span className="material-symbols-outlined text-lg">folder_open</span> Voir l'archive
+              <Icone nom="folder_open" className="text-lg" /> Voir l'archive
             </button>
           </div>
         </div>
@@ -1025,13 +1026,13 @@ function ConsultationCpaPageContent() {
         <PasserButton onClick={restaurerBrouillon} disabled={!brouillonTrouve} />
       </div>
       <div className={`rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-2 ${estUrgent ? 'bg-tertiary/10 text-tertiary' : 'bg-primary/10 text-primary'}`}>
-        <span className="material-symbols-outlined text-lg">{estUrgent ? 'bolt' : 'event_available'}</span>
+        <Icone nom={estUrgent ? 'bolt' : 'event_available'} className="text-lg" />
         {estUrgent ? 'Visite Pré-Anesthésique (VPA) — patient urgent, consultation immédiate' : 'Consultation Pré-Anesthésique (CPA)'}
       </div>
 
       {cpaDejaRemplie && !chargementCpa && (
         <div className={`rounded-xl px-4 py-3 text-sm font-bold flex items-center gap-2 ${peutEditerMedicamentsEtVpa ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-surface-container-low text-on-surface-variant'}`}>
-          <span className="material-symbols-outlined text-lg">{peutEditerMedicamentsEtVpa ? 'medication' : 'visibility'}</span>
+          <Icone nom={peutEditerMedicamentsEtVpa ? 'medication' : 'visibility'} className="text-lg" />
           {peutEditerMedicamentsEtVpa
             ? "CPA déjà remplie et validée — complétez les médicaments d'anesthésie/réanimation et la vérification veille ci-dessous."
             : 'CPA déjà remplie et validée — consultation en lecture seule.'}
@@ -1043,7 +1044,7 @@ function ConsultationCpaPageContent() {
           jamais écraser silencieusement ce qui est déjà affiché. */}
       {brouillonTrouve && (
         <div className="rounded-xl px-4 py-3 text-sm font-bold flex flex-wrap items-center gap-3 bg-amber-50 text-amber-900 border border-amber-200">
-          <span className="material-symbols-outlined text-lg">restore</span>
+          <Icone nom="restore" className="text-lg" />
           <span className="flex-1 min-w-[220px]">
             Une saisie non enregistrée du {new Date(brouillonTrouve.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} a été retrouvée pour ce patient.
           </span>
@@ -1083,13 +1084,13 @@ function ConsultationCpaPageContent() {
       {/* Alertes retard — date prévue déjà dépassée sans que l'étape correspondante soit faite. */}
       {cpaEnRetard && !cpaDejaRemplie && (
         <div className="p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex items-center gap-2 font-semibold">
-          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <Icone nom="error" className="text-lg text-red-600" />
           La date prévue de cette CPA est déjà dépassée — complétez-la ci-dessous dès que possible.
         </div>
       )}
       {operationEnRetard && (
         <div className="p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
-          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <Icone nom="error" className="text-lg text-red-600" />
           <span className="flex-1 min-w-[220px] font-semibold">La date prévue de l&apos;opération est déjà dépassée.</span>
           {estResponsableOuMajor && (
             <button type="button" onClick={() => document.getElementById('date-operation-cpa')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
@@ -1103,7 +1104,7 @@ function ConsultationCpaPageContent() {
       {/* Date et heure prévues de l'opération — modifiable par le Responsable CPA ou le Major
           pendant la réalisation de la consultation (ex. créneau chirurgical décalé) */}
       <div id="date-operation-cpa" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-3 scroll-mt-36">
-        <span className="material-symbols-outlined text-primary">event</span>
+        <Icone nom="event" className="text-primary" />
         {estResponsableOuMajor ? (
           <>
             <div className="flex-1 min-w-[220px]">
@@ -1114,7 +1115,7 @@ function ConsultationCpaPageContent() {
             </div>
             <button onClick={handleEnregistrerDateIntervention} disabled={savingDateIntervention || !dateInterventionInput}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50 self-end">
-              <span className="material-symbols-outlined text-lg">save</span>
+              <Icone nom="save" className="text-lg" />
               {savingDateIntervention ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </>
@@ -1131,7 +1132,7 @@ function ConsultationCpaPageContent() {
       {/* Salle de bloc prévue pour l'intervention — même logique et mêmes rôles éditeurs que la
           date/heure ci-dessus, distincte de la chambre d'hospitalisation du patient. */}
       <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-3">
-        <span className="material-symbols-outlined text-primary">meeting_room</span>
+        <Icone nom="meeting_room" className="text-primary" />
         {estResponsableOuMajor ? (
           <>
             <div className="flex-1 min-w-[220px]">
@@ -1142,7 +1143,7 @@ function ConsultationCpaPageContent() {
             </div>
             <button onClick={handleEnregistrerSalleOperation} disabled={savingSalleOperation || !salleOperationInput.trim()}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50 self-end">
-              <span className="material-symbols-outlined text-lg">save</span>
+              <Icone nom="save" className="text-lg" />
               {savingSalleOperation ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </>
@@ -1169,7 +1170,7 @@ function ConsultationCpaPageContent() {
               reste de l'ancien bloc). */}
           <section id="cpa-antecedents" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-4 scroll-mt-36">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">history_edu</span>
+              <Icone nom="history_edu" className="text-primary" />
               <h2 className="text-lg font-bold font-headline text-primary">Histoire et Antécédents</h2>
             </div>
 
@@ -1179,7 +1180,7 @@ function ConsultationCpaPageContent() {
                   d'opérer signée). */}
               <div className="rounded-xl bg-white/70 border border-outline-variant/30 p-4 space-y-4">
                 <h3 className="text-sm font-extrabold uppercase tracking-widest text-primary flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>note_alt</span>
+                  <Icone nom="note_alt" className="text-lg" style={{ fontVariationSettings: "'FILL' 1" }} />
                   Histoire
                 </h3>
 
@@ -1223,7 +1224,7 @@ function ConsultationCpaPageContent() {
                   asthme, temps de saignement, obstétricaux, groupe sanguin, transfusions). */}
               <div className="rounded-xl bg-white/70 border border-outline-variant/30 p-4 space-y-4">
                 <h3 className="text-sm font-extrabold uppercase tracking-widest text-primary flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>
+                  <Icone nom="history" className="text-lg" style={{ fontVariationSettings: "'FILL' 1" }} />
                   Antécédents
                 </h3>
 
@@ -1341,7 +1342,7 @@ function ConsultationCpaPageContent() {
           {/* Examen clinique */}
           <section id="cpa-examen" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm scroll-mt-36">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary">stethoscope</span>
+              <Icone nom="stethoscope" className="text-primary" />
               <h2 className="text-lg font-bold font-headline text-primary">Examen clinique</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
@@ -1377,7 +1378,7 @@ function ConsultationCpaPageContent() {
           {/* Voies aériennes */}
           <section id="cpa-voies-aeriennes" className="bg-surface-container-lowest rounded-xl p-4 shadow-sm scroll-mt-36">
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-primary">air</span>
+              <Icone nom="air" className="text-primary" />
               <h2 className="text-lg font-bold font-headline text-primary">Voies aériennes</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
@@ -1419,7 +1420,7 @@ function ConsultationCpaPageContent() {
               prémédication des instructions pré-opératoires (voir plus bas). */}
           <section id="cpa-traitement" className={`bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3 scroll-mt-36 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">pill</span>
+              <Icone nom="pill" className="text-primary" />
               <h2 className="text-lg font-bold font-headline text-primary">Traitement médicamenteux</h2>
             </div>
             <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Traitement en cours</label>
@@ -1432,7 +1433,7 @@ function ConsultationCpaPageContent() {
               texte. */}
           <section id="cpa-conclusion" className={`bg-surface-container-lowest rounded-xl p-4 shadow-sm space-y-3 scroll-mt-36 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">summarize</span>
+          <Icone nom="summarize" className="text-primary" />
           <h2 className="text-lg font-bold font-headline text-primary">Conclusion</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1466,7 +1467,7 @@ function ConsultationCpaPageContent() {
         <div className="w-full lg:w-80 lg:sticky lg:top-36 space-y-2">
           <section className={`rounded-2xl p-5 shadow-lg overflow-hidden ${peutDeciderAptitudeCpa ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-500/40' : 'bg-surface-container-lowest text-on-surface-variant'}`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="material-symbols-outlined text-2xl" style={peutDeciderAptitudeCpa ? { fontVariationSettings: "'FILL' 1" } : undefined}>edit_note</span>
+              <Icone nom="edit_note" className="text-2xl" style={peutDeciderAptitudeCpa ? { fontVariationSettings: "'FILL' 1" } : undefined} />
               <h2 className="text-lg font-bold font-headline">Prescription</h2>
             </div>
             {!peutDeciderAptitudeCpa ? (
@@ -1480,7 +1481,7 @@ function ConsultationCpaPageContent() {
                 </p>
                 <button type="button" onClick={() => setShowPrescriptionModal(true)}
                   className="w-full flex items-center justify-center gap-2 p-3.5 bg-white text-indigo-600 rounded-xl font-extrabold text-sm shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
-                  <span className="material-symbols-outlined">edit_note</span> Prescrire
+                  <Icone nom="edit_note" /> Prescrire
                 </button>
               </>
             )}
@@ -1504,13 +1505,13 @@ function ConsultationCpaPageContent() {
       <section id="cpa-protocole" className={`scroll-mt-36 ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
         <div className="bg-white rounded-2xl shadow-md border-2 border-secondary/20 overflow-hidden">
           <div className="bg-gradient-to-r from-secondary to-secondary/80 px-4 py-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-white">vaccines</span>
+            <Icone nom="vaccines" className="text-white" />
             <h2 className="text-sm font-extrabold text-white uppercase tracking-widest">Protocole anesthésique</h2>
           </div>
           <div className="p-4 space-y-3">
             <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
               <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">medication_liquid</span> Type d'anesthésie
+                <Icone nom="medication_liquid" className="text-sm" /> Type d'anesthésie
               </label>
               <div className="grid grid-cols-3 gap-2 mb-2">
                 {['Anesthésie Générale (AG)', 'ALR', 'AL'].map(type => (
@@ -1546,7 +1547,7 @@ function ConsultationCpaPageContent() {
             </div>
             <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
               <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">air</span> Technique d'intubation
+                <Icone nom="air" className="text-sm" /> Technique d'intubation
               </label>
               <select disabled={!peutEditerExamenEtDecision} value={form.techniqueIntubation} onChange={setField('techniqueIntubation')} className="w-full bg-white border border-secondary/20 rounded-xl p-3 text-sm font-bold text-on-surface focus:ring-2 focus:ring-secondary/30 outline-none disabled:opacity-60">
                 <option value="">— Sélectionner —</option><option>Sonde Endotrachéale</option><option>Masque Laryngé</option><option>IOT Séquence Rapide</option>
@@ -1554,7 +1555,7 @@ function ConsultationCpaPageContent() {
             </div>
             <div className="p-3 bg-secondary/5 rounded-xl border border-secondary/10">
               <label className="text-[10px] font-bold text-secondary uppercase tracking-wide block mb-2 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">checklist</span> Recommandations et protocoles
+                <Icone nom="checklist" className="text-sm" /> Recommandations et protocoles
               </label>
               <textarea disabled={!peutEditerExamenEtDecision} value={form.recommandationsProtocole} onChange={setField('recommandationsProtocole')} className="w-full h-20 bg-white border border-secondary/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-secondary/30 outline-none disabled:opacity-60" placeholder="Surveillance renforcée, précautions particulières..."></textarea>
             </div>
@@ -1565,7 +1566,7 @@ function ConsultationCpaPageContent() {
       {/* Instructions & Prescription */}
       <div id="cpa-instructions" className="rounded-2xl border-2 border-blue-300 bg-gradient-to-b from-blue-50/80 to-white shadow-md overflow-hidden scroll-mt-36">
         <div className="px-4 py-3 bg-blue-100/70 border-b border-blue-200 flex items-center gap-2">
-          <span className="material-symbols-outlined text-blue-600">assignment</span>
+          <Icone nom="assignment" className="text-blue-600" />
           <h2 className="text-sm font-extrabold text-blue-900 uppercase tracking-widest">Instructions Pré-opératoires</h2>
         </div>
         <div className="p-4">
@@ -1574,7 +1575,7 @@ function ConsultationCpaPageContent() {
               Conclusion. */}
           <div className="space-y-2">
             <div className="h-full bg-white rounded-xl border border-blue-200 p-4 shadow-sm space-y-2">
-                <h3 className="text-sm font-bold text-blue-800 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">no_food</span> Jeûne</h3>
+                <h3 className="text-sm font-bold text-blue-800 flex items-center gap-2"><Icone nom="no_food" className="text-blue-600" /> Jeûne</h3>
                 <div className="space-y-2"><textarea disabled={!peutEditerExamenEtDecision} value={form.jeune} onChange={setField('jeune')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Instructions spécifiques..."></textarea></div>
                 <div className="bg-blue-50/60 rounded-xl p-4 border-l-4 border-blue-400">
                   <h4 className="text-sm font-bold text-blue-700 flex items-center gap-2 mb-2">Règles de jeûne</h4>
@@ -1602,7 +1603,7 @@ function ConsultationCpaPageContent() {
           <div className={`grid grid-cols-1 md:grid-cols-5 gap-8 items-stretch mt-4 pt-4 border-t border-surface-container ${!peutEditerExamenEtDecision ? 'opacity-80' : ''}`}>
             <div className="md:col-span-2">
               <div className="h-full bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
-              <h3 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-blue-600">pill</span> Prémédication</h3>
+              <h3 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2"><Icone nom="pill" className="text-blue-600" /> Prémédication</h3>
               <div className="overflow-hidden border border-surface-container rounded-xl">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-surface-container text-[10px] uppercase font-bold text-on-surface-variant">
@@ -1614,7 +1615,7 @@ function ConsultationCpaPageContent() {
                         <td className="px-4 py-3 font-semibold">{med.premedication}</td><td className="px-4 py-3">{med.dose}</td><td className="px-4 py-3">{med.voieAdmin}</td><td className="px-4 py-3">{med.debut || '-'}</td><td className="px-4 py-3">{med.frequence || '-'}</td>
                         <td className="px-4 py-3">
                           {peutEditerExamenEtDecision && (
-                            <button onClick={() => supprimerMedicament(i)} className="text-error"><span className="material-symbols-outlined text-sm">delete</span></button>
+                            <button onClick={() => supprimerMedicament(i)} className="text-error"><Icone nom="delete" className="text-sm" /></button>
                           )}
                         </td>
                       </tr>
@@ -1651,7 +1652,7 @@ function ConsultationCpaPageContent() {
             <div className="md:col-span-3">
               <div className="h-full flex flex-col rounded-2xl border-2 border-indigo-300 shadow-lg shadow-indigo-500/20 overflow-hidden bg-white">
                 <div className="px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>medication</span>
+                  <Icone nom="medication" className="text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }} />
                   <h3 className="text-sm font-extrabold text-white uppercase tracking-widest">Médicaments d'anesthésie et de réanimation</h3>
                 </div>
                 <div className="p-5 flex-1 flex flex-col">
@@ -1664,7 +1665,7 @@ function ConsultationCpaPageContent() {
                   <button type="button" onClick={() => peutEditerMedicamentsEtVpa && setShowCatalogueModal(true)} disabled={!peutEditerMedicamentsEtVpa}
                     className="mt-auto w-full flex items-center justify-between gap-3 p-5 bg-indigo-600 text-white rounded-xl font-extrabold shadow-md shadow-indigo-500/30 hover:shadow-lg hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
                     <span className="flex items-center gap-2 text-base">
-                      <span className="material-symbols-outlined text-2xl">checklist</span>
+                      <Icone nom="checklist" className="text-2xl" />
                       Liste des médicaments ({medicamentsSelectionnes.length}/{TOTAL_MEDICAMENTS} sélectionnés)
                     </span>
                     <span className="text-xs font-bold underline underline-offset-2 shrink-0">{peutEditerMedicamentsEtVpa ? 'Ouvrir la liste complète' : 'Voir la liste'}</span>
@@ -1686,7 +1687,7 @@ function ConsultationCpaPageContent() {
           <div id="cpa-decision" className="mt-4 pt-4 border-t border-surface-container scroll-mt-36">
             <div className="rounded-2xl border-2 border-amber-300 bg-gradient-to-b from-amber-50/80 to-white shadow-md overflow-hidden">
               <div className="px-4 py-3 bg-amber-100/70 border-b border-amber-200 flex items-center gap-2">
-                <span className="material-symbols-outlined text-amber-600">gavel</span>
+                <Icone nom="gavel" className="text-amber-600" />
                 <h2 className="text-sm font-extrabold text-amber-900 uppercase tracking-widest">Décision Finale</h2>
                 <span className="ml-auto px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase rounded-full">Obligatoire</span>
               </div>
@@ -1698,7 +1699,7 @@ function ConsultationCpaPageContent() {
                 )}
                 {estUrgent && (
                   <p className="text-[11px] text-red-700 font-semibold mb-2 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">bolt</span>
+                    <Icone nom="bolt" className="text-sm" />
                     Patient urgent — pas de report possible : apte (à opérer directement) ou inapte.
                   </p>
                 )}
@@ -1717,7 +1718,7 @@ function ConsultationCpaPageContent() {
                       className={`w-full flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
                         decision === opt.key ? opt.activeClass + ' scale-[1.02]' : 'border-outline-variant bg-white text-on-surface-variant hover:border-amber-300 hover:bg-amber-50'
                       }`}>
-                      <span className="material-symbols-outlined text-2xl" style={decision === opt.key ? { fontVariationSettings: "'FILL' 1" } : undefined}>{opt.icon}</span>
+                      <Icone nom={opt.icon} className="text-2xl" style={decision === opt.key ? { fontVariationSettings: "'FILL' 1" } : undefined} />
                       <span className="font-bold text-sm text-center">{opt.label}</span>
                       {opt.sousLabel && <span className="text-[10px] font-medium text-center leading-tight text-on-surface-variant/70">{opt.sousLabel}</span>}
                     </button>
@@ -1746,7 +1747,7 @@ function ConsultationCpaPageContent() {
                           className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 text-sm font-bold transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
                             decisionOperation === opt.key ? opt.activeClass : 'border-outline-variant bg-white text-on-surface-variant hover:border-amber-300 hover:bg-amber-50'
                           }`}>
-                          <span className="material-symbols-outlined text-lg">{opt.icon}</span>
+                          <Icone nom={opt.icon} className="text-lg" />
                           {opt.label}
                         </button>
                       ))}
@@ -1798,10 +1799,10 @@ function ConsultationCpaPageContent() {
             <div className="mt-3 rounded-2xl border border-outline-variant/40 bg-white overflow-hidden">
               <button type="button" onClick={() => setOngletHistorique(v => !v)}
                 className="w-full px-4 py-3 flex items-center gap-2 text-left hover:bg-surface-container-low transition-colors">
-                <span className="material-symbols-outlined text-on-surface-variant">history</span>
+                <Icone nom="history" className="text-on-surface-variant" />
                 <span className="text-sm font-bold text-on-surface">Historique des CPA précédentes</span>
                 <span className="ml-1 px-2 py-0.5 bg-surface-container text-on-surface-variant text-[10px] font-extrabold rounded-full">{historiqueCpa.length}</span>
-                <span className="material-symbols-outlined ml-auto text-on-surface-variant">{ongletHistorique ? 'expand_less' : 'expand_more'}</span>
+                <Icone nom={ongletHistorique ? 'expand_less' : 'expand_more'} className="ml-auto text-on-surface-variant" />
               </button>
               {ongletHistorique && (
                 <div className="px-4 pb-4 space-y-2">
@@ -1848,20 +1849,20 @@ function ConsultationCpaPageContent() {
               "appareil" : la fiche ne part jamais vers quelqu'un à proximité). */}
           <div className="mt-4 pt-4 border-t border-surface-container">
             <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-wide mb-2 flex items-center gap-2">
-              <span className="material-symbols-outlined text-base">ios_share</span> Exporter / Partager la fiche CPA
+              <Icone nom="ios_share" className="text-base" /> Exporter / Partager la fiche CPA
             </h3>
             <div className="flex flex-wrap gap-2 items-center">
               <button type="button" onClick={handleTelechargerPdf} disabled={exportEnCours}
                 className="flex items-center gap-2 px-4 py-2 bg-surface-container-low text-on-surface rounded-lg text-xs font-bold hover:bg-surface-container transition-colors disabled:opacity-50">
-                <span className="material-symbols-outlined text-base">picture_as_pdf</span> Télécharger en PDF
+                <Icone nom="picture_as_pdf" className="text-base" /> Télécharger en PDF
               </button>
               <button type="button" onClick={handlePartagerWhatsApp} disabled={exportEnCours}
                 className="flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-lg text-xs font-bold hover:opacity-90 transition-colors disabled:opacity-50">
-                <span className="material-symbols-outlined text-base">chat</span> WhatsApp
+                <Icone nom="chat" className="text-base" /> WhatsApp
               </button>
               <button type="button" onClick={handlePartagerEmail} disabled={exportEnCours}
                 className="flex items-center gap-2 px-4 py-2 bg-on-surface-variant text-white rounded-lg text-xs font-bold hover:opacity-90 transition-colors disabled:opacity-50">
-                <span className="material-symbols-outlined text-base">mail</span> Email
+                <Icone nom="mail" className="text-base" /> Email
               </button>
               <button type="button" onClick={ouvrirModaleDestinataire}
                 className="text-xs font-bold text-primary underline underline-offset-2 hover:text-primary/80 transition-colors">

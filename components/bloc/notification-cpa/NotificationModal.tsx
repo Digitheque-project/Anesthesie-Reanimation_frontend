@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { libelleUrgence, niveauUrgenceNotification } from '@/lib/urgence';
 import { formaterNomPatient } from '@/lib/patient';
 import { estPatientTraite } from '@/lib/notifications/patient-traite';
+import { Icone } from '@/components/ui/Icone';
 
 interface NotificationModalProps {
   isOpen: boolean;
@@ -156,7 +157,7 @@ export default function NotificationModal({
         {/* En-tête */}
         <div className="bg-gradient-to-r from-primary to-primary-dark px-5 py-3.5 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-white text-xl">notifications</span>
+            <Icone nom="notifications" className="text-white text-xl" />
             <h3 className="text-white font-bold text-base">
               Notifications
               {unreadCount > 0 && (
@@ -171,7 +172,7 @@ export default function NotificationModal({
               onClick={handleMarkAllAsRead}
               className="text-white/90 hover:text-white transition-colors text-xs font-bold flex items-center gap-1"
             >
-              <span className="material-symbols-outlined text-sm">done_all</span>
+              <Icone nom="done_all" className="text-sm" />
               Tout lire
             </button>
           )}
@@ -181,12 +182,12 @@ export default function NotificationModal({
         <div className="max-h-[70vh] overflow-y-auto">
           {aucuneNotification ? (
             <div className="px-6 py-10 text-center">
-              <span className="material-symbols-outlined text-gray-300 text-4xl">notifications_off</span>
+              <Icone nom="notifications_off" className="text-gray-300 text-4xl" />
               <p className="text-sm font-semibold text-gray-500 mt-2">Aucune notification</p>
             </div>
           ) : allRead ? (
             <div className="px-6 py-10 text-center">
-              <span className="material-symbols-outlined text-green-500 text-4xl">check_circle</span>
+              <Icone nom="check_circle" className="text-green-500 text-4xl" />
               <p className="text-sm font-bold text-green-700 mt-2">Toutes les notifications sont lues</p>
             </div>
           ) : (
@@ -201,7 +202,7 @@ export default function NotificationModal({
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${config.iconWrapClass}`}>
-                      <span className="material-symbols-outlined text-lg">{config.icon}</span>
+                      <Icone nom={config.icon} className="text-lg" />
                     </div>
                     <div className="flex-1 flex flex-wrap items-center justify-between gap-2">
                       <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold">
@@ -244,7 +245,7 @@ export default function NotificationModal({
                   </div>
 
                   <div className="mb-3 bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-blue-600">event</span>
+                    <Icone nom="event" className="text-blue-600" />
                     <div>
                       <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Date et heure prévues de l'opération</p>
                       <p className="text-sm font-bold text-gray-800">
@@ -272,7 +273,7 @@ export default function NotificationModal({
                     onClick={() => handleVoirPrescription(notification)}
                     className="w-full py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800"
                   >
-                    <span className="material-symbols-outlined text-lg">description</span>
+                    <Icone nom="description" className="text-lg" />
                     Voir prescription
                   </button>
                 </div>

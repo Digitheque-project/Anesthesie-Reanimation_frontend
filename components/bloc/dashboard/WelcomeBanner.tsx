@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 'use client'
 
 interface WelcomeBannerProps {
@@ -14,12 +15,12 @@ export default function WelcomeBanner({ nom, role }: WelcomeBannerProps) {
   return (
     <div className="bg-primary-container/10 border-l-4 border-primary p-6 rounded-r-xl flex items-center gap-4">
       <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-        <span className="material-symbols-outlined text-primary text-2xl">group</span>
+        <Icone nom="group" className="text-primary text-2xl" />
       </div>
       <div>
         <h1 className="text-2xl font-extrabold text-on-surface tracking-tight">Bonjour, {nom || 'Utilisateur'}</h1>
         <p className="text-sm font-medium text-on-surface-variant flex items-center gap-2">
-          <span className="material-symbols-outlined text-xs">calendar_month</span>
+          <Icone nom="calendar_month" className="text-xs" />
           {dateDuJour()} — {role || 'Rôle inconnu'}
         </p>
       </div>

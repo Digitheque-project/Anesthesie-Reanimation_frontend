@@ -2,6 +2,7 @@
 
 import { FiltresPatient } from "@/types/bloc";
 import { useState } from "react";
+import { Icone } from '@/components/ui/Icone';
 
 interface PatientFiltersNonOpProps {
   onFilterChange: (filtres: FiltresPatient) => void;
@@ -32,9 +33,7 @@ export default function PatientFiltersNonOp({ onFilterChange, date, onDateChange
             Date du programme
           </label>
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-outline-variant/20 shadow-sm min-w-[200px]">
-            <span className="material-symbols-outlined text-primary text-xl">
-              calendar_month
-            </span>
+            <Icone nom="calendar_month" className="text-primary text-xl" />
             <input
               type="date"
               value={date}
@@ -103,7 +102,7 @@ export default function PatientFiltersNonOp({ onFilterChange, date, onDateChange
 
       {/* Recherche par nom/prénom */}
       <div className="relative">
-        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+        <Icone nom="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg" />
         <input
           type="text"
           value={filtres.recherche}

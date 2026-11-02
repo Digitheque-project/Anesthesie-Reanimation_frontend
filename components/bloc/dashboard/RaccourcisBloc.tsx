@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icone } from '@/components/ui/Icone';
 
 interface Raccourci {
   icon: string;
@@ -45,7 +46,7 @@ export default function RaccourcisBloc() {
           href={item.href}
           className="bg-white hover:bg-surface-container-low rounded-xl p-5 flex flex-col items-center gap-3 border border-outline-variant/10 shadow-sm transition-all hover:-translate-y-0.5 cursor-pointer"
         >
-          <span className="material-symbols-outlined text-primary text-3xl">{item.icon}</span>
+          <Icone nom={item.icon} className="text-primary text-3xl" />
           <span className="text-xs font-bold text-on-surface-variant text-center uppercase tracking-wide">
             {item.label}
           </span>

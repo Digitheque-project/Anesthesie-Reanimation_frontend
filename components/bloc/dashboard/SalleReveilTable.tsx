@@ -1,4 +1,5 @@
 import { PatientReveil } from "@/types/bloc";
+import { Icone } from '@/components/ui/Icone';
 
 interface SalleReveilTableProps {
   patients: PatientReveil[];
@@ -8,7 +9,7 @@ export default function SalleReveilTable({ patients }: SalleReveilTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary">bed</span>
+        <Icone nom="bed" className="text-primary" />
         <h2 className="font-headline font-bold text-xl text-on-surface">
           Salle de Réveil
         </h2>

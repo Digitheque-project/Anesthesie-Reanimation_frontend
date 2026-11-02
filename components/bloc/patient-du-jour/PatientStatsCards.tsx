@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 interface PatientStatsCardsProps {
   stats: {
     total: number;
@@ -13,9 +14,7 @@ export default function PatientStatsCards({ stats }: PatientStatsCardsProps) {
       {/* Icon and Total */}
       <div className="flex items-center gap-6 border-r border-surface-container pr-8">
         <div className="w-16 h-16 bg-surface-container-low rounded-xl flex items-center justify-center">
-          <span className="material-symbols-outlined text-primary text-3xl">
-            groups
-          </span>
+          <Icone nom="groups" className="text-primary text-3xl" />
         </div>
         <div>
           <p className="text-primary text-[10px] font-bold uppercase tracking-widest">

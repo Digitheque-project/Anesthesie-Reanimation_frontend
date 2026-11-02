@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { ChecklistData } from "./types";
 import Checkbox from "@/components/ui/Checkbox";
 import Radio from "@/components/ui/Radio";
+import { Icone } from '@/components/ui/Icone';
 
 type RadioValue = "oui" | "non" | null;
 
@@ -189,9 +190,7 @@ export default function PhaseAvantIntervention({
     <section className="rounded-xl border-t-4 border-secondary bg-surface-container-low p-6 shadow-sm">
       <div className="mb-2 flex items-center gap-3">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary/10 text-secondary">
-          <span className="material-symbols-outlined text-xl" aria-hidden="true">
-            pause_circle
-          </span>
+          <Icone nom="pause_circle" className="text-xl" aria-hidden="true" />
         </div>
         <h2 className="text-xl font-bold uppercase tracking-wide text-secondary">
           Avant Intervention Chirurgicale

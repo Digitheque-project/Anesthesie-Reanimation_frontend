@@ -17,6 +17,7 @@ import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { useRole } from '@/lib/hooks/useRole'
+import { Icone } from '@/components/ui/Icone'
 
 export default function ActivitePendantOperationPage() {
   return (
@@ -232,7 +233,7 @@ function ActivitePendantOperationPageContent() {
         {/* Section 1: APPORTS */}
         <section className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
           <div className="bg-emerald-50 px-6 py-3 border-b border-emerald-100 flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-600 text-xl">input</span>
+            <Icone nom="input" className="text-emerald-600 text-xl" />
             <h3 className="font-headline font-bold text-emerald-900 uppercase tracking-wide text-sm">Apports (entrées)</h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -244,7 +245,7 @@ function ActivitePendantOperationPageContent() {
         {/* Section 2: SORTIES */}
         <section className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
           <div className="bg-amber-50 px-6 py-3 border-b border-amber-100 flex items-center gap-2">
-            <span className="material-symbols-outlined text-amber-600 text-xl">output</span>
+            <Icone nom="output" className="text-amber-600 text-xl" />
             <h3 className="font-headline font-bold text-amber-900 uppercase tracking-wide text-sm">Sorties</h3>
           </div>
           <div className="p-6"><div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">JOURNAL DES SORTIES</label><textarea className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-4 text-sm focus:ring-2 focus:ring-amber-500 outline-none" rows={4} placeholder="Quantifier et décrire..." value={form.journalSorties} onChange={e => setForm({...form, journalSorties: e.target.value})}></textarea></div></div>
@@ -256,7 +257,7 @@ function ActivitePendantOperationPageContent() {
         {/* Section 4: VENTILATION */}
         <section className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
           <div className="bg-blue-50 px-6 py-3 border-b border-blue-100 flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-600 text-xl">ventilator</span>
+            <Icone nom="ventilator" className="text-blue-600 text-xl" />
             <h3 className="font-headline font-bold text-blue-900 uppercase tracking-wide text-sm">Ventilation</h3>
           </div>
           <div className="p-6"><div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -276,9 +277,7 @@ function ActivitePendantOperationPageContent() {
                     checked={actif}
                     onChange={e => setForm({...form, [item.key]: e.target.checked})}
                   />
-                  <span className={`material-symbols-outlined text-2xl ${actif ? 'text-blue-600' : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                    {actif ? 'check_circle' : item.icone}
-                  </span>
+                  <Icone nom={actif ? 'check_circle' : item.icone} className={`text-2xl ${actif ? 'text-blue-600' : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined} />
                   <span className={`text-xs font-bold uppercase ${actif ? 'text-blue-900' : 'text-on-surface'}`}>{item.label}</span>
                 </label>
               )
@@ -289,7 +288,7 @@ function ActivitePendantOperationPageContent() {
         {/* Section 5: OPTIONS DE VENTILATION */}
         <section className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
           <div className="bg-blue-50 px-6 py-3 border-b border-blue-100 flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-600 text-xl">settings_input_component</span>
+            <Icone nom="settings_input_component" className="text-blue-600 text-xl" />
             <h3 className="font-headline font-bold text-blue-900 uppercase tracking-wide text-sm">Options de ventilation</h3>
           </div>
           <div className="p-6"><div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -310,9 +309,7 @@ function ActivitePendantOperationPageContent() {
                       actif ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-background border-surface-container-highest hover:border-outline-variant'
                     }`}
                   >
-                    <span className={`material-symbols-outlined text-xl ${actif ? 'text-blue-600' : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                      {actif ? 'check_circle' : 'radio_button_unchecked'}
-                    </span>
+                    <Icone nom={actif ? 'check_circle' : 'radio_button_unchecked'} className={`text-xl ${actif ? 'text-blue-600' : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined} />
                     <span className={`text-[11px] font-bold uppercase tracking-wide ${actif ? 'text-blue-900' : 'text-on-surface'}`}>{item.label}</span>
                   </button>
                   {actif && (
@@ -339,7 +336,7 @@ function ActivitePendantOperationPageContent() {
             disabled={loading || !activiteId}
             className="bg-gradient-to-r from-primary to-primary-container text-white px-8 py-4 rounded-xl font-headline font-extrabold shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50"
           >
-            <span className="material-symbols-outlined">save</span>
+            <Icone nom="save" />
             {loading ? 'ENREGISTREMENT...' : 'VALIDER'}
           </button>
         </div>

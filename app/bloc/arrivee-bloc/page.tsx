@@ -11,6 +11,7 @@ import { RoleClinique } from '@/lib/auth/role-clinique'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
 import BackButton from '@/components/bloc/layout/BackButton'
 import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
+import { Icone } from '@/components/ui/Icone'
 
 export default function ArriveeBlocPage() {
   return (
@@ -150,7 +151,7 @@ function ArriveeBlocPageContent() {
         {/* Arrivée / Installation */}
         <section className="bg-white rounded-2xl shadow-md border border-surface-container-highest overflow-hidden">
           <div className="bg-gradient-to-r from-primary to-primary-container px-6 py-4 flex items-center gap-3">
-            <span className="material-symbols-outlined text-white text-2xl">door_front</span>
+            <Icone nom="door_front" className="text-white text-2xl" />
             <div>
               <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">Arrivée au bloc</h3>
               <p className="text-white/80 text-[11px] font-medium">À réaliser avant la check-list avant opération</p>
@@ -169,7 +170,7 @@ function ArriveeBlocPageContent() {
                     confirme ? 'bg-emerald-50 border-emerald-400 text-emerald-700' : 'bg-surface-container-low border-outline-variant hover:border-primary hover:bg-primary-fixed/20'
                   } disabled:cursor-default`}
                 >
-                  <span className="material-symbols-outlined text-2xl">{confirme ? 'check_circle' : 'radio_button_unchecked'}</span>
+                  <Icone nom={confirme ? 'check_circle' : 'radio_button_unchecked'} className="text-2xl" />
                   <span>
                     {label}
                     {confirme && momentsHoraires[label] && (
@@ -188,7 +189,7 @@ function ArriveeBlocPageContent() {
         {/* État du patient à l'arrivée */}
         <section className="bg-white rounded-2xl shadow-md border border-surface-container-highest overflow-hidden">
           <div className="bg-gradient-to-r from-secondary to-secondary/80 px-6 py-4 flex items-center gap-3">
-            <span className="material-symbols-outlined text-white text-2xl">mood</span>
+            <Icone nom="mood" className="text-white text-2xl" />
             <div>
               <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">État du patient à l'arrivée</h3>
               <p className="text-white/80 text-[11px] font-medium">Premier constat clinique en entrant en salle d'opération</p>
@@ -203,9 +204,7 @@ function ArriveeBlocPageContent() {
                   actif ? `${cfg.bg} ${cfg.border} shadow-md scale-[1.03]` : 'bg-background border-surface-container-highest hover:border-outline-variant hover:shadow-sm'
                 }`}>
                   <input className="sr-only" type="radio" name="etatArrivee" checked={actif} disabled={!estAnesthesiste} onChange={() => estAnesthesiste && choisirEtatArrivee(etat)} />
-                  <span className={`material-symbols-outlined text-3xl ${actif ? cfg.icon : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                    {cfg.icone}
-                  </span>
+                  <Icone nom={cfg.icone} className={`text-3xl ${actif ? cfg.icon : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined} />
                   <span className={`text-sm font-extrabold uppercase tracking-widest ${actif ? cfg.texte : 'text-on-surface-variant'}`}>{etat}</span>
                 </label>
               )
@@ -219,7 +218,7 @@ function ArriveeBlocPageContent() {
             className="bg-gradient-to-r from-primary to-primary-container text-white px-8 py-4 rounded-xl font-headline font-extrabold shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
           >
             Continuer vers la check-list
-            <span className="material-symbols-outlined">arrow_forward</span>
+            <Icone nom="arrow_forward" />
           </button>
         </div>
       </div>

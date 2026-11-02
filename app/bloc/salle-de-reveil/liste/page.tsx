@@ -9,6 +9,7 @@ import RoleGate from '@/components/bloc/auth/RoleGate';
 import { RoleClinique } from '@/lib/auth/role-clinique';
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
 import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVenirModal';
+import { Icone } from '@/components/ui/Icone';
 
 interface PatientReveil {
   id: string;
@@ -100,7 +101,7 @@ export default function ListeSalleReveil() {
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setShowProgrammeAVenir(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
-            <span className="material-symbols-outlined text-lg">calendar_month</span>
+            <Icone nom="calendar_month" className="text-lg" />
             Voir le programme à venir
           </button>
           <button

@@ -16,6 +16,7 @@ import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBan
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { libelleAnesthesie } from '@/lib/export/dossier-patient'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
+import { Icone } from '@/components/ui/Icone'
 
 export default function VerificationVeillePage() {
   return (
@@ -319,7 +320,7 @@ function VerificationVeillePageContent() {
 
       {enRetard && (
         <div className="mb-3 p-3 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex items-center gap-2 font-semibold">
-          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <Icone nom="error" className="text-lg text-red-600" />
           La date d&apos;intervention prévue est déjà dépassée sans que cette vérification soit faite — à réaliser dès que possible.
         </div>
       )}
@@ -335,7 +336,7 @@ function VerificationVeillePageContent() {
           de l'onglet...) — jamais appliquée automatiquement, uniquement sur confirmation. */}
       {brouillonTrouve && (
         <div className="mt-3 rounded-xl px-4 py-3 text-sm font-bold flex flex-wrap items-center gap-3 bg-amber-50 text-amber-900 border border-amber-200">
-          <span className="material-symbols-outlined text-lg">restore</span>
+          <Icone nom="restore" className="text-lg" />
           <span className="flex-1 min-w-[220px]">
             Une saisie non enregistrée du {new Date(brouillonTrouve.savedAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} a été retrouvée pour ce patient.
           </span>
@@ -355,7 +356,7 @@ function VerificationVeillePageContent() {
         {/* Vérification de sécurité */}
         <section className="lg:col-span-8 rounded-2xl border-2 border-primary/20 bg-gradient-to-b from-primary-fixed/20 to-white shadow-md overflow-hidden">
           <div className="px-6 py-4 bg-primary/10 border-b border-primary/20 flex items-center gap-3">
-            <span className="material-symbols-outlined text-primary text-2xl">verified_user</span>
+            <Icone nom="verified_user" className="text-primary text-2xl" />
             <h3 className="text-lg font-extrabold text-on-surface uppercase tracking-wide">Vérification de sécurité</h3>
             <span className="ml-auto px-2 py-0.5 bg-primary text-on-primary text-[10px] font-extrabold uppercase rounded-full">Obligatoire</span>
           </div>
@@ -370,7 +371,7 @@ function VerificationVeillePageContent() {
                 <div key={item.key} className="p-5 bg-surface-container-low rounded-xl flex items-center justify-between group hover:bg-surface-container transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded bg-white flex items-center justify-center text-primary shadow-sm">
-                      <span className="material-symbols-outlined">{item.icon}</span>
+                      <Icone nom={item.icon} />
                     </div>
                     <div>
                       <p className="font-bold text-on-surface text-sm">{item.titre}</p>
@@ -392,7 +393,7 @@ function VerificationVeillePageContent() {
         {/* Décision CPA (rappel) */}
         <section className="lg:col-span-4 bg-surface-container-high rounded-xl p-8 flex flex-col shadow-sm border border-outline-variant/30">
           <div className="flex items-center gap-3 mb-6">
-            <span className="material-symbols-outlined text-primary">history_edu</span>
+            <Icone nom="history_edu" className="text-primary" />
             <h3 className="text-lg font-bold text-on-surface">CPA de référence</h3>
           </div>
           {cpa ? (
@@ -419,7 +420,7 @@ function VerificationVeillePageContent() {
         <section className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl p-8 shadow-sm border border-outline-variant/30">
             <div className="flex items-center gap-3 mb-6">
-              <span className="material-symbols-outlined text-primary text-2xl">medication_liquid</span>
+              <Icone nom="medication_liquid" className="text-primary text-2xl" />
               <h3 className="text-lg font-bold text-on-surface">Prémédication</h3>
             </div>
             <div className="space-y-4">
@@ -435,7 +436,7 @@ function VerificationVeillePageContent() {
           </div>
           <div className="bg-white rounded-xl p-8 shadow-sm border border-outline-variant/30 flex flex-col">
             <div className="flex items-center gap-3 mb-6">
-              <span className="material-symbols-outlined text-primary text-2xl">clinical_notes</span>
+              <Icone nom="clinical_notes" className="text-primary text-2xl" />
               <h3 className="text-lg font-bold text-on-surface">Préparation</h3>
             </div>
             <div className="space-y-4 flex-1">
@@ -447,7 +448,7 @@ function VerificationVeillePageContent() {
               <div className="flex flex-col items-start">
                 <label className="text-[9px] uppercase font-bold text-on-surface-variant tracking-widest mb-2">Heure de départ au bloc</label>
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-2xl text-primary">schedule</span>
+                  <Icone nom="schedule" className="text-2xl text-primary" />
                   <input
                     type="time"
                     value={form.heureDepart}
@@ -465,7 +466,7 @@ function VerificationVeillePageContent() {
         {medicamentsAnesthesie.length > 0 && (
           <section className="lg:col-span-12 bg-white rounded-xl p-8 shadow-sm border border-outline-variant/30">
             <div className="flex items-center gap-3 mb-2">
-              <span className="material-symbols-outlined text-primary text-2xl">medication</span>
+              <Icone nom="medication" className="text-primary text-2xl" />
               <h3 className="text-lg font-bold text-on-surface">Médicaments d'anesthésie et de réanimation — re-vérification</h3>
             </div>
             <p className="text-xs text-on-surface-variant mb-5">Liste cochée pendant la CPA. Recochez chaque médicament pour confirmer sa disponibilité la veille de l'opération.</p>
@@ -492,7 +493,7 @@ function VerificationVeillePageContent() {
             rattaché au patient et enregistré avec les informations cochées de la vérification */}
         <section className="lg:col-span-12 bg-white rounded-xl p-8 shadow-sm border border-outline-variant/30">
           <div className="flex items-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-primary text-2xl">assignment</span>
+            <Icone nom="assignment" className="text-primary text-2xl" />
             <h3 className="text-lg font-bold text-on-surface">Autorisation d&apos;anesthésie et d&apos;intervention</h3>
           </div>
           <p className="text-xs text-on-surface-variant mb-5">
@@ -515,7 +516,7 @@ function VerificationVeillePageContent() {
             disabled={uploadEnCours}
             className="w-full border-2 border-dashed border-primary/30 rounded-xl py-8 flex flex-col items-center gap-2 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="material-symbols-outlined text-4xl">upload_file</span>
+            <Icone nom="upload_file" className="text-4xl" />
             <span className="text-sm font-bold">{uploadEnCours ? 'Import en cours...' : 'Cliquez pour importer un ou plusieurs fichiers'}</span>
             <span className="text-[11px] text-on-surface-variant">Texte, PDF, image... 20 Mo maximum par fichier</span>
           </button>
@@ -524,7 +525,7 @@ function VerificationVeillePageContent() {
             <ul className="mt-4 space-y-2">
               {fichiers.map(f => (
                 <li key={f.id} className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low border border-outline-variant/20">
-                  <span className="material-symbols-outlined text-primary text-2xl shrink-0">{iconeFichier(f.mimeType)}</span>
+                  <Icone nom={iconeFichier(f.mimeType)} className="text-primary text-2xl shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-on-surface truncate">{f.nomOriginal}</p>
                     <p className="text-[11px] text-on-surface-variant">
@@ -533,11 +534,11 @@ function VerificationVeillePageContent() {
                   </div>
                   <button type="button" onClick={() => telechargerFichier(f)} title="Ouvrir ou télécharger"
                     className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors">
-                    <span className="material-symbols-outlined">download</span>
+                    <Icone nom="download" />
                   </button>
                   <button type="button" onClick={() => supprimerFichier(f)} title="Supprimer"
                     className="p-2 rounded-lg text-error hover:bg-error/10 transition-colors">
-                    <span className="material-symbols-outlined">delete</span>
+                    <Icone nom="delete" />
                   </button>
                 </li>
               ))}
@@ -557,7 +558,7 @@ function VerificationVeillePageContent() {
               cpaId && !securiteIncomplete ? 'bg-primary text-on-primary hover:bg-primary/90' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
             }`}
           >
-            <span className="material-symbols-outlined font-bold">check_circle</span>
+            <Icone nom="check_circle" className="font-bold" />
             {!cpaId ? 'CPA REQUISE' : securiteIncomplete ? 'VÉRIFICATION INCOMPLÈTE' : loading ? 'VALIDATION...' : 'VALIDER LA VÉRIFICATION'}
           </button>
         </section>

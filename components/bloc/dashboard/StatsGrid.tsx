@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 'use client'
 
 interface StatsGridProps {
@@ -14,7 +15,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div className="bg-white rounded-xl p-5 shadow-sm border border-outline-variant/30 flex items-center gap-4 hover:shadow-md transition-shadow">
         <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-          <span className="material-symbols-outlined text-blue-600 text-2xl">groups</span>
+          <Icone nom="groups" className="text-blue-600 text-2xl" />
         </div>
         <div>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Patients</p>
@@ -24,7 +25,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
 
       <div className="bg-white rounded-xl p-5 shadow-sm border border-outline-variant/30 flex items-center gap-4 hover:shadow-md transition-shadow">
         <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-          <span className="material-symbols-outlined text-green-600 text-2xl">local_hospital</span>
+          <Icone nom="local_hospital" className="text-green-600 text-2xl" />
         </div>
         <div>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Opérations</p>
@@ -34,7 +35,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
 
       <div className="bg-white rounded-xl p-5 shadow-sm border border-outline-variant/30 flex items-center gap-4 hover:shadow-md transition-shadow">
         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-          <span className="material-symbols-outlined text-red-600 text-2xl">warning</span>
+          <Icone nom="warning" className="text-red-600 text-2xl" />
         </div>
         <div>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Urgences</p>
@@ -44,7 +45,7 @@ export default function StatsGrid({ stats }: StatsGridProps) {
 
       <div className="bg-white rounded-xl p-5 shadow-sm border border-outline-variant/30 flex items-center gap-4 hover:shadow-md transition-shadow">
         <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-          <span className="material-symbols-outlined text-purple-600 text-2xl">medical_information</span>
+          <Icone nom="medical_information" className="text-purple-600 text-2xl" />
         </div>
         <div>
           <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Médecins</p>

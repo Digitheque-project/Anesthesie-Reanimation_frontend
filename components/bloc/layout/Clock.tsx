@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Icone } from '@/components/ui/Icone'
 
 // Horloge temps réel (heure + date), affichée en permanence dans la barre supérieure à côté de
 // la cloche de notifications — utile au personnel du bloc, où l'heure exacte compte (CPA,
@@ -32,12 +33,7 @@ export default function Clock() {
       className="hidden sm:flex items-center gap-3 pl-4 pr-5 py-2 rounded-2xl bg-gradient-to-br from-primary to-primary-dark text-white border border-primary/30 shadow-md shadow-primary/25 select-none"
       aria-label={`Heure actuelle : ${heure}`}
     >
-      <span
-        className="material-symbols-outlined text-white/95 text-3xl"
-        style={{ fontVariationSettings: "'FILL' 1" }}
-      >
-        schedule
-      </span>
+      <Icone nom="schedule" className="text-white/95 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }} />
       <div className="flex flex-col gap-0.5 leading-none">
         <span className="text-2xl font-extrabold tabular-nums tracking-tight drop-shadow-sm">
           {heure}

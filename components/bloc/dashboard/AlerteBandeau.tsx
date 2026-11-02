@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Icone } from '@/components/ui/Icone';
 
 export interface PatientTresUrgent {
   id: string;
@@ -31,9 +32,7 @@ export default function AlerteBandeau({ patients }: AlerteBandeauProps) {
   return (
     <div className="border border-red-300 bg-red-50 rounded-xl overflow-hidden">
       <div className="p-4 flex items-center gap-4">
-        <span className="material-symbols-outlined text-red-600 text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-          warning
-        </span>
+        <Icone nom="warning" className="text-red-600 text-2xl" style={{ fontVariationSettings: "'FILL' 1" }} />
         <span className="text-sm font-bold text-red-700 flex-1 uppercase">
           {patients.length} patient{patients.length > 1 ? 's' : ''} TRÈS URGENT en attente de prise en charge
         </span>

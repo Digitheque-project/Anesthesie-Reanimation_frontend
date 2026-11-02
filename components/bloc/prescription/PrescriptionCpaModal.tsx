@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import PrescriptionModule from '@/features/prescription/PrescriptionModule'
 import type { ServiceDestOverride } from '@/features/prescription/contexts/PrescriptionPanierContext'
+import { Icone } from '@/components/ui/Icone'
 
 interface PrescriptionCpaModalProps {
   open: boolean
@@ -38,7 +39,7 @@ export default function PrescriptionCpaModal({ open, onClose, patientId, service
         <div className="flex items-center justify-between p-5 bg-gradient-to-r from-primary to-secondary shrink-0">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white">
-              <span className="material-symbols-outlined text-2xl">clinical_notes</span>
+              <Icone nom="clinical_notes" className="text-2xl" />
             </span>
             <div>
               <h3 className="text-lg font-extrabold text-white">Prescrire pendant la CPA</h3>
@@ -48,7 +49,7 @@ export default function PrescriptionCpaModal({ open, onClose, patientId, service
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg text-white hover:bg-white/20 transition-colors" aria-label="Fermer">
-            <span className="material-symbols-outlined">close</span>
+            <Icone nom="close" />
           </button>
         </div>
 

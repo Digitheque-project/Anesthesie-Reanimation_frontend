@@ -18,6 +18,7 @@ import PasserButton from '@/components/bloc/layout/PasserButton'
 import InstructionsPostOpForm, { DEFAULT_INSTRUCTIONS_POST_OP, InstructionsPostOpData, depuisProtocole, versPayloadProtocole } from '@/components/bloc/protocole/InstructionsPostOpForm'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
+import { Icone } from '@/components/ui/Icone'
 
 // Page du protocole anesthésique : compte-rendu libre de l'anesthésiste + Instructions
 // Post-Opératoires (surveillance, drainages, prescriptions). Ouverte juste après validation de la
@@ -224,7 +225,7 @@ function ProtocoleAnesthesiquePageContent() {
         <section className="w-full lg:flex-1 lg:min-w-0 bg-white rounded-xl shadow-sm ring-1 ring-black/5 p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-extrabold text-on-surface tracking-tight flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-xl">clinical_notes</span>
+              <Icone nom="clinical_notes" className="text-primary text-xl" />
               Protocole Anesthésique
             </h2>
             <span className="bg-secondary-container text-on-secondary-container px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Édition Libre</span>
@@ -243,7 +244,7 @@ function ProtocoleAnesthesiquePageContent() {
         {/* Colonne droite : Instructions post-opératoires */}
         <section className="w-full lg:w-[440px] lg:shrink-0 bg-amber-50 border-2 border-amber-200 rounded-xl p-5">
           <h2 className="text-lg font-extrabold text-amber-900 tracking-tight flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined text-amber-600">priority_high</span>
+            <Icone nom="priority_high" className="text-amber-600" />
             Instructions Post-opératoires
           </h2>
           <InstructionsPostOpForm value={instructions} onChange={setInstructions} />
@@ -251,7 +252,7 @@ function ProtocoleAnesthesiquePageContent() {
             <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
               title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
               className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center space-x-3 shadow-lg shadow-primary/20 hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-              <span className="material-symbols-outlined">save</span>
+              <Icone nom="save" />
               <span>{loading ? 'Enregistrement...' : 'Valider et enregistrer'}</span>
             </button>
           </div>

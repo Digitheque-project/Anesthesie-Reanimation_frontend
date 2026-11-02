@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { Icone } from '@/components/ui/Icone'
 
 export interface RecapChamp {
   label: string
@@ -78,7 +79,7 @@ export default function ConfirmationRecapModal({
         <div className="shrink-0 bg-gradient-to-r from-primary to-primary-container px-7 py-6">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/20">
-              <span className="material-symbols-outlined text-white text-2xl">fact_check</span>
+              <Icone nom="fact_check" className="text-white text-2xl" />
             </div>
             <div className="min-w-0">
               <h3 className="text-lg font-extrabold text-white tracking-tight truncate">{titre}</h3>
@@ -95,7 +96,7 @@ export default function ConfirmationRecapModal({
             sectionsRemplies.map((section) => (
               <div key={section.titre} className="rounded-2xl bg-white border border-outline-variant/10 shadow-sm overflow-hidden">
                 <div className="flex items-center gap-2 px-5 py-3 bg-primary-fixed/30 border-b border-outline-variant/10">
-                  {section.icone && <span className="material-symbols-outlined text-primary text-lg">{section.icone}</span>}
+                  {section.icone && <Icone nom={section.icone} className="text-primary text-lg" />}
                   <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-primary">{section.titre}</h4>
                 </div>
                 <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -127,7 +128,7 @@ export default function ConfirmationRecapModal({
             disabled={confirmEnCours}
             className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            <span className="material-symbols-outlined text-lg">{confirmEnCours ? 'progress_activity' : 'check_circle'}</span>
+            <Icone nom={confirmEnCours ? 'progress_activity' : 'check_circle'} className="text-lg" />
             {confirmEnCours ? 'Enregistrement...' : labelConfirmer}
           </button>
         </div>

@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 interface LigneUrgence {
   priorite: 'TRES_URGENT' | 'URGENT' | 'NORMAL'
 }
@@ -38,7 +39,7 @@ export default function EtatGlobalPatients({ sections, loading }: EtatGlobalProp
           <div key={section.titre} className="bg-white rounded-xl shadow-sm border border-outline-variant/10 p-5">
             <div className="flex items-center gap-2 mb-4">
               <span className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.iconWrap}`}>
-                <span className="material-symbols-outlined text-lg">{section.icon}</span>
+                <Icone nom={section.icon} className="text-lg" />
               </span>
               <h4 className={`text-[11px] font-extrabold uppercase tracking-wider ${c.text}`}>{section.titre}</h4>
             </div>

@@ -9,6 +9,7 @@ import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
 import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVenirModal';
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus';
 import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate';
+import { Icone } from '@/components/ui/Icone';
 
 type Onglet = 'CPA' | 'VERIFICATION_VEILLE';
 
@@ -211,7 +212,7 @@ export default function RendezVousPage() {
           ) : (
             <div className="flex items-center gap-2">
               <label className="text-xs font-bold text-on-surface-variant flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-lg">filter_alt</span>
+                <Icone nom="filter_alt" className="text-lg" />
                 Filtrer par date d'intervention
               </label>
               <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
@@ -225,7 +226,7 @@ export default function RendezVousPage() {
           )}
           <button type="button" onClick={() => setShowProgrammeAVenir(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
-            <span className="material-symbols-outlined text-lg">calendar_month</span>
+            <Icone nom="calendar_month" className="text-lg" />
             Voir le programme à venir
           </button>
         </div>
@@ -237,7 +238,7 @@ export default function RendezVousPage() {
           (voir creneauxAvecRetards) — ce bandeau sert surtout à attirer l'attention dessus. */}
       {onglet === 'CPA' && retards.cpaRetard.length > 0 && (
         <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
-          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <Icone nom="error" className="text-lg text-red-600" />
           <span className="flex-1 min-w-[220px] font-semibold">
             {retards.cpaRetard.length} CPA en retard — la date prévue est dépassée{retards.cpaRetard.length > 1 ? ', ces patients restent' : ' — ce patient reste'} affiché{retards.cpaRetard.length > 1 ? 's' : ''} ci-dessous, en tête de liste.
           </span>
@@ -245,7 +246,7 @@ export default function RendezVousPage() {
       )}
       {onglet === 'VERIFICATION_VEILLE' && retards.verificationVeilleRetard.length > 0 && (
         <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
-          <span className="material-symbols-outlined text-lg text-red-600">error</span>
+          <Icone nom="error" className="text-lg text-red-600" />
           <span className="flex-1 min-w-[220px] font-semibold">
             {retards.verificationVeilleRetard.length} vérification{retards.verificationVeilleRetard.length > 1 ? 's' : ''} veille en retard — la date d'intervention prévue est déjà dépassée sans que la vérification soit faite.
           </span>
@@ -256,7 +257,7 @@ export default function RendezVousPage() {
       {onglet === 'CPA' && alerteCpa && alerteCpa.total > 0 && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex flex-wrap items-center justify-between gap-3">
           <span className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">event_available</span>
+            <Icone nom="event_available" className="text-lg" />
             {alerteCpa.total} rendez-vous CPA planifié{alerteCpa.total > 1 ? 's' : ''} à venir
             {alerteCpa.prochaine && ` — le prochain est le ${new Date(alerteCpa.prochaine).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
             {voirTousCpa ? '.' : `. Changez le calendrier ci-dessus pour le voir, ou :`}
@@ -275,7 +276,7 @@ export default function RendezVousPage() {
       {onglet === 'VERIFICATION_VEILLE' && alerteVerif && alerteVerif.total > 0 && (
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex flex-wrap items-center justify-between gap-3">
           <span className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-lg">event_available</span>
+            <Icone nom="event_available" className="text-lg" />
             {alerteVerif.total} vérification{alerteVerif.total > 1 ? 's' : ''} la veille à faire
             {alerteVerif.prochaine && ` — la prochaine est le ${new Date(alerteVerif.prochaine + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
             {voirTousVerif ? '.' : `. Changez le calendrier ci-dessus pour la voir, ou :`}
@@ -313,7 +314,7 @@ export default function RendezVousPage() {
             <span className="text-xs font-bold text-on-surface-variant">{creneauxFiltres.length} résultat{creneauxFiltres.length > 1 ? 's' : ''}</span>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
-                <span className="material-symbols-outlined text-lg">search</span>
+                <Icone nom="search" className="text-lg" />
               </span>
               <input
                 value={recherche}
@@ -379,7 +380,7 @@ export default function RendezVousPage() {
                       <div className="flex flex-wrap gap-1.5">
                         {c.enRetard && (
                           <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
-                            <span className="material-symbols-outlined text-xs">error</span> En retard
+                            <Icone nom="error" className="text-xs" /> En retard
                           </span>
                         )}
                         <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${

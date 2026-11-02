@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { Icone } from '@/components/ui/Icone'
 
 export interface TacheItem {
   label: string
@@ -37,7 +38,7 @@ export default function TacheCard({ icon, titre, count, accent, items, ctaLabel,
       <button onClick={() => router.push(ctaHref)} className="flex items-center justify-between p-4 pb-3 text-left hover:bg-surface-container/30 transition-colors">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full ${c.bg} flex items-center justify-center flex-shrink-0`}>
-            <span className={`material-symbols-outlined text-xl ${c.text}`}>{icon}</span>
+            <Icone nom={icon} className={`text-xl ${c.text}`} />
           </div>
           <h3 className="font-bold text-sm text-on-surface">{titre}</h3>
         </div>
@@ -66,7 +67,7 @@ export default function TacheCard({ icon, titre, count, accent, items, ctaLabel,
                   <span className="flex items-center gap-1.5 flex-shrink-0">
                     {item.urgent && <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-black uppercase">Urgent</span>}
                     <span className="text-on-surface-variant">{item.sublabel}</span>
-                    {item.href && <span className="material-symbols-outlined text-[14px] text-on-surface-variant">chevron_right</span>}
+                    {item.href && <Icone nom="chevron_right" className="text-[14px] text-on-surface-variant" />}
                   </span>
                 </button>
               </li>
@@ -77,7 +78,7 @@ export default function TacheCard({ icon, titre, count, accent, items, ctaLabel,
 
       <button onClick={() => router.push(ctaHref)}
         className={`w-full py-2.5 text-xs font-bold ${c.text} hover:bg-surface-container/50 transition-colors border-t border-outline-variant/10 flex items-center justify-center gap-1`}>
-        {ctaLabel} <span className="material-symbols-outlined text-sm">arrow_forward</span>
+        {ctaLabel} <Icone nom="arrow_forward" className="text-sm" />
       </button>
     </div>
   )

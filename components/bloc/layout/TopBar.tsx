@@ -14,6 +14,7 @@ import { apiClient } from '@/lib/api/client';
 import { estPatientTraite } from '@/lib/notifications/patient-traite';
 import { estEchelleUrgente } from '@/lib/urgence';
 import Clock from '@/components/bloc/layout/Clock';
+import { Icone } from '@/components/ui/Icone';
 
 export default function TopBar() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -202,12 +203,7 @@ export default function TopBar() {
             className="relative flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary/40"
             aria-label="Voir les notifications"
           >
-            <span
-              className={`material-symbols-outlined text-primary text-2xl ${unreadCount > 0 ? 'animate-pulse' : ''}`}
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              {unreadCount > 0 ? 'notifications_active' : 'notifications'}
-            </span>
+            <Icone nom={unreadCount > 0 ? 'notifications_active' : 'notifications'} className={`text-primary text-2xl ${unreadCount > 0 ? 'animate-pulse' : ''}`} style={{ fontVariationSettings: "'FILL' 1" }} />
             {unreadCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center ring-2 ring-white">
                 {unreadCount > 99 ? '99+' : unreadCount}

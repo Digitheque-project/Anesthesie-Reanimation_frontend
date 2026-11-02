@@ -10,6 +10,7 @@ import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire'
 import type { FiltresPatient } from '@/types/bloc'
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus'
 import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate'
+import { Icone } from '@/components/ui/Icone'
 
 // Miroir de app/bloc/patient-du-jour/page.tsx (Programme opératoire) : même mécanique, mêmes
 // statuts (PRET_POUR_BLOC, EN_COURS_OPERATION), mêmes checklists — seule différence, les patients
@@ -114,7 +115,7 @@ export default function ProgrammeNonOperatoirePage() {
         </div>
         <button type="button" onClick={() => setShowProgrammeAVenir(true)}
           className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
-          <span className="material-symbols-outlined text-lg">calendar_month</span>
+          <Icone nom="calendar_month" className="text-lg" />
           Voir le programme à venir
         </button>
       </div>

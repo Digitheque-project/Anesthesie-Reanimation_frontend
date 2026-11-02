@@ -17,6 +17,7 @@ import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
 import SurveillancePanel from '@/components/bloc/surveillance/SurveillancePanel'
 import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
+import { Icone } from '@/components/ui/Icone'
 
 const SERVICES_CLINIQUES = [
   'Médecine Interne', 'Chirurgie', 'Réanimation', 'Soins Intensifs',
@@ -226,7 +227,7 @@ function SalleDeReveilPageContent() {
         <div className="flex flex-col items-end">
           <label className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Heure d'arrivée au bloc</label>
           <div className="flex items-center bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10">
-            <span className="material-symbols-outlined text-sm text-primary mr-1.5">schedule</span>
+            <Icone nom="schedule" className="text-sm text-primary mr-1.5" />
             <input className="bg-transparent border-none p-0 text-sm font-bold text-primary focus:ring-0 w-20" type="time" value={heureArrivee} onChange={e => setHeureArrivee(e.target.value)} />
           </div>
         </div>
@@ -241,7 +242,7 @@ function SalleDeReveilPageContent() {
         {/* État respiratoire */}
         <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
           <div className="bg-gradient-to-r from-primary to-primary-container px-6 py-3 flex items-center gap-3">
-            <span className="material-symbols-outlined text-white text-xl">airline_seat_flat</span>
+            <Icone nom="airline_seat_flat" className="text-white text-xl" />
             <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">État respiratoire / Neuromusculaire</h3>
           </div>
           <div className="p-6">
@@ -273,7 +274,7 @@ function SalleDeReveilPageContent() {
         {/* Douleur */}
         <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
           <div className="bg-gradient-to-r from-secondary to-secondary/80 px-6 py-3 flex items-center gap-3">
-            <span className="material-symbols-outlined text-white text-xl">sentiment_dissatisfied</span>
+            <Icone nom="sentiment_dissatisfied" className="text-white text-xl" />
             <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">Évaluation de la douleur</h3>
           </div>
           <div className="p-6 space-y-4">
@@ -305,7 +306,7 @@ function SalleDeReveilPageContent() {
       <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-white text-xl">monitor_heart</span>
+            <Icone nom="monitor_heart" className="text-white text-xl" />
             <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">Score de réveil (SCCRE)</h3>
           </div>
           <div className="flex flex-col items-end">
@@ -342,7 +343,7 @@ function SalleDeReveilPageContent() {
       {/* Checklist de sortie */}
       <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
         <div className="bg-gradient-to-r from-primary-container to-primary-container/70 px-6 py-3 flex items-center gap-3">
-          <span className="material-symbols-outlined text-on-primary-container text-xl">checklist</span>
+          <Icone nom="checklist" className="text-on-primary-container text-xl" />
           <h3 className="font-headline font-extrabold text-on-primary-container uppercase tracking-wide text-sm">Checklist de sortie</h3>
         </div>
         <div className="p-6 space-y-2">
@@ -366,13 +367,13 @@ function SalleDeReveilPageContent() {
       {/* Décision de sortie + Option de sortie */}
       <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
         <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-3 flex items-center gap-3">
-          <span className="material-symbols-outlined text-white text-xl">door_open</span>
+          <Icone nom="door_open" className="text-white text-xl" />
           <h3 className="font-headline font-extrabold text-white uppercase tracking-wide text-sm">Décision de sortie</h3>
         </div>
         <div className="p-6">
           <button onClick={() => setShowOptionSortie(true)}
             className="px-6 py-2.5 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-all flex items-center gap-2">
-            <span className="material-symbols-outlined">settings</span> Option de sortie
+            <Icone nom="settings" /> Option de sortie
           </button>
           {orientation === 'autres' && serviceChoisi && <p className="mt-2 text-sm font-bold text-primary">Service : {serviceChoisi}</p>}
           {orientation === 'origine' && <p className="mt-2 text-sm font-bold text-emerald-700">Service d'origine</p>}
@@ -421,7 +422,7 @@ function SalleDeReveilPageContent() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
+              <Icone nom="check_circle" className="text-4xl text-green-600" />
             </div>
             <h3 className="text-xl font-extrabold text-on-surface mb-2">Validation terminée !</h3>
             <p className="text-sm text-on-surface-variant mb-6">Toutes les informations ont été enregistrées avec succès.</p>
@@ -441,7 +442,7 @@ function SalleDeReveilPageContent() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-extrabold text-blue-700 mb-1 flex items-center gap-2">
-              <span className="material-symbols-outlined">visibility</span> Vérification de la surveillance
+              <Icone nom="visibility" /> Vérification de la surveillance
             </h3>
             <p className="text-sm text-on-surface-variant mb-6">Relisez la surveillance avant de confirmer la sortie du patient.</p>
 
@@ -520,7 +521,7 @@ function SalleDeReveilPageContent() {
               <button onClick={() => setShowConfirmationRevoir(false)} className="flex-1 py-3 border border-outline-variant/20 rounded-xl text-sm font-bold hover:bg-surface-container-low">Annuler</button>
               <button onClick={handleConfirmerSortie} disabled={envoiEnCours}
                 className="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-base">check_circle</span>
+                <Icone nom="check_circle" className="text-base" />
                 {envoiEnCours ? 'Confirmation...' : 'Confirmer la sortie'}
               </button>
             </div>

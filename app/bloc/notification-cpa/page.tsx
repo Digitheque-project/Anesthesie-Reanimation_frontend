@@ -19,6 +19,7 @@ import { RoleClinique } from '@/lib/auth/role-clinique'
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus'
 import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate'
 import { estPatientTraite } from '@/lib/notifications/patient-traite'
+import { Icone } from '@/components/ui/Icone'
 
 export default function NotificationCPAPage() {
   const [notifications, setNotifications] = useState<any[]>([])
@@ -242,7 +243,7 @@ export default function NotificationCPAPage() {
 
       {erreur && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-          <span className="material-symbols-outlined text-red-600">cloud_off</span>
+          <Icone nom="cloud_off" className="text-red-600" />
           <div className="flex-1">
             <p className="text-sm font-bold text-red-800">Liste des prescriptions indisponible</p>
             <p className="text-xs text-red-700 mt-0.5">

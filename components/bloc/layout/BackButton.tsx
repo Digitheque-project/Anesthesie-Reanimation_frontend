@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Icone } from '@/components/ui/Icone';
 
 interface BackButtonProps {
   /** Par défaut : historique du navigateur (router.back()). Passer une fonction pour une
@@ -20,7 +21,7 @@ export default function BackButton({ onClick, label = 'Retour', className = '' }
       onClick={onClick ?? (() => router.back())}
       className={`inline-flex shrink-0 items-center gap-2 rounded-lg border border-outline-variant/30 bg-white px-4 py-2 text-sm font-bold text-on-surface-variant shadow-sm transition-all hover:bg-surface-container hover:text-primary ${className}`}
     >
-      <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+      <Icone nom="arrow_back" className="text-[20px]" />
       {label}
     </button>
   );

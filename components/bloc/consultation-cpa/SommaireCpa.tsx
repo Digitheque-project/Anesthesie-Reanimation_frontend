@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Icone } from '@/components/ui/Icone';
 
 export interface SommaireSection {
   id: string;
@@ -81,7 +82,7 @@ export default function SommaireCpa() {
                   : 'bg-surface-container text-on-surface-variant hover:bg-primary-fixed/40'
               }`}
             >
-              <span className="material-symbols-outlined text-sm">{s.icon}</span>
+              <Icone nom={s.icon} className="text-sm" />
               {s.label}
             </button>
           );

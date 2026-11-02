@@ -1,6 +1,7 @@
 'use client'
 
 import Checkbox from '@/components/ui/Checkbox'
+import { Icone } from '@/components/ui/Icone'
 
 // Instructions post-opératoires — remplies par l'anesthésiste dans la page Protocole anesthésique
 // (surveillance, drainages, prescriptions), stockées dans l'enregistrement ProtocoleOperatoire
@@ -170,7 +171,7 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
     <div className="space-y-4">
       {/* 1. Surveillance */}
       <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm ring-1 ring-black/5">
-        <div className="flex items-center space-x-2 mb-4"><span className="material-symbols-outlined text-primary text-xl">monitor_heart</span><h3 className="font-headline font-bold uppercase text-xs tracking-widest">1. Surveillance</h3></div>
+        <div className="flex items-center space-x-2 mb-4"><Icone nom="monitor_heart" className="text-primary text-xl" /><h3 className="font-headline font-bold uppercase text-xs tracking-widest">1. Surveillance</h3></div>
         <div className="space-y-2">
           {SURVEILLANCE_ITEMS.map((item) => (
             <label key={item.key} className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
@@ -183,7 +184,7 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
 
       {/* 2. Drainages */}
       <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm ring-1 ring-black/5">
-        <div className="flex items-center space-x-2 mb-4"><span className="material-symbols-outlined text-primary text-xl">water_drop</span><h3 className="font-headline font-bold uppercase text-xs tracking-widest">2. Drainages</h3></div>
+        <div className="flex items-center space-x-2 mb-4"><Icone nom="water_drop" className="text-primary text-xl" /><h3 className="font-headline font-bold uppercase text-xs tracking-widest">2. Drainages</h3></div>
         <div className="space-y-2">
           {DRAINAGES_ASPIRATIFS.map((item) => (
             <label key={item.key} className="flex items-center gap-3 py-2 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
@@ -206,7 +207,7 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
 
       {/* 3. Prescription à suivre */}
       <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm ring-1 ring-black/5">
-        <div className="flex items-center space-x-2 mb-4"><span className="material-symbols-outlined text-primary text-xl">prescriptions</span><h3 className="font-headline font-bold uppercase text-xs tracking-widest">3. Prescription à suivre</h3></div>
+        <div className="flex items-center space-x-2 mb-4"><Icone nom="prescriptions" className="text-primary text-xl" /><h3 className="font-headline font-bold uppercase text-xs tracking-widest">3. Prescription à suivre</h3></div>
         <div className="space-y-4">
           <div>
             <h4 className="text-[10px] font-black text-outline uppercase tracking-wider mb-2">Perfusion</h4>
@@ -234,7 +235,7 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
               { placeholder: 'Autres...', key: 'autres' as const, icon: 'more_horiz', color: 'border-l-outline' },
             ].map((item) => (
               <div key={item.key} className={`flex items-center bg-surface-container-low p-3 rounded-lg ${item.color} border-l-4 mb-2`}>
-                <span className="material-symbols-outlined text-outline mr-2 text-sm">{item.icon}</span>
+                <Icone nom={item.icon} className="text-outline mr-2 text-sm" />
                 <input className="bg-transparent border-none text-xs w-full focus:ring-0 placeholder:text-slate-400" placeholder={item.placeholder} type="text"
                   value={value.prescriptions[item.key]} onChange={(e) => onChange({ ...value, prescriptions: { ...value.prescriptions, [item.key]: e.target.value } })} />
               </div>

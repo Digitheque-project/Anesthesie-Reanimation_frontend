@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone';
 'use client';
 
 interface PasserButtonProps {
@@ -28,7 +29,7 @@ export default function PasserButton({ onClick, disabled = false, label = 'Passe
       } ${className}`}
     >
       {label}
-      <span className="material-symbols-outlined text-[20px]">history</span>
+      <Icone nom="history" className="text-[20px]" />
     </button>
   );
 }

@@ -16,6 +16,7 @@ import PasserButton from '@/components/bloc/layout/PasserButton'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import Radio from '@/components/ui/Radio'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
+import { Icone } from '@/components/ui/Icone'
 
 export default function VerificationPostOpPage() {
   return (
@@ -155,7 +156,7 @@ function VerificationPostOpPageContent() {
       <section className="bg-surface-container-low rounded-xl p-6 shadow-sm border-t-4 border-secondary max-w-3xl">
         <div className="flex items-center space-x-3 mb-6">
           <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-secondary">pause_circle</span>
+            <Icone nom="pause_circle" className="text-secondary" />
           </div>
           <h2 className="text-xl font-headline font-bold text-secondary uppercase tracking-wide">Dernière pause d'équipe</h2>
         </div>
@@ -184,7 +185,7 @@ function VerificationPostOpPageContent() {
         <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
           title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
           className="flex items-center space-x-2 px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed">
-          <span className="material-symbols-outlined text-[24px]">check_circle</span>
+          <Icone nom="check_circle" className="text-[24px]" />
           <span>{loading ? 'Validation...' : !estAnesthesiste ? 'Accès non autorisé' : 'Valider la check-list'}</span>
         </button>
       </div>

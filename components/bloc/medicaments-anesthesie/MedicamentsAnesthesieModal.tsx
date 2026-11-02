@@ -6,6 +6,7 @@ import MedicamentTable, { MedicamentRow } from "./MedicamentTable";
 import { CATALOGUE_MEDICAMENTS, CategorieMedicament } from "@/lib/data/catalogue-medicaments-anesthesie";
 import { trouverArticlePharmacie } from "@/lib/data/rapprochement-pharmacie";
 import { pharmacieService, type ArticlePharmacie } from "@/lib/api/pharmacie.service";
+import { Icone } from '@/components/ui/Icone';
 
 // Construit l'état initial (tout décoché) du catalogue complet, à plat, un id stable par
 // article (`categorie::libellé`) pour que la sélection survive aux re-rendus.
@@ -100,7 +101,7 @@ export default function MedicamentsAnesthesieModal({
         <div className="flex items-center justify-between p-6 bg-gradient-to-r from-primary to-secondary">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20 text-white">
-              <span className="material-symbols-outlined text-2xl">medication_liquid</span>
+              <Icone nom="medication_liquid" className="text-2xl" />
             </span>
             <div>
               <h3 className="text-lg font-extrabold text-white">Médicaments d'anesthésie et de réanimation</h3>
@@ -108,7 +109,7 @@ export default function MedicamentsAnesthesieModal({
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-lg text-white hover:bg-white/20 transition-colors" aria-label="Fermer">
-            <span className="material-symbols-outlined">close</span>
+            <Icone nom="close" />
           </button>
         </div>
 
@@ -119,7 +120,7 @@ export default function MedicamentsAnesthesieModal({
         <div className="overflow-y-auto p-6 space-y-4 bg-surface-container-lowest/40">
           {catalogueIndisponible && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              <span className="material-symbols-outlined text-amber-600">warning</span>
+              <Icone nom="warning" className="text-amber-600" />
               <div>
                 <p className="font-bold">Catalogue des prix Pharmacie indisponible</p>
                 <p className="text-xs mt-0.5">
@@ -151,7 +152,7 @@ export default function MedicamentsAnesthesieModal({
 
         <div className="flex justify-end gap-3 p-6 border-t border-outline-variant/20">
           <button onClick={onClose} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all">
-            <span className="material-symbols-outlined text-lg">check</span>
+            <Icone nom="check" className="text-lg" />
             Fermer
           </button>
         </div>

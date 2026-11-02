@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import DossierPatientModal from '@/components/clinical/dossier-patient/DossierPatientModal'
 import type { TabKey } from '@/components/clinical/dossier-patient/DossierPatientComplet'
+import { Icone } from '@/components/ui/Icone'
 
 type Props = {
   patientId: string | null | undefined
@@ -59,7 +60,7 @@ export default function VoirDossierButton({
           aria-label="Voir le dossier patient à jour"
           className={`inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors ${className}`}
         >
-          <span className="material-symbols-outlined text-lg">folder_shared</span>
+          <Icone nom="folder_shared" className="text-lg" />
         </button>
         {modale}
       </>
@@ -74,7 +75,7 @@ export default function VoirDossierButton({
           onClick={() => setOpen(true)}
           className={`inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline ${className}`}
         >
-          <span className="material-symbols-outlined text-sm">folder_shared</span> Voir dossier
+          <Icone nom="folder_shared" className="text-sm" /> Voir dossier
         </button>
         {modale}
       </>
@@ -89,7 +90,7 @@ export default function VoirDossierButton({
           onClick={() => setOpen(true)}
           className={`inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-sm hover:bg-primary/90 hover:shadow-md active:scale-[0.99] transition-all ${className}`}
         >
-          <span className="material-symbols-outlined text-lg">folder_shared</span> Voir dossier patient
+          <Icone nom="folder_shared" className="text-lg" /> Voir dossier patient
         </button>
         {modale}
       </>
@@ -103,7 +104,7 @@ export default function VoirDossierButton({
         onClick={() => setOpen(true)}
         className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-colors ${className}`}
       >
-        <span className="material-symbols-outlined text-base">folder_shared</span> Voir dossier patient
+        <Icone nom="folder_shared" className="text-base" /> Voir dossier patient
       </button>
       {modale}
     </>

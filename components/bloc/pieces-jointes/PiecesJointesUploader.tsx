@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { envoyerFichier, recupererFichier, supprimerFichier, isUploadApiConfigured } from '@/lib/clinical/upload-api'
+import { Icone } from '@/components/ui/Icone'
 
 export interface PieceJointe {
   label: string
@@ -97,7 +98,7 @@ export default function PiecesJointesUploader({ value, onChange, disabled }: Pro
         <ul className="space-y-1.5">
           {value.map((pj) => (
             <li key={pj.nomFichier} className="flex items-center gap-2 bg-surface-container-low rounded-lg px-3 py-2 text-sm">
-              <span className="material-symbols-outlined text-primary text-lg">description</span>
+              <Icone nom="description" className="text-primary text-lg" />
               <span className="flex-1 font-medium truncate">{pj.label}</span>
               <button type="button" disabled={!!actionEnCours} onClick={() => voir(pj)} className="text-xs font-bold text-primary hover:underline disabled:opacity-50">
                 {actionEnCours === pj.nomFichier ? '...' : 'Voir'}
@@ -118,7 +119,7 @@ export default function PiecesJointesUploader({ value, onChange, disabled }: Pro
             className="flex-1 bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm" />
           <button type="button" onClick={declencherSelection} disabled={envoiEnCours}
             className="flex items-center gap-1.5 px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 disabled:opacity-50">
-            <span className="material-symbols-outlined text-base">attach_file</span>
+            <Icone nom="attach_file" className="text-base" />
             {envoiEnCours ? 'Envoi...' : 'Joindre'}
           </button>
           <input ref={inputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={gererSelection} />

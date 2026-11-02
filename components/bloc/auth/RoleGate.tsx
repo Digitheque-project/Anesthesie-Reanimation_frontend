@@ -3,6 +3,7 @@
 import { ReactNode } from 'react'
 import { obtenirSessionValide } from '@/lib/auth/central-session'
 import { RoleClinique, matchRoleClinique } from '@/lib/auth/role-clinique'
+import { Icone } from '@/components/ui/Icone'
 
 interface RoleGateProps {
   allowedRoles: RoleClinique[]
@@ -26,7 +27,7 @@ export default function RoleGate({ allowedRoles, message, children }: RoleGatePr
   return (
     <main className="p-4">
       <div className="max-w-lg mx-auto mt-16 bg-white rounded-xl border shadow-sm p-8 text-center">
-        <span className="material-symbols-outlined text-5xl text-amber-500 mb-3 block">block</span>
+        <Icone nom="block" className="text-5xl text-amber-500 mb-3 block" />
         <h1 className="text-xl font-extrabold text-on-surface mb-2">Accès non autorisé</h1>
         <p className="text-sm text-on-surface-variant">
           {message || "Cette page n'est pas accessible pour votre rôle."}

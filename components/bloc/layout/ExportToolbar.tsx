@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Icone } from '@/components/ui/Icone'
 
 type ExportToolbarProps = {
   onImprimer: () => void
@@ -33,20 +34,20 @@ export default function ExportToolbar({ onImprimer, onCSV, onExcel, onPDF, class
     <div className={`flex flex-wrap items-center gap-2 print:hidden ${className}`}>
       <button onClick={onImprimer}
         className="flex items-center gap-1.5 px-3 py-2 bg-white border border-outline-variant/30 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all shadow-sm">
-        <span className="material-symbols-outlined text-base">print</span> Imprimer
+        <Icone nom="print" className="text-base" /> Imprimer
       </button>
       <button onClick={onCSV}
         className="flex items-center gap-1.5 px-3 py-2 bg-white border border-emerald-200 rounded-lg text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition-all shadow-sm">
-        <span className="material-symbols-outlined text-base">csv</span> CSV
+        <Icone nom="csv" className="text-base" /> CSV
       </button>
       <button onClick={() => lancer('excel', onExcel)} disabled={enCours !== null}
         className="flex items-center gap-1.5 px-3 py-2 bg-white border border-green-200 rounded-lg text-xs font-bold text-green-700 hover:bg-green-50 transition-all shadow-sm disabled:opacity-50">
-        <span className="material-symbols-outlined text-base">{enCours === 'excel' ? 'progress_activity' : 'table_view'}</span>
+        <Icone nom={enCours === 'excel' ? 'progress_activity' : 'table_view'} className="text-base" />
         {enCours === 'excel' ? 'Génération...' : 'Excel'}
       </button>
       <button onClick={() => lancer('pdf', onPDF)} disabled={enCours !== null}
         className="flex items-center gap-1.5 px-3 py-2 bg-white border border-red-200 rounded-lg text-xs font-bold text-red-700 hover:bg-red-50 transition-all shadow-sm disabled:opacity-50">
-        <span className="material-symbols-outlined text-base">{enCours === 'pdf' ? 'progress_activity' : 'picture_as_pdf'}</span>
+        <Icone nom={enCours === 'pdf' ? 'progress_activity' : 'picture_as_pdf'} className="text-base" />
         {enCours === 'pdf' ? 'Génération...' : 'PDF'}
       </button>
     </div>

@@ -10,6 +10,7 @@ import { obtenirSessionValide } from '@/lib/auth/central-session'
 import ExportToolbar from '@/components/bloc/layout/ExportToolbar'
 import { exporterCSV, exporterExcel, exporterPDF, imprimerSection, Colonne } from '@/lib/export/export'
 import { libelleUrgence, styleUrgence } from '@/lib/urgence'
+import { Icone } from '@/components/ui/Icone'
 
 const fmtDate = (v: any) => (v ? new Date(v).toLocaleDateString('fr-FR') : '—')
 
@@ -184,7 +185,7 @@ export default function RapportsPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-on-surface mb-1 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-3xl">monitoring</span>
+            <Icone nom="monitoring" className="text-primary text-3xl" />
             Rapports d'activité du Service Anesthésie-Réanimation
           </h1>
           <p className="text-sm text-on-surface-variant">Statistiques, activité par personnel et détail des interventions</p>
@@ -194,7 +195,7 @@ export default function RapportsPage() {
 
       {erreurChargement && !loading && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3 text-sm text-red-800 print:hidden">
-          <span className="material-symbols-outlined">error</span>
+          <Icone nom="error" />
           <span>Le tableau de bord n'a pas pu être chargé (erreur technique) — ce n'est pas forcément qu'il n'y a aucune activité. Réessayez ou contactez le support si le problème persiste.</span>
           <button onClick={() => charger()} className="ml-auto px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg">Réessayer</button>
         </div>
@@ -211,7 +212,7 @@ export default function RapportsPage() {
           <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)} className="bg-surface-container-low border-none rounded-lg p-2 text-sm" />
         </div>
         <button onClick={() => charger()} className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
-          <span className="material-symbols-outlined text-lg">filter_alt</span> Appliquer
+          <Icone nom="filter_alt" className="text-lg" /> Appliquer
         </button>
         {(dateDebut || dateFin) && (
           <button onClick={() => { setDateDebut(''); setDateFin(''); charger('', '') }} className="text-xs font-bold text-on-surface-variant hover:text-primary underline">
@@ -241,7 +242,7 @@ export default function RapportsPage() {
           moments par opération, pas de "100%" qui aurait un sens). */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
         <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-widest mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">task_alt</span> Tâches accomplies dans le bloc
+          <Icone nom="task_alt" className="text-primary" /> Tâches accomplies dans le bloc
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
           <TacheProgress label="Check-lists Sign In" val={taches.checklistsAvantOp} total={Number(stats.totalOperations) || 0} icone="checklist" couleur="blue" />
@@ -259,7 +260,7 @@ export default function RapportsPage() {
         {/* Décisions CPA */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-amber-600">gavel</span> Décisions CPA
+            <Icone nom="gavel" className="text-amber-600" /> Décisions CPA
           </h3>
           {decisionsCPAGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={220}>
@@ -278,7 +279,7 @@ export default function RapportsPage() {
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h3 className="text-sm font-bold flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-              <span className="material-symbols-outlined text-emerald-600">show_chart</span> Évolution des opérations
+              <Icone nom="show_chart" className="text-emerald-600" /> Évolution des opérations
             </h3>
             <div className="flex bg-surface-container-low rounded-lg p-0.5 print:hidden">
               {GRANULARITES.map(g => (
@@ -311,7 +312,7 @@ export default function RapportsPage() {
         {/* Types de chirurgie */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-violet-600">biotech</span> Types de chirurgie
+            <Icone nom="biotech" className="text-violet-600" /> Types de chirurgie
           </h3>
           {typesChirurgieGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={260}>
@@ -331,7 +332,7 @@ export default function RapportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-blue-600">pie_chart</span> Patients par statut
+            <Icone nom="pie_chart" className="text-blue-600" /> Patients par statut
           </h3>
           {patientsParStatutGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={240}>
@@ -347,7 +348,7 @@ export default function RapportsPage() {
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-red-600">emergency</span> Urgences par niveau (patients actifs)
+            <Icone nom="emergency" className="text-red-600" /> Urgences par niveau (patients actifs)
           </h3>
           {urgencesParNiveauGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={240}>
@@ -366,7 +367,7 @@ export default function RapportsPage() {
       {/* Vue d'ensemble — volume total d'activité par rôle, avant le détail par personnel */}
       <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
         <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-          <span className="material-symbols-outlined text-primary">groups_2</span> Vue d'ensemble — activité de tous les personnels
+          <Icone nom="groups_2" className="text-primary" /> Vue d'ensemble — activité de tous les personnels
         </h3>
         {vueEnsembleGraph.every(v => v.value === 0) ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
           <ResponsiveContainer width="100%" height={240}>
@@ -387,7 +388,7 @@ export default function RapportsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-secondary">medical_services</span> Activité par anesthésiste
+            <Icone nom="medical_services" className="text-secondary" /> Activité par anesthésiste
           </h3>
           {activiteAnesthesistesGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={260}>
@@ -406,7 +407,7 @@ export default function RapportsPage() {
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-rose-600">king_bed</span> Activité par IBODE
+            <Icone nom="king_bed" className="text-rose-600" /> Activité par IBODE
           </h3>
           {activiteIbodeGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={260}>
@@ -422,7 +423,7 @@ export default function RapportsPage() {
         </div>
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20">
           <h3 className="text-sm font-bold mb-4 flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-amber-600">assignment_ind</span> Activité par Responsable CPA
+            <Icone nom="assignment_ind" className="text-amber-600" /> Activité par Responsable CPA
           </h3>
           {activiteRespoCpaGraph.length === 0 ? <p className="text-xs text-on-surface-variant italic">Aucune donnée.</p> : (
             <ResponsiveContainer width="100%" height={260}>
@@ -442,10 +443,10 @@ export default function RapportsPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
         <div className="p-5 flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/10">
           <h3 className="text-sm font-bold flex items-center gap-2 text-on-surface-variant uppercase tracking-widest">
-            <span className="material-symbols-outlined text-primary">table_rows</span> Détail des opérations ({detailFiltre.length})
+            <Icone nom="table_rows" className="text-primary" /> Détail des opérations ({detailFiltre.length})
           </h3>
           <div className="relative print:hidden">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+            <Icone nom="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" />
             <input value={rechercheDetail} onChange={e => setRechercheDetail(e.target.value)} placeholder="Filtrer (dossier, intervention, personnel...)"
               className="pl-9 pr-4 py-2 bg-surface-container-low rounded-lg text-xs border-none focus:ring-2 focus:ring-primary/20 w-72" />
           </div>
@@ -490,7 +491,7 @@ export default function RapportsPage() {
                     <td className="px-4 py-3">
                       {o.compteRenduDisponible ? (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase text-green-700">
-                          <span className="material-symbols-outlined text-sm">check_circle</span> Disponible
+                          <Icone nom="check_circle" className="text-sm" /> Disponible
                         </span>
                       ) : (
                         <span className="text-[10px] font-bold uppercase text-on-surface-variant/60">—</span>
@@ -524,7 +525,7 @@ function KpiCard({ label, valeur, loading, icone, couleur }: { label: string; va
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-outline-variant/20 flex items-center gap-4 hover:shadow-md transition-shadow">
       <div className={`w-12 h-12 ${c.bg} rounded-full flex items-center justify-center shrink-0`}>
-        <span className={`material-symbols-outlined text-2xl ${c.text}`}>{icone}</span>
+        <Icone nom={icone} className={`text-2xl ${c.text}`} />
       </div>
       <div>
         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wide">{label}</p>
@@ -544,7 +545,7 @@ function TacheCard({ label, val, icone, couleur }: { label: string; val: any; ic
   const c = KPI_COULEUR[couleur] || KPI_COULEUR.blue
   return (
     <div className={`p-4 rounded-xl ${c.bg} flex flex-col items-center text-center gap-1.5`}>
-      <span className={`material-symbols-outlined ${c.text}`}>{icone}</span>
+      <Icone nom={icone} className={`${c.text}`} />
       <span className={`text-xl font-extrabold ${c.text}`}>{val ?? 0}</span>
       <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wide">{label}</span>
     </div>
@@ -561,7 +562,7 @@ function TacheProgress({ label, val, total, icone, couleur }: { label: string; v
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl bg-surface-container-lowest">
       <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}>
-        <span className={`material-symbols-outlined ${c.text}`}>{icone}</span>
+        <Icone nom={icone} className={`${c.text}`} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1.5">

@@ -9,6 +9,7 @@ import { effacerSession, redirigerVersLogin } from "@/lib/auth/central-session";
 import { useRole } from "@/lib/hooks/useRole";
 import { RoleClinique } from "@/lib/auth/role-clinique";
 import { planningService } from "@/lib/api";
+import { Icone } from '@/components/ui/Icone';
 
 type NavItemColore = NavItem & { couleur: { bg: string; texte: string }; rolesExclus?: RoleClinique[] };
 
@@ -92,9 +93,7 @@ export default function Sidebar() {
               }`}
             >
               <span className={`relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.couleur.bg} ${item.couleur.texte} group-hover:scale-110 transition-transform`}>
-                <span className="material-symbols-outlined text-[19px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}>
-                  {item.icon}
-                </span>
+                <Icone nom={item.icon} className="text-[19px]" style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined} />
                 {item.href === '/bloc/rendez-vous' && retards > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-extrabold text-white ring-2 ring-[#1675F5]">
                     {retards > 99 ? '99+' : retards}
@@ -113,7 +112,7 @@ export default function Sidebar() {
           className="w-full flex items-center gap-3 px-4 py-2 text-white/90 hover:text-red-200 transition-all group"
           onClick={() => { effacerSession(); redirigerVersLogin(); }}
         >
-          <span className="material-symbols-outlined text-[20px]">logout</span>
+          <Icone nom="logout" className="text-[20px]" />
           <span className="text-xs font-medium">Déconnexion</span>
         </button>
       </div>

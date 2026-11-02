@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { libelleUrgence, styleUrgence } from '@/lib/urgence'
+import { Icone } from '@/components/ui/Icone'
 
 export interface LignePlanning {
   priorite: 'TRES_URGENT' | 'URGENT' | 'NORMAL'
@@ -39,7 +40,7 @@ export default function GroupePlanningTable({ icon, titre, accent, lignes, loadi
     <div className="bg-white rounded-xl shadow-sm border border-outline-variant/10 overflow-hidden">
       <div className={`${c.headerBg} px-6 py-3 border-b border-outline-variant/10 flex items-center justify-between`}>
         <div className="flex items-center gap-2">
-          <span className={`material-symbols-outlined ${c.text}`}>{icon}</span>
+          <Icone nom={icon} className={`${c.text}`} />
           <h3 className={`font-bold ${c.text} text-sm uppercase tracking-widest`}>{titre}</h3>
         </div>
         {loading ? (

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { libelleUrgence, styleUrgence, niveauUrgenceNotification } from '@/lib/urgence'
 import { formaterNomPatient } from '@/lib/patient'
+import { Icone } from '@/components/ui/Icone'
 
 interface TableauNotificationsProps {
   notifications: any[]
@@ -72,7 +73,7 @@ export default function TableauNotifications({
                   <td className="px-4 py-3">
                     {formatDateIntervention(n) ? (
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
-                        <span className="material-symbols-outlined text-sm">event</span>
+                        <Icone nom="event" className="text-sm" />
                         {formatDateIntervention(n)}
                       </span>
                     ) : (

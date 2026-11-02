@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api/client'
 import { useOperationRealtime } from '@/lib/hooks/useOperationRealtime'
 import { useRole } from '@/lib/hooks/useRole'
 import type { CategorieMoment } from '@/lib/data/catalogue-moments-operatoires'
+import { Icone } from '@/components/ui/Icone'
 
 // Séparation stricte par rôle — miroir de MomentsOperatoireService côté backend. Pendant
 // l'opération, l'IBODE n'a aucune interface propre : tous les boutons (toutes catégories) sont
@@ -178,7 +179,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
   return (
     <section className="bg-surface-container-lowest rounded-2xl p-5 shadow-sm space-y-5 h-full min-h-0 flex flex-col overflow-y-auto">
       <h2 className="text-lg font-bold font-headline text-primary flex items-center gap-2 shrink-0">
-        <span className="material-symbols-outlined">timeline</span> Chronologie de l'opération
+        <Icone nom="timeline" /> Chronologie de l'opération
       </h2>
 
       {categoriesVisibles.length === 0 && (
@@ -195,7 +196,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
             <div key={categorie}>
               <div className="flex items-center gap-2 mb-2">
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center ${style.puce}`}>
-                  <span className="material-symbols-outlined text-sm">{style.icone}</span>
+                  <Icone nom={style.icone} className="text-sm" />
                 </span>
                 <h3 className={`text-[11px] font-extrabold uppercase tracking-widest ${style.texte}`}>
                   {TITRES_CATEGORIE[categorie]}
@@ -240,7 +241,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
             className="flex-1 bg-white border border-outline-variant/40 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary/30 outline-none"
           />
           <button type="button" onClick={ajouterBouton} disabled={ajoutEnCours} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 hover:shadow-md transition-all disabled:opacity-60">
-            <span className="material-symbols-outlined text-base">add</span> Créer
+            <Icone nom="add" className="text-base" /> Créer
           </button>
         </div>
       )}
@@ -271,7 +272,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
                   <span className="text-xs text-on-surface-variant hidden sm:inline">{m.auteurNom}</span>
                   {!m.annule && (
                     <button type="button" onClick={() => annulerMoment(m.id)} title="Annuler ce moment" className="text-error hover:bg-error/10 rounded-full p-1 transition-colors">
-                      <span className="material-symbols-outlined text-base">undo</span>
+                      <Icone nom="undo" className="text-base" />
                     </button>
                   )}
                 </li>
@@ -284,7 +285,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
       <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2">
         {toasts.map((t) => (
           <div key={t.key} className="bg-on-surface text-surface px-4 py-2 rounded-full shadow-lg flex items-center gap-3 text-sm">
-            <span className="material-symbols-outlined text-base text-emerald-400">check_circle</span>
+            <Icone nom="check_circle" className="text-base text-emerald-400" />
             <span>{t.label} — {t.heureAffichee}</span>
             <button type="button" onClick={() => annulerDepuisToast(t)} className="font-bold underline">Annuler</button>
           </div>

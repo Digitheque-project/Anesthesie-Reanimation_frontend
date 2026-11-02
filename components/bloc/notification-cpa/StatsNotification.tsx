@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 'use client'
 
 interface StatsNotificationProps {
@@ -20,7 +21,7 @@ export default function StatsNotification({ stats }: StatsNotificationProps) {
           <span className="text-3xl font-extrabold text-on-surface font-headline">
             {stats.total}
           </span>
-          <span className="material-symbols-outlined text-on-surface-variant">notifications</span>
+          <Icone nom="notifications" className="text-on-surface-variant" />
         </div>
       </div>
 
@@ -41,7 +42,7 @@ export default function StatsNotification({ stats }: StatsNotificationProps) {
           <span className="text-3xl font-extrabold text-tertiary font-headline">
             {stats.prioriteHaute}
           </span>
-          <span className="material-symbols-outlined text-tertiary">priority_high</span>
+          <Icone nom="priority_high" className="text-tertiary" />
         </div>
       </div>
 
@@ -53,7 +54,7 @@ export default function StatsNotification({ stats }: StatsNotificationProps) {
           <span className="text-3xl font-extrabold text-secondary font-headline">
             {stats.rdvFixes24h}
           </span>
-          <span className="material-symbols-outlined text-secondary">check_circle</span>
+          <Icone nom="check_circle" className="text-secondary" />
         </div>
       </div>
     </div>

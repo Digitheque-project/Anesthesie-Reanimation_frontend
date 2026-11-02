@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { apiClient } from '@/lib/api/client'
 import { useOperationRealtime } from '@/lib/hooks/useOperationRealtime'
 import { useSurveillanceAlarm } from '@/lib/hooks/useSurveillanceAlarm'
+import { Icone } from '@/components/ui/Icone'
 
 type Constante = {
   id: string
@@ -85,7 +86,7 @@ export default function SurveillancePanel({ patientId, activiteId }: { patientId
     <section id="constantes-form" className="bg-white rounded-xl shadow-sm border border-surface-container-highest overflow-hidden">
       <div className="bg-surface-container-low px-6 py-3 border-b border-surface-container-highest flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-secondary text-xl">monitoring</span>
+          <Icone nom="monitoring" className="text-secondary text-xl" />
           <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">Surveillance des constantes</h3>
         </div>
         <div className="flex items-center gap-2">
@@ -112,7 +113,7 @@ export default function SurveillancePanel({ patientId, activiteId }: { patientId
       {alarme.sonne && (
         <div className="bg-red-50 border-b border-red-200 px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm font-bold text-red-700 flex items-center gap-2">
-            <span className="material-symbols-outlined">notifications_active</span>
+            <Icone nom="notifications_active" />
             Surveillance : ajoutez une nouvelle mesure de constantes.
           </p>
           <div className="flex gap-2">
@@ -187,7 +188,7 @@ export default function SurveillancePanel({ patientId, activiteId }: { patientId
             disabled={!activiteId || envoiEnCours}
             className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-bold transition-all shadow-md hover:shadow-lg"
           >
-            <span className="material-symbols-outlined text-lg">add</span>
+            <Icone nom="add" className="text-lg" />
             {envoiEnCours ? 'Enregistrement...' : 'Ajouter une surveillance'}
           </button>
         </div>

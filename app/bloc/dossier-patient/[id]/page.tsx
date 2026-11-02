@@ -13,6 +13,7 @@ import { libelleUrgence, styleUrgence } from '@/lib/urgence'
 import { libelleStatutPatient, styleStatutPatient } from '@/lib/statut'
 import { formaterNomPatient } from '@/lib/patient'
 import BackButton from '@/components/bloc/layout/BackButton'
+import { Icone } from '@/components/ui/Icone'
 
 // Durée prévue de l'intervention, stockée en minutes par le service prescripteur — affichée en
 // heures/minutes, plus lisible pour réserver un créneau de salle ("1 h 30" plutôt que "90 min").
@@ -212,7 +213,7 @@ function DossierPatientPageContent() {
 
       {/* Accès direct au dossier patient complet (Service Clinique), en lecture seule */}
       <div className="flex items-center gap-3 my-5">
-        <span className="material-symbols-outlined text-on-surface-variant">folder_shared</span>
+        <Icone nom="folder_shared" className="text-on-surface-variant" />
         <h2 className="text-sm font-extrabold text-on-surface-variant uppercase tracking-wide">Dossier Patient</h2>
         <div className="flex-1 h-px bg-outline-variant/30" />
       </div>
@@ -225,7 +226,7 @@ function DossierPatientPageContent() {
           d'un coup d'œil sans devoir chercher plus bas dans la page */}
       <div className="bg-white rounded-xl p-4 shadow-sm border mb-3">
         <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined">clinical_notes</span> Prescription chirurgicale
+          <Icone nom="clinical_notes" /> Prescription chirurgicale
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-2">
           <div className="p-3 bg-blue-50 rounded-lg">
@@ -286,13 +287,13 @@ function DossierPatientPageContent() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mb-2">
           <div className="p-3 bg-blue-50 rounded-lg">
             <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">medical_services</span> Matériel nécessaire
+              <Icone nom="medical_services" className="text-sm" /> Matériel nécessaire
             </span>
             <p className="font-bold whitespace-pre-line mt-1">{p.materielNecessaire || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
             <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">airline_seat_flat</span> Position du patient
+              <Icone nom="airline_seat_flat" className="text-sm" /> Position du patient
             </span>
             <p className="font-bold mt-1">{p.positionPatient || '—'}</p>
           </div>
@@ -301,19 +302,19 @@ function DossierPatientPageContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
           <div className="p-3 bg-red-50 rounded-lg border border-red-200">
             <span className="text-xs font-bold text-red-700 uppercase flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">warning</span> Alertes
+              <Icone nom="warning" className="text-sm" /> Alertes
             </span>
             <p className="font-bold text-red-800 mt-1">{p.alertes || 'Aucune alerte'}</p>
           </div>
           <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
             <span className="text-xs font-bold text-orange-700 uppercase flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">bloodtype</span> Risque hémorragique
+              <Icone nom="bloodtype" className="text-sm" /> Risque hémorragique
             </span>
             <p className="font-bold text-orange-800 mt-1">{p.risqueHemorragique || 'Non évalué'}</p>
           </div>
           <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
             <span className="text-xs font-bold text-amber-700 uppercase flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-sm">coronavirus</span> Risque infectieux
+              <Icone nom="coronavirus" className="text-sm" /> Risque infectieux
             </span>
             <p className="font-bold text-amber-800 mt-1">{p.risqueInfectieux || 'Non évalué'}</p>
           </div>
@@ -324,7 +325,7 @@ function DossierPatientPageContent() {
           prescription chirurgicale consultée */}
       <div className="bg-white rounded-xl p-4 shadow-sm border mb-3">
         <h3 className="text-lg font-bold text-primary mb-3 flex items-center gap-2">
-          <span className="material-symbols-outlined">fact_check</span> Suivi CPA
+          <Icone nom="fact_check" /> Suivi CPA
         </h3>
 
         {p.statut === 'CPA_INAPTE' ? (
@@ -334,7 +335,7 @@ function DossierPatientPageContent() {
             {estResponsableCpa ? (
               <button onClick={handleReprendreCircuitCpa} disabled={reprisEnCours}
                 className="mt-3 px-4 py-2 bg-red-700 text-white rounded-lg text-xs font-bold hover:bg-red-800 disabled:opacity-50 flex items-center gap-2">
-                <span className="material-symbols-outlined text-base">restart_alt</span>
+                <Icone nom="restart_alt" className="text-base" />
                 {reprisEnCours ? 'Reprise...' : 'Reprendre le circuit CPA'}
               </button>
             ) : (
@@ -362,7 +363,7 @@ function DossierPatientPageContent() {
             )}
             <button onClick={() => setShowPlanifier(true)} disabled={submitting || !peutPlanifierCpa}
               className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-lg">event_available</span>
+              <Icone nom="event_available" className="text-lg" />
               Planifier le rendez-vous CPA
             </button>
           </>
@@ -381,7 +382,7 @@ function DossierPatientPageContent() {
       {/* Consignes */}
       <div className="bg-white rounded-xl p-4 shadow-sm border">
         <h3 className="text-lg font-bold text-primary mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined">list_alt</span> Consignes pré-opératoires
+          <Icone nom="list_alt" /> Consignes pré-opératoires
         </h3>
         <p className="text-sm bg-gray-50 p-4 rounded-lg">{p.consignes || 'Aucune consigne'}</p>
       </div>

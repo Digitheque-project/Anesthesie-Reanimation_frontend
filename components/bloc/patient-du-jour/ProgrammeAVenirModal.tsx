@@ -6,6 +6,7 @@ import { patientService, notificationService } from '@/lib/api'
 import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire'
 import { formaterNomPatient } from '@/lib/patient'
 import { styleUrgence } from '@/lib/urgence'
+import { Icone } from '@/components/ui/Icone'
 
 interface PatientAVenir {
   id: string
@@ -110,14 +111,14 @@ export default function ProgrammeAVenirModal({ open, onClose, nonOperatoire = fa
     >
       <div className="relative flex h-full w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <div className="shrink-0 bg-gradient-to-r from-primary to-primary-container px-6 py-5 flex items-center gap-3">
-          <span className="material-symbols-outlined text-white text-2xl">calendar_month</span>
+          <Icone nom="calendar_month" className="text-white text-2xl" />
           <div className="min-w-0 flex-1">
             <h3 className="text-lg font-extrabold text-white tracking-tight">Programme à venir</h3>
             <p className="text-xs text-white/80 font-medium">Tous les patients à opérer, du plus proche au plus loin</p>
           </div>
           <button type="button" onClick={onClose} title="Fermer" aria-label="Fermer"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition-colors">
-            <span className="material-symbols-outlined text-lg">close</span>
+            <Icone nom="close" className="text-lg" />
           </button>
         </div>
 

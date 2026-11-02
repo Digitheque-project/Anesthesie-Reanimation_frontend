@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { planningService } from '@/lib/api'
 import { obtenirSessionValide } from '@/lib/auth/central-session'
+import { Icone } from '@/components/ui/Icone'
 
 interface CalendrierAgendaProps {
   /** Type de RDV à afficher (CPA, vérification veille...) — filtre les créneaux comme le reste de l'app. */
@@ -69,18 +70,18 @@ export default function CalendrierAgenda({ type, onSelectDate }: CalendrierAgend
       <button type="button" onClick={() => setOuvert(o => !o)}
         className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
         title="Voir mon agenda">
-        <span className="material-symbols-outlined text-lg">calendar_month</span>
+        <Icone nom="calendar_month" className="text-lg" />
       </button>
 
       {ouvert && (
         <div className="absolute z-50 top-11 right-0 w-72 bg-white rounded-xl shadow-xl border border-outline-variant/20 p-3">
           <div className="flex items-center justify-between mb-2">
             <button type="button" onClick={() => setMois(m => new Date(m.getFullYear(), m.getMonth() - 1, 1))} className="p-1 rounded hover:bg-surface-container-low">
-              <span className="material-symbols-outlined text-base">chevron_left</span>
+              <Icone nom="chevron_left" className="text-base" />
             </button>
             <span className="text-xs font-bold uppercase tracking-wide">{mois.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
             <button type="button" onClick={() => setMois(m => new Date(m.getFullYear(), m.getMonth() + 1, 1))} className="p-1 rounded hover:bg-surface-container-low">
-              <span className="material-symbols-outlined text-base">chevron_right</span>
+              <Icone nom="chevron_right" className="text-base" />
             </button>
           </div>
 

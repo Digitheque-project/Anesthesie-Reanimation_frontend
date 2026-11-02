@@ -1,6 +1,7 @@
 "use client";
 
 import Checkbox from "@/components/ui/Checkbox";
+import { Icone } from '@/components/ui/Icone';
 
 export type ModeSaisieMedicament = "DOSAGE" | "QUANTITE";
 
@@ -129,7 +130,7 @@ export default function MedicamentTable({
         <div className={`h-6 w-1.5 rounded-full ${barClass[accent]}`} />
         {icon && (
           <span className={`flex h-9 w-9 items-center justify-center rounded-full ${badgeClass[accent]}`}>
-            <span className="material-symbols-outlined text-lg">{icon}</span>
+            <Icone nom={icon} className="text-lg" />
           </span>
         )}
         <h3 className="font-headline text-lg font-bold uppercase text-on-surface">
@@ -205,9 +206,7 @@ export default function MedicamentTable({
                   <td className={`px-4 py-3 font-semibold ${row.selected ? "text-on-surface" : "text-on-surface-variant"}`}>
                     <div className="flex flex-wrap items-center gap-2">
                       {row.selected && (
-                        <span className="material-symbols-outlined align-text-bottom text-sm text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>
-                          check_circle
-                        </span>
+                        <Icone nom="check_circle" className="align-text-bottom text-sm text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }} />
                       )}
                       <span>{row.label}</span>
                       {statutPharmacie === "disponible" && (

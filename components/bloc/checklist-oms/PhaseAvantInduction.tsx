@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { ChecklistData } from "./types";
 import Checkbox from "@/components/ui/Checkbox";
 import Radio from "@/components/ui/Radio";
+import { Icone } from '@/components/ui/Icone';
 
 type RadioValue = "oui" | "non" | "na" | null;
 
@@ -174,9 +175,7 @@ export default function PhaseAvantInduction({
     <section className="rounded-xl border-t-4 border-primary bg-surface-container-low p-6 shadow-sm">
       <div className="mb-2 flex items-center gap-3">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <span className="material-symbols-outlined text-xl" aria-hidden="true">
-            timer_10_alt_1
-          </span>
+          <Icone nom="timer_10_alt_1" className="text-xl" aria-hidden="true" />
         </div>
         <h2 className="text-xl font-bold uppercase tracking-wide text-primary">
           Avant Induction Anesthésique

@@ -1,5 +1,6 @@
 import { PatientBloc, NiveauUrgence } from "@/types/bloc";
 import { libelleUrgence, styleUrgence } from "@/lib/urgence";
+import { Icone } from '@/components/ui/Icone';
 
 interface PatientsTableProps {
   patients: PatientBloc[];
@@ -9,7 +10,7 @@ export default function PatientsTable({ patients }: PatientsTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <span className="material-symbols-outlined text-primary">person_check</span>
+        <Icone nom="person_check" className="text-primary" />
         <h2 className="font-headline font-bold text-xl text-on-surface">
           Vos patients aujourd'hui
         </h2>

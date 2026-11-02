@@ -8,6 +8,7 @@ import { exporterCSV, exporterExcel, exporterPDF, imprimerSection, Colonne } fro
 import { fmtDate, fmtDateHeure, fmtHeure, nomPersonne, collecterEquipe, construireChronologie, libelleAnesthesie } from '@/lib/export/dossier-patient'
 import PiecesJointesUploader from '@/components/bloc/pieces-jointes/PiecesJointesUploader'
 import { formaterNomPatient } from '@/lib/patient'
+import { Icone } from '@/components/ui/Icone'
 
 export default function ArchiveDetailPage() {
   const params = useParams()
@@ -60,7 +61,7 @@ export default function ArchiveDetailPage() {
     <main className="min-h-screen flex flex-col bg-surface">
       <div className="sticky z-30 bg-white border-b border-surface-variant/20 px-8 py-3 flex items-center gap-4 shadow-sm top-0 print:hidden">
         <button onClick={() => router.push('/bloc/archives')} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
-          <span className="material-symbols-outlined">arrow_back</span>
+          <Icone nom="arrow_back" />
           Archives
         </button>
         <span className="text-sm font-bold text-primary font-headline">Dossier patient complet</span>
@@ -104,7 +105,7 @@ export default function ArchiveDetailPage() {
           <div className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 border border-surface-variant/10 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined">groups</span>
+                <Icone nom="groups" />
               </div>
               <div>
                 <h2 className="font-headline text-lg font-bold text-on-surface">Personnel intervenu</h2>
@@ -361,7 +362,7 @@ function SectionEtape({ numero, icone, couleur, titre, children }: { numero: num
     <section className="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 border border-surface-variant/10 overflow-hidden break-inside-avoid">
       <div className={`px-5 py-3 flex items-center gap-3 ${c.bg} border-b ${c.border}`}>
         <span className={`w-7 h-7 rounded-full bg-white flex items-center justify-center text-[11px] font-black ${c.text} shadow-sm`}>{numero}</span>
-        <span className={`material-symbols-outlined ${c.text}`}>{icone}</span>
+        <Icone nom={icone} className={`${c.text}`} />
         <h2 className={`font-headline text-sm font-extrabold uppercase tracking-wide ${c.text}`}>{titre}</h2>
       </div>
       <div className="p-5">{children}</div>

@@ -11,6 +11,7 @@ import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import BackButton from '@/components/bloc/layout/BackButton'
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
+import { Icone } from '@/components/ui/Icone'
 
 const LIBELLE_STATUT: Record<string, string> = {
   EN_ATTENTE: 'En attente de planification',
@@ -105,7 +106,7 @@ function DemandeCpaExternePageContent() {
       </p>
 
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-center gap-2">
-        <span className="material-symbols-outlined text-base">info</span>
+        <Icone nom="info" className="text-base" />
         On traite ici uniquement la CPA (ou la vérification veille) pour ce patient — il ne bascule pas automatiquement vers "Patient du jour".
       </div>
 
@@ -149,7 +150,7 @@ function DemandeCpaExternePageContent() {
 
       <div className="bg-white rounded-xl p-4 shadow-sm border">
         <h3 className="text-lg font-bold text-primary mb-3 flex items-center gap-2">
-          <span className="material-symbols-outlined">fact_check</span> Statut
+          <Icone nom="fact_check" /> Statut
         </h3>
         <p className="font-bold mb-3">{LIBELLE_STATUT[demande.statut] || demande.statut}</p>
 
@@ -162,7 +163,7 @@ function DemandeCpaExternePageContent() {
             )}
             <button onClick={() => setShowPlanifier(true)} disabled={submitting || !peutPlanifierCpa}
               className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined text-lg">event_available</span>
+              <Icone nom="event_available" className="text-lg" />
               Planifier le rendez-vous CPA
             </button>
           </>
@@ -172,7 +173,7 @@ function DemandeCpaExternePageContent() {
           <button
             onClick={() => router.push(`/bloc/consultation-cpa?patientId=${demande.patientId}&patientNom=${encodeURIComponent(formaterNomPatient(demande))}&intervention=${encodeURIComponent(demande.motif || demande.typeAnesthesie || '')}`)}
             className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 flex items-center justify-center gap-2">
-            <span className="material-symbols-outlined text-lg">clinical_notes</span>
+            <Icone nom="clinical_notes" className="text-lg" />
             Aller à la consultation CPA
           </button>
         )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icone } from '@/components/ui/Icone';
 
 interface SignatureModalProps {
   medecinNom: string;
@@ -33,7 +34,7 @@ export default function SignatureModal({ medecinNom, onConfirm, onCancel }: Sign
         {/* Header */}
         <div className="bg-primary px-6 py-5 flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-xl">verified_user</span>
+            <Icone nom="verified_user" className="text-white text-xl" />
           </div>
           <div>
             <h2 className="font-headline font-bold text-white text-lg leading-tight">
@@ -68,9 +69,7 @@ export default function SignatureModal({ medecinNom, onConfirm, onCancel }: Sign
               Mot de passe
             </label>
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">
-                lock
-              </span>
+              <Icone nom="lock" className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]" />
               <input
                 type="password"
                 value={password}
@@ -82,7 +81,7 @@ export default function SignatureModal({ medecinNom, onConfirm, onCancel }: Sign
             </div>
             {error && (
               <p className="text-xs text-error flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px]">error</span>
+                <Icone nom="error" className="text-[14px]" />
                 {error}
               </p>
             )}
@@ -101,7 +100,7 @@ export default function SignatureModal({ medecinNom, onConfirm, onCancel }: Sign
               type="submit"
               className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">check_circle</span>
+              <Icone nom="check_circle" className="text-[18px]" />
               Signer & Valider
             </button>
           </div>

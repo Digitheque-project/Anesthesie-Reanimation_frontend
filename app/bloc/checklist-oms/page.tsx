@@ -16,6 +16,7 @@ import PasserButton from '@/components/bloc/layout/PasserButton'
 import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
+import { Icone } from '@/components/ui/Icone'
 
 export default function ChecklistAvantOpPage() {
   return (
@@ -186,7 +187,7 @@ function ChecklistAvantOpPageContent() {
         <section className="bg-surface-container-low rounded-xl p-6 shadow-sm border-t-4 border-primary">
           <div className="flex items-center space-x-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">timer_10_alt_1</span>
+              <Icone nom="timer_10_alt_1" className="text-primary" />
             </div>
             <h2 className="text-xl font-headline font-bold text-primary uppercase tracking-wide">Avant Induction Anesthésique</h2>
           </div>
@@ -283,7 +284,7 @@ function ChecklistAvantOpPageContent() {
         <section className="bg-surface-container-low rounded-xl p-6 shadow-sm border-t-4 border-secondary">
           <div className="flex items-center space-x-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-              <span className="material-symbols-outlined text-secondary">forum</span>
+              <Icone nom="forum" className="text-secondary" />
             </div>
             <h2 className="text-xl font-headline font-bold text-secondary uppercase tracking-wide">Transmission d'équipe</h2>
           </div>
@@ -314,7 +315,7 @@ function ChecklistAvantOpPageContent() {
         <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
           title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
           className="flex items-center space-x-2 px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed">
-          <span className="material-symbols-outlined text-[24px]">check_circle</span>
+          <Icone nom="check_circle" className="text-[24px]" />
           <span>{loading ? 'Validation...' : !estAnesthesiste ? 'Accès non autorisé' : 'Valider la check-list'}</span>
         </button>
       </div>

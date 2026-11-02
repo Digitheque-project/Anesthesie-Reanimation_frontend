@@ -1,3 +1,4 @@
+import { Icone } from '@/components/ui/Icone'
 'use client'
 
 interface HeaderNotificationProps {
@@ -21,12 +22,12 @@ export default function HeaderNotification({ onActualiser, onToggleFiltres }: He
         <div className="flex items-center gap-4">
           <button onClick={onToggleFiltres}
             className="bg-surface-container-high text-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-surface-dim transition-colors flex items-center gap-2">
-            <span className="material-symbols-outlined">filter_list</span>
+            <Icone nom="filter_list" />
             Filtrer
           </button>
           <button onClick={onActualiser}
             className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 flex items-center gap-2 hover:bg-primary-container transition-colors">
-            <span className="material-symbols-outlined">sync</span>
+            <Icone nom="sync" />
             Actualiser
           </button>
         </div>

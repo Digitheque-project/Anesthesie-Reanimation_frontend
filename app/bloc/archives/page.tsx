@@ -8,6 +8,7 @@ import ExportToolbar from '@/components/bloc/layout/ExportToolbar'
 import { exporterCSV, exporterExcel, exporterPDF, imprimerSection, Colonne } from '@/lib/export/export'
 import { fmtDate, fmtDateHeure, collecterEquipe, construireChronologie } from '@/lib/export/dossier-patient'
 import { formaterNomPatient } from '@/lib/patient'
+import { Icone } from '@/components/ui/Icone'
 
 type Onglet = 'OPERES' | 'DEMANDES_EXTERNES'
 
@@ -278,7 +279,7 @@ export default function ArchivesPage() {
         <div className="mb-6 flex justify-between items-center flex-wrap gap-3">
           <div>
             <h2 className="font-display text-3xl font-extrabold text-on-surface tracking-tight flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary text-3xl">inventory_2</span>
+              <Icone nom="inventory_2" className="text-primary text-3xl" />
               Archives
             </h2>
             <p className="text-on-surface-variant mt-1">Deux parcours distincts : patients opérés dans ce bloc, et demandes de CPA/VPA externes traitées</p>
@@ -290,13 +291,13 @@ export default function ArchivesPage() {
         <div className="mb-6 flex gap-2 bg-surface-container-low p-1.5 rounded-2xl w-fit border border-white/40 shadow-sm print:hidden">
           <button onClick={() => setOnglet('OPERES')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${onglet === 'OPERES' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:bg-white'}`}>
-            <span className="material-symbols-outlined text-lg">bed</span>
+            <Icone nom="bed" className="text-lg" />
             Patients opérés
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${onglet === 'OPERES' ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>{total}</span>
           </button>
           <button onClick={() => setOnglet('DEMANDES_EXTERNES')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${onglet === 'DEMANDES_EXTERNES' ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:bg-white'}`}>
-            <span className="material-symbols-outlined text-lg">link</span>
+            <Icone nom="link" className="text-lg" />
             Demandes CPA externes
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${onglet === 'DEMANDES_EXTERNES' ? 'bg-white/20' : 'bg-primary/10 text-primary'}`}>{demandes.length}</span>
           </button>
@@ -306,12 +307,12 @@ export default function ArchivesPage() {
         <section className="bg-surface-container-low rounded-3xl p-6 mb-8 border border-white/40 shadow-sm print:hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">filter_alt</span>
+              <Icone nom="filter_alt" className="text-primary" />
               <h3 className="font-headline font-bold text-on-surface">Filtres</h3>
             </div>
             <button onClick={() => setShowFiltres(!showFiltres)}
               className="flex items-center gap-1 text-primary text-sm font-bold hover:underline">
-              <span className="material-symbols-outlined text-lg">{showFiltres ? 'expand_less' : 'expand_more'}</span>
+              <Icone nom={showFiltres ? 'expand_less' : 'expand_more'} className="text-lg" />
               {showFiltres ? 'Masquer' : 'Afficher'}
             </button>
           </div>
@@ -319,7 +320,7 @@ export default function ArchivesPage() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">search</span> Nom du patient
+                <Icone nom="search" className="text-sm" /> Nom du patient
               </label>
               <input className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm"
                 placeholder="Rechercher..." type="text" value={recherche}
@@ -331,7 +332,7 @@ export default function ArchivesPage() {
                 {onglet === 'OPERES' ? (
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">wc</span> Sexe
+                      <Icone nom="wc" className="text-sm" /> Sexe
                     </label>
                     <div className="flex bg-white rounded-xl p-1 shadow-sm">
                       {['Tous', 'H', 'F'].map(s => (
@@ -345,7 +346,7 @@ export default function ArchivesPage() {
                 ) : (
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">rule</span> Décision
+                      <Icone nom="rule" className="text-sm" /> Décision
                     </label>
                     <select value={filtreStatutDemande} onChange={e => setFiltreStatutDemande(e.target.value)}
                       className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm">
@@ -358,14 +359,14 @@ export default function ArchivesPage() {
                 )}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">event</span> Date début
+                    <Icone nom="event" className="text-sm" /> Date début
                   </label>
                   <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)}
                     className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-sm">event</span> Date fin
+                    <Icone nom="event" className="text-sm" /> Date fin
                   </label>
                   <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
                     className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm" />
@@ -377,7 +378,7 @@ export default function ArchivesPage() {
           <div className="mt-6 flex justify-end">
             <button onClick={onglet === 'OPERES' ? chargerPatients : chargerDemandes}
               className="bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all transform active:scale-95 shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined text-[20px]">search_check</span>
+              <Icone nom="search_check" className="text-[20px]" />
               Appliquer le filtre
             </button>
           </div>
@@ -410,7 +411,7 @@ export default function ArchivesPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${p.sexe === 'F' ? 'bg-pink-100 text-pink-600' : 'bg-blue-100 text-blue-600'}`}>
-                          <span className="material-symbols-outlined text-[18px]">person</span>
+                          <Icone nom="person" className="text-[18px]" />
                         </div>
                         <span className="text-sm font-bold text-on-surface">{formaterNomPatient(p)}</span>
                       </div>
@@ -422,14 +423,14 @@ export default function ArchivesPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-on-surface-variant">
                       <span className="inline-flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-sm text-on-surface-variant/60">calendar_month</span>
+                        <Icone nom="calendar_month" className="text-sm text-on-surface-variant/60" />
                         {fmtDate(p.dateIntervention || p.updatedAt)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">{p.libelle || '—'}</td>
                     <td className="px-6 py-4 text-sm">
                       <span className="inline-flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-sm text-on-surface-variant/60">medical_services</span>
+                        <Icone nom="medical_services" className="text-sm text-on-surface-variant/60" />
                         {p.chirurgien_nom || '—'}
                       </span>
                     </td>
@@ -443,11 +444,11 @@ export default function ArchivesPage() {
                         <button onClick={() => handleExportDossierPDF(p.id, formaterNomPatient(p))} disabled={exportPdfEnCours === p.id}
                           className="px-2 py-1.5 rounded-lg border text-[11px] font-bold hover:bg-surface-container transition-colors text-red-600 disabled:opacity-50"
                           title="Exporter le dossier complet en PDF">
-                          <span className="material-symbols-outlined text-sm">{exportPdfEnCours === p.id ? 'progress_activity' : 'picture_as_pdf'}</span>
+                          <Icone nom={exportPdfEnCours === p.id ? 'progress_activity' : 'picture_as_pdf'} className="text-sm" />
                         </button>
                         <button onClick={() => router.push(`/bloc/archives/${p.id}`)}
                           className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">visibility</span>
+                          <Icone nom="visibility" className="text-sm" />
                           Informations
                         </button>
                       </div>
@@ -457,7 +458,7 @@ export default function ArchivesPage() {
                 {loadingPlus && (
                   <tr><td colSpan={7} className="px-6 py-4 text-center text-xs text-on-surface-variant">
                     <span className="inline-flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                      <Icone nom="progress_activity" className="text-sm animate-spin" />
                       Chargement de la suite...
                     </span>
                   </td></tr>
@@ -501,34 +502,34 @@ export default function ArchivesPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-violet-100 text-violet-600">
-                            <span className="material-symbols-outlined text-[18px]">person</span>
+                            <Icone nom="person" className="text-[18px]" />
                           </div>
                           <span className="text-sm font-bold text-on-surface">{formaterNomPatient(d)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold bg-blue-100 text-blue-700 rounded-full">
-                          <span className="material-symbols-outlined text-sm">link</span>
+                          <Icone nom="link" className="text-sm" />
                           {d.sourceServiceName || d.sourceServiceId || '—'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm font-medium">{d.motif || d.typeAnesthesie || '—'}</td>
                       <td className="px-6 py-4 text-sm text-on-surface-variant">
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm text-on-surface-variant/60">calendar_month</span>
+                          <Icone nom="calendar_month" className="text-sm text-on-surface-variant/60" />
                           {fmtDate(d.updatedAt || d.createdAt)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${info.style}`}>
-                          <span className="material-symbols-outlined text-sm">{info.icon}</span>
+                          <Icone nom={info.icon} className="text-sm" />
                           {info.label}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right print:hidden" onClick={e => e.stopPropagation()}>
                         <button onClick={() => router.push(`/bloc/demande-cpa-externe/${d.id}`)}
                           className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5 ml-auto">
-                          <span className="material-symbols-outlined text-sm">visibility</span>
+                          <Icone nom="visibility" className="text-sm" />
                           Informations
                         </button>
                       </td>

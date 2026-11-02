@@ -17,6 +17,7 @@ import PasserButton from '@/components/bloc/layout/PasserButton'
 import Radio from '@/components/ui/Radio'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
+import { Icone } from '@/components/ui/Icone'
 
 export default function ApresOperationPage() {
   return (
@@ -190,7 +191,7 @@ function ApresOperationPageContent() {
           title={!peutValiderChecklistApresOp ? 'Réservé à l\'anesthésiste' : undefined}
           className="px-8 py-4 bg-primary text-white font-headline font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
           <span>{loading ? 'Enregistrement...' : !peutValiderChecklistApresOp ? 'Accès non autorisé' : 'Valider et enregistrer'}</span>
-          <span className="material-symbols-outlined">save_as</span>
+          <Icone nom="save_as" />
         </button>
       </div>
 
