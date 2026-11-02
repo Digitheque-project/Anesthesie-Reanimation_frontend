@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { planningService, patientService } from '@/lib/api';
 import { formaterNomPatient } from '@/lib/patient';
-import { styleUrgence } from '@/lib/urgence';
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
 import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVenirModal';
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus';
@@ -13,9 +12,9 @@ import { Icone } from '@/components/ui/Icone';
 
 type Onglet = 'CPA' | 'VERIFICATION_VEILLE';
 
-const ONGLETS: { type: Onglet; label: string; actionLabel: string; cible: string }[] = [
-  { type: 'CPA', label: '👨‍⚕️ Rendez-vous CPA', actionLabel: 'Réaliser CPA', cible: '/bloc/consultation-cpa' },
-  { type: 'VERIFICATION_VEILLE', label: '🌙 Vérification veille', actionLabel: 'Réaliser la vérification', cible: '/bloc/verification-veille' },
+const ONGLETS: { type: Onglet; label: string; icone: string; actionLabel: string; cible: string }[] = [
+  { type: 'CPA', label: 'Rendez-vous CPA', icone: 'stethoscope', actionLabel: 'Réaliser CPA', cible: '/bloc/consultation-cpa' },
+  { type: 'VERIFICATION_VEILLE', label: 'Vérification veille', icone: 'fact_check', actionLabel: 'Réaliser la vérification', cible: '/bloc/verification-veille' },
 ];
 
 export default function RendezVousPage() {
@@ -217,225 +216,229 @@ export default function RendezVousPage() {
   const ongletActif = ONGLETS.find(o => o.type === onglet)!;
   const TYPE_LABELS: Record<string, string> = { CPA: 'CPA', VERIFICATION_VEILLE: 'Vérif. veille', VERIFICATION_MEDICAMENTS: 'Vérif. médicaments' };
 
+  // Présentation : même style que la consultation externe (cartes blanches arrondies, bleu
+  // #005b82, badges arrondis, petites capitales grises).
+  const carte = 'bg-white rounded-2xl shadow-[0px_4px_16px_rgba(17,17,26,0.05)] border border-gray-100';
+  const champDate = 'px-3.5 py-2 border border-gray-200 rounded-xl text-[13px] font-semibold text-slate-700 bg-white cursor-pointer w-fit disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#005b82]/20';
+  const badgeUrgence: Record<string, string> = {
+    TRES_URGENT: 'bg-red-50 text-red-700',
+    URGENT: 'bg-amber-50 text-amber-700',
+    NORMAL: 'bg-slate-100 text-slate-600',
+  };
+  const bordureUrgence: Record<string, string> = {
+    TRES_URGENT: 'border-l-red-500',
+    URGENT: 'border-l-amber-500',
+    NORMAL: 'border-l-transparent',
+  };
+
   return (
-    <div className="p-6 flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-on-surface font-headline tracking-tight">Fil de travail</h1>
-          <p className="text-sm text-on-surface-variant mt-1 capitalize">
-            {onglet === 'VERIFICATION_VEILLE' ? 'Tous les patients CPA validée, en attente de vérification' : voirTousCpa ? 'Tous les rendez-vous CPA à venir' : formaterDate(selectedDate)}
-          </p>
+    <div className="min-h-full bg-slate-50">
+      <div className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        {/* En-tête */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-[22px] font-extrabold text-gray-900 leading-tight">Fil de travail</h1>
+            <p className="text-[13px] text-slate-500 mt-0.5 capitalize">
+              {onglet === 'VERIFICATION_VEILLE' ? 'Tous les patients CPA validée, en attente de vérification' : voirTousCpa ? 'Tous les rendez-vous CPA à venir' : formaterDate(selectedDate)}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {onglet === 'CPA' ? (
+              <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
+                className={champDate} />
+            ) : (
+              <div className="flex items-center gap-2">
+                <label className="text-[12px] font-bold text-slate-500 flex items-center gap-1.5">
+                  <Icone nom="filter_alt" className="text-[15px]" />
+                  Date d&apos;intervention
+                </label>
+                <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
+                  className={champDate} />
+                {filtreDateVerif && !voirTousVerif && (
+                  <button onClick={() => setFiltreDateVerif('')} className="text-[12px] font-bold text-[#005b82] hover:underline">
+                    Effacer
+                  </button>
+                )}
+              </div>
+            )}
+            <button type="button" onClick={() => setShowProgrammeAVenir(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#005b82] text-white rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#004a6b] transition-colors">
+              <Icone nom="calendar_month" className="text-[16px]" />
+              Programme à venir
+            </button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {onglet === 'CPA' ? (
-            <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
-              className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" />
-          ) : (
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-on-surface-variant flex items-center gap-1.5">
-                <Icone nom="filter_alt" className="text-lg" />
-                Filtrer par date d'intervention
-              </label>
-              <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
-                className="px-4 py-2 border border-outline-variant/50 rounded-lg text-sm font-bold cursor-pointer bg-white shadow-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" />
-              {filtreDateVerif && !voirTousVerif && (
-                <button onClick={() => setFiltreDateVerif('')} className="text-xs font-bold text-primary hover:underline">
-                  Effacer
+
+        {/* Alertes : retards (rouge — rendez-vous manqué) puis rappels à venir (ambre). Les
+            lignes concernées sont déjà dans le tableau (voir creneauxAvecRetards). */}
+        {onglet === 'CPA' && retards.cpaRetard.length > 0 && (
+          <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-[13px] text-red-800 flex flex-wrap items-center gap-3">
+            <Icone nom="error" className="text-[17px] text-red-600" />
+            <span className="flex-1 min-w-[220px] font-semibold">
+              {retards.cpaRetard.length} CPA en retard — la date prévue est dépassée{retards.cpaRetard.length > 1 ? ', ces patients restent' : ' — ce patient reste'} affiché{retards.cpaRetard.length > 1 ? 's' : ''} ci-dessous, en tête de liste.
+            </span>
+          </div>
+        )}
+        {onglet === 'VERIFICATION_VEILLE' && retards.verificationVeilleRetard.length > 0 && (
+          <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-[13px] text-red-800 flex flex-wrap items-center gap-3">
+            <Icone nom="error" className="text-[17px] text-red-600" />
+            <span className="flex-1 min-w-[220px] font-semibold">
+              {retards.verificationVeilleRetard.length} vérification{retards.verificationVeilleRetard.length > 1 ? 's' : ''} veille en retard — la date d&apos;intervention prévue est déjà dépassée sans que la vérification soit faite.
+            </span>
+          </div>
+        )}
+
+        {/* Rendez-vous CPA déjà planifiés (patients retirés du fil de prescription dès la réservation) */}
+        {onglet === 'CPA' && alerteCpa && alerteCpa.total > 0 && (
+          <div className="px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl text-[13px] text-amber-800 flex flex-wrap items-center justify-between gap-3">
+            <span className="flex items-center gap-2 font-medium">
+              <Icone nom="event_available" className="text-[17px]" />
+              {alerteCpa.total} rendez-vous CPA planifié{alerteCpa.total > 1 ? 's' : ''} à venir
+              {alerteCpa.prochaine && ` — le prochain est le ${new Date(alerteCpa.prochaine).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
+              {voirTousCpa ? '.' : '. Changez la date ci-dessus pour le voir, ou :'}
+            </span>
+            <button onClick={() => setVoirTousCpa(v => !v)}
+              className="px-3.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-[12px] font-bold transition-colors whitespace-nowrap">
+              {voirTousCpa ? 'Revenir à la date sélectionnée' : 'Voir tous les rendez-vous CPA'}
+            </button>
+          </div>
+        )}
+
+        {/* Vérifications la veille à faire : total + prochaine, avec un bouton pour tout voir. */}
+        {onglet === 'VERIFICATION_VEILLE' && alerteVerif && alerteVerif.total > 0 && (
+          <div className="px-4 py-3 bg-amber-50 border border-amber-100 rounded-2xl text-[13px] text-amber-800 flex flex-wrap items-center justify-between gap-3">
+            <span className="flex items-center gap-2 font-medium">
+              <Icone nom="event_available" className="text-[17px]" />
+              {alerteVerif.total} vérification{alerteVerif.total > 1 ? 's' : ''} la veille à faire
+              {alerteVerif.prochaine && ` — la prochaine est le ${new Date(alerteVerif.prochaine + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
+              {voirTousVerif ? '.' : '. Changez la date ci-dessus pour la voir, ou :'}
+            </span>
+            <button onClick={() => setVoirTousVerif(v => !v)}
+              className="px-3.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-[12px] font-bold transition-colors whitespace-nowrap">
+              {voirTousVerif ? 'Revenir à la date sélectionnée' : 'Voir toutes les vérifications à faire'}
+            </button>
+          </div>
+        )}
+
+        {/* Liste */}
+        <div className={`${carte} overflow-hidden flex flex-col`}>
+          <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1">
+              {ONGLETS.map(o => (
+                <button
+                  key={o.type}
+                  onClick={() => setOnglet(o.type)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors ${
+                    onglet === o.type ? 'bg-[#CFE9EF] text-[#005b82]' : 'text-slate-500 hover:bg-slate-100'
+                  }`}
+                >
+                  <Icone nom={o.icone} className="text-[14px]" />
+                  {o.label}
                 </button>
-              )}
+              ))}
             </div>
-          )}
-          <button type="button" onClick={() => setShowProgrammeAVenir(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
-            <Icone nom="calendar_month" className="text-lg" />
-            Voir le programme à venir
-          </button>
-        </div>
-      </div>
-
-      {/* Alerte retards — date prévue déjà dépassée sans que l'étape correspondante soit faite.
-          Rouge et distincte des bandeaux "à venir" ci-dessous (ambre, neutres) : ce n'est plus un
-          rappel, c'est un rendez-vous manqué. Les lignes concernées sont déjà dans le tableau
-          (voir creneauxAvecRetards) — ce bandeau sert surtout à attirer l'attention dessus. */}
-      {onglet === 'CPA' && retards.cpaRetard.length > 0 && (
-        <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
-          <Icone nom="error" className="text-lg text-red-600" />
-          <span className="flex-1 min-w-[220px] font-semibold">
-            {retards.cpaRetard.length} CPA en retard — la date prévue est dépassée{retards.cpaRetard.length > 1 ? ', ces patients restent' : ' — ce patient reste'} affiché{retards.cpaRetard.length > 1 ? 's' : ''} ci-dessous, en tête de liste.
-          </span>
-        </div>
-      )}
-      {onglet === 'VERIFICATION_VEILLE' && retards.verificationVeilleRetard.length > 0 && (
-        <div className="p-4 bg-red-50 border border-red-300 rounded-lg text-sm text-red-800 flex flex-wrap items-center gap-3">
-          <Icone nom="error" className="text-lg text-red-600" />
-          <span className="flex-1 min-w-[220px] font-semibold">
-            {retards.verificationVeilleRetard.length} vérification{retards.verificationVeilleRetard.length > 1 ? 's' : ''} veille en retard — la date d'intervention prévue est déjà dépassée sans que la vérification soit faite.
-          </span>
-        </div>
-      )}
-
-      {/* Alerte RDV CPA déjà planifiés (patients retirés du fil de prescription dès la réservation) */}
-      {onglet === 'CPA' && alerteCpa && alerteCpa.total > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex flex-wrap items-center justify-between gap-3">
-          <span className="flex items-center gap-2">
-            <Icone nom="event_available" className="text-lg" />
-            {alerteCpa.total} rendez-vous CPA planifié{alerteCpa.total > 1 ? 's' : ''} à venir
-            {alerteCpa.prochaine && ` — le prochain est le ${new Date(alerteCpa.prochaine).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
-            {voirTousCpa ? '.' : `. Changez le calendrier ci-dessus pour le voir, ou :`}
-          </span>
-          <button onClick={() => setVoirTousCpa(v => !v)}
-            className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">
-            {voirTousCpa ? 'Revenir à la date sélectionnée' : 'Voir tous les rendez-vous CPA'}
-          </button>
-        </div>
-      )}
-
-      {/* Alerte vérifications la veille à faire (patients CPA validée en attente de vérification) —
-          même mécanique que l'alerte RDV CPA : le calendrier démarre sur la date du jour, or les
-          vérifications peuvent être échelonnées sur d'autres jours (la veille de chaque opération) ;
-          on affiche le total + la prochaine, avec un bouton pour tout voir d'un coup. */}
-      {onglet === 'VERIFICATION_VEILLE' && alerteVerif && alerteVerif.total > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800 flex flex-wrap items-center justify-between gap-3">
-          <span className="flex items-center gap-2">
-            <Icone nom="event_available" className="text-lg" />
-            {alerteVerif.total} vérification{alerteVerif.total > 1 ? 's' : ''} la veille à faire
-            {alerteVerif.prochaine && ` — la prochaine est le ${new Date(alerteVerif.prochaine + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
-            {voirTousVerif ? '.' : `. Changez le calendrier ci-dessus pour la voir, ou :`}
-          </span>
-          <button onClick={() => setVoirTousVerif(v => !v)}
-            className="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-bold transition-colors whitespace-nowrap">
-            {voirTousVerif ? 'Revenir à la date sélectionnée' : 'Voir tous les vérifications à faire'}
-          </button>
-        </div>
-      )}
-
-      {/* Tableau */}
-      <div className="bg-white border border-outline-variant/30 rounded-2xl overflow-hidden shadow-sm flex flex-col">
-        {/* Tabs */}
-        <div className="px-6 pt-4 flex border-b border-outline-variant/10 bg-surface-container-lowest">
-          <div className="flex gap-2 bg-white p-1.5 rounded-2xl border border-outline-variant/20 shadow-sm">
-            {ONGLETS.map(o => (
-              <button
-                key={o.type}
-                onClick={() => setOnglet(o.type)}
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                  onglet === o.type ? 'bg-primary text-white shadow-sm' : 'text-on-surface-variant hover:bg-surface-container'
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Barre recherche */}
-        <div className="px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/20 bg-surface-container-lowest">
-          <h3 className="font-headline font-extrabold text-on-surface text-lg">Interventions Planifiées</h3>
-          <div className="flex gap-2 items-center">
-            <span className="text-xs font-bold text-on-surface-variant">{creneauxFiltres.length} résultat{creneauxFiltres.length > 1 ? 's' : ''}</span>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
-                <Icone nom="search" className="text-lg" />
-              </span>
-              <input
-                value={recherche}
-                onChange={(e) => setRecherche(e.target.value)}
-                className="pl-10 pr-4 py-2 text-xs border border-outline-variant/50 bg-white rounded-lg focus:ring-2 focus:ring-primary/30 outline-none w-64"
-                placeholder="Rechercher (patient, type, chirurgien)..."
-                type="text"
-              />
+            <div className="flex gap-3 items-center">
+              <span className="text-[11px] font-semibold text-[#005b82]">{creneauxFiltres.length} patient{creneauxFiltres.length > 1 ? 's' : ''}</span>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                  <Icone nom="search" className="text-[15px]" />
+                </span>
+                <input
+                  value={recherche}
+                  onChange={(e) => setRecherche(e.target.value)}
+                  className="pl-9 pr-4 py-2 text-[12px] border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-[#005b82]/20 outline-none w-64"
+                  placeholder="Rechercher (patient, type, chirurgien)…"
+                  type="text"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-y-auto max-h-[600px]">
-          <table className="w-full text-left border-collapse">
-            <thead className="sticky top-0 z-10 bg-surface-container/60 backdrop-blur">
-              <tr className="text-on-surface-variant border-b border-outline-variant/20">
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest">Heure</th>
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest">Patient</th>
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest">Type</th>
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest">Chirurgien</th>
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest">Urgence</th>
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest">Statut</th>
-                <th className="px-6 py-3 text-[11px] font-extrabold uppercase tracking-widest text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/10">
-              {loading ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-on-surface-variant">Chargement...</td></tr>
-              ) : creneauxFiltres.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-12 text-center text-on-surface-variant">
-                  {recherche ? 'Aucun résultat pour cette recherche' : 'Aucun rendez-vous'}
-                </td></tr>
-              ) : creneauxFiltres.map((c: any, i: number) => {
-                const niveau = c.niveau === 'TRES_URGENT' ? 'TRES_URGENT' : c.estUrgence ? 'URGENT' : 'NORMAL';
-                const style = styleUrgence(niveau);
-                const nom = formaterNomPatient(c.patient);
-                // VPA immédiate pour un patient urgent : même destination que le bandeau rouge du
-                // tableau de bord (consultation CPA en mode STAT).
-                const vpa = c.sousType === 'VPA_URGENTE';
-                const lienAction = vpa
-                  ? `/bloc/consultation-cpa?${new URLSearchParams({ patientId: String(c.patient?.id ?? ''), patientNom: nom, statut: 'STAT', ...(c.intervention ? { intervention: c.intervention } : {}) })}`
-                  : `${ongletActif.cible}?patientId=${c.patient?.id}&patientNom=${encodeURIComponent(nom)}`;
-                return (
-                  <tr key={c.id || i} className={`hover:bg-surface-container/30 transition-colors border-l-4 ${c.enRetard ? 'bg-red-50/50 border-red-400' : style.bordure}`}>
-                    <td className="px-6 py-4 font-extrabold text-primary text-sm whitespace-nowrap">
-                      {c.heureDebut || (c.dateIntervention ? new Date(c.dateIntervention).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '—')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[11px] shrink-0">
-                          {nom.charAt(0)}
+          <div className="overflow-y-auto max-h-[600px]">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10 bg-slate-50">
+                <tr className="border-b border-gray-100">
+                  {['Date', 'Patient', 'Type', 'Chirurgien', 'Urgence', 'Statut'].map((t) => (
+                    <th key={t} className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">{t}</th>
+                  ))}
+                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {loading ? (
+                  <tr><td colSpan={7} className="p-6">
+                    <div className="space-y-3">{[1, 2, 3].map((k) => <div key={k} className="h-10 rounded-xl bg-slate-100 animate-pulse" />)}</div>
+                  </td></tr>
+                ) : creneauxFiltres.length === 0 ? (
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-[13px] font-medium text-slate-400">
+                    {recherche ? 'Aucun résultat pour cette recherche' : 'Aucun patient à traiter'}
+                  </td></tr>
+                ) : creneauxFiltres.map((c: any, i: number) => {
+                  const niveau = c.niveau === 'TRES_URGENT' ? 'TRES_URGENT' : c.estUrgence ? 'URGENT' : 'NORMAL';
+                  const nom = formaterNomPatient(c.patient);
+                  // VPA immédiate pour un patient urgent : même destination que le bandeau rouge du
+                  // tableau de bord (consultation CPA en mode STAT).
+                  const vpa = c.sousType === 'VPA_URGENTE';
+                  const lienAction = vpa
+                    ? `/bloc/consultation-cpa?${new URLSearchParams({ patientId: String(c.patient?.id ?? ''), patientNom: nom, statut: 'STAT', ...(c.intervention ? { intervention: c.intervention } : {}) })}`
+                    : `${ongletActif.cible}?patientId=${c.patient?.id}&patientNom=${encodeURIComponent(nom)}`;
+                  return (
+                    <tr key={c.id || i} className={`hover:bg-slate-50 transition-colors border-l-[6px] ${c.enRetard ? 'bg-red-50/40 border-l-red-400' : bordureUrgence[niveau]}`}>
+                      <td className="px-5 py-3.5 text-[13px] font-bold text-slate-700 whitespace-nowrap">
+                        {c.heureDebut || (c.dateIntervention ? new Date(c.dateIntervention).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—')}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                            <Icone nom="person" className="text-[16px] text-slate-400" />
+                          </div>
+                          <span className="text-[13px] font-semibold text-slate-800">{nom}</span>
                         </div>
-                        <span className="font-bold text-on-surface text-sm">{nom}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-bold px-2 py-1 rounded bg-primary/5 text-primary">
-                        {TYPE_LABELS[c.type] || c.type || '—'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm">{c.chirurgien?.nom || '—'}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 text-[10px] font-black rounded uppercase ${style.badge}`}>
-                        {niveau === 'TRES_URGENT' ? 'TRÈS URGENT' : niveau === 'URGENT' ? 'URGENT' : 'NORMAL'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1.5">
-                        {c.enRetard && (
-                          <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700">
-                            <Icone nom="error" className="text-xs" /> En retard
-                          </span>
-                        )}
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
-                          c.statut === 'PLANIFIE' ? 'bg-blue-100 text-blue-700' :
-                          c.statut === 'TERMINE' ? 'bg-green-100 text-green-700' :
-                          c.statut === 'VERIF_MEDICAMENT' ? 'bg-amber-100 text-amber-700' :
-                          c.statut === 'EN_ATTENTE' ? 'bg-amber-100 text-amber-700' :
-                          c.statut === 'VPA_URGENTE' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
-                        }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : c.statut === 'VPA_URGENTE' ? 'VPA immédiate' : (c.statut || '—')}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => router.push(lienAction)}
-                          className={`px-4 py-2 text-white rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${vpa ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-primary/90'}`}
-                        >
-                          {vpa ? 'Faire la VPA' : c.sousType === 'VERIF_MEDICAMENT' ? 'Vérifier médicament' : ongletActif.actionLabel}
-                        </button>
-                        <VoirDossierButton patientId={c.patient?.id} variant="icon" />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2 py-0.5 rounded-full font-semibold text-[9px] uppercase tracking-wider bg-slate-100 text-slate-700">
+                          {TYPE_LABELS[c.type] || c.type || '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-[13px] text-slate-600">{c.chirurgien?.nom || '—'}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${badgeUrgence[niveau]}`}>
+                          {niveau === 'TRES_URGENT' ? 'Très urgent' : niveau === 'URGENT' ? 'Urgent' : 'Normal'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex flex-wrap gap-1.5">
+                          {c.enRetard && (
+                            <span className="flex items-center gap-1 px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider bg-red-50 text-red-700">
+                              <Icone nom="error" className="text-[11px]" /> En retard
+                            </span>
+                          )}
+                          <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${
+                            c.statut === 'PLANIFIE' ? 'bg-blue-50 text-blue-700' :
+                            c.statut === 'TERMINE' ? 'bg-emerald-50 text-emerald-700' :
+                            c.statut === 'VERIF_MEDICAMENT' || c.statut === 'EN_ATTENTE' ? 'bg-amber-50 text-amber-700' :
+                            c.statut === 'VPA_URGENTE' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-500'
+                          }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : c.statut === 'VPA_URGENTE' ? 'VPA immédiate' : c.statut === 'PLANIFIE' ? 'Planifié' : (c.statut || '—')}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => router.push(lienAction)}
+                            className={`px-4 py-2 text-white rounded-xl text-[12px] font-bold transition-colors whitespace-nowrap shadow-sm ${vpa ? 'bg-red-600 hover:bg-red-700' : 'bg-[#005b82] hover:bg-[#004a6b]'}`}
+                          >
+                            {vpa ? 'Faire la VPA' : c.sousType === 'VERIF_MEDICAMENT' ? 'Vérifier médicament' : ongletActif.actionLabel}
+                          </button>
+                          <VoirDossierButton patientId={c.patient?.id} variant="icon" />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
