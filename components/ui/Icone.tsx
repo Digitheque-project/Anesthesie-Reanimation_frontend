@@ -12,6 +12,8 @@ import {
   Presentation, SaveAll, Scissors, ScrollText, Search, SearchCheck, Settings, Shapes, Share, Sheet, Shield, ShieldCheck, ShieldPlus,
   Siren, Smile, SprayCan, SquarePen, SquareUser, Stethoscope, StickyNote, Syringe, Table, Timer, Toilet, Trash2,
   TriangleAlert, Undo2, User, UserCheck, Users, UsersRound, Utensils, UtensilsCrossed, Waypoints, Wind, X, Zap,
+  Brain, ClipboardClock, ClockAlert, Dumbbell, GlassWater, HandHeart, Hourglass, Inbox, Scan, Send, ShoppingBasket,
+  SlidersHorizontal, TestTubes,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -55,6 +57,10 @@ const ICONES: Record<string, LucideIcon> = {
   vaccines: Syringe, ventilator: Fan, verified: BadgeCheck, verified_user: ShieldCheck, visibility: Eye,
   warning: TriangleAlert, water_drop: Droplet, wc: Toilet, sentiment_neutral: Meh, notification_important: BellRing,
   bed_outline: Bed, image: FileImage, table_chart: Sheet, slideshow: Presentation, insert_drive_file: File,
+  exercise: Dumbbell, hourglass_empty: Hourglass, hourglass_top: Hourglass, inbox: Inbox, list: List,
+  neurology: Brain, pending: ClockAlert, pending_actions: ClipboardClock, radiology: Scan, refresh: RefreshCw,
+  science: TestTubes, self_care: HandHeart, send: Send, shopping_basket: ShoppingBasket, tune: SlidersHorizontal,
+  volunteer_activism: HandHeart, water_full: GlassWater,
 }
 
 export function Icone({ nom, className, style, title }: {

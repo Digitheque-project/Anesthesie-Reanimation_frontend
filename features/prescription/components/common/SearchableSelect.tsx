@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Icone } from '@/components/ui/Icone';
 
 export interface SearchableSelectOption {
   value: string;
@@ -74,11 +75,11 @@ export default function SearchableSelect({
           cursor: 'pointer', textAlign: 'left',
         }}
       >
-        {selected?.icon && <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>{selected.icon}</span>}
+        {selected?.icon && <Icone nom={selected.icon} style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }} />}
         <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {selected ? selected.label : placeholder}
         </span>
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--txt3, #9ca3af)' }}>{open ? 'expand_less' : 'expand_more'}</span>
+        <Icone nom={open ? 'expand_less' : 'expand_more'} style={{ fontSize: 18, color: 'var(--txt3, #9ca3af)' }} />
       </button>
 
       {open && (
@@ -117,9 +118,9 @@ export default function SearchableSelect({
                       cursor: 'pointer', textAlign: 'left',
                     }}
                   >
-                    {o.icon && <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>{o.icon}</span>}
+                    {o.icon && <Icone nom={o.icon} style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }} />}
                     <span style={{ flex: 1 }}>{o.label}</span>
-                    {active && <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy, #1e3a5f)' }}>check</span>}
+                    {active && <Icone nom="check" style={{ fontSize: 16, color: 'var(--navy, #1e3a5f)' }} />}
                   </button>
                 );
               })

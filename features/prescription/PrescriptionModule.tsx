@@ -23,6 +23,7 @@ import SurveillanceForm from '@/features/prescription/components/SurveillanceFor
 import TransfusionForm from '@/features/prescription/components/TransfusionForm';
 import HistoriqueForm from '@/features/prescription/components/HistoriqueForm';
 import '@/features/prescription/prescription-suite.css';
+import { Icone } from '@/components/ui/Icone';
 
 type MainSection = 'med' | 'nm' | 'surv' | 'trans' | 'hist';
 
@@ -143,9 +144,7 @@ function PrescriptionModuleInner({ patientId, patientType = 'hospitalise', servi
 			{/* ── Right column : section header + form  */}
 			<div className="min-w-0 flex-1 @container">
 				<header className="mb-4 flex items-center gap-3.5 border-b border-slate-200 pb-4">
-					<span className="ms flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EBF5FB] text-[24px] leading-none text-[#05668D]">
-						{activeMain.icon}
-					</span>
+					<Icone nom={activeMain.icon} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EBF5FB] text-[24px] leading-none text-[#05668D]" />
 					<div className="min-w-0">
 						<h3 className="text-[18px] font-extrabold tracking-tight text-slate-800">
 							{activeMain.label}

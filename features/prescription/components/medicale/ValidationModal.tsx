@@ -2,6 +2,7 @@
 
 import { Medicament, ValidatedPrescription } from './types';
 import { getFrequenceText, formatAriary } from './utils';
+import { Icone } from '@/components/ui/Icone';
 
 interface Props {
   validatedPrescription: ValidatedPrescription;
@@ -21,7 +22,7 @@ export default function ValidationModal({
     <div className="mb op" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="mbox" style={{ maxWidth: 600, width: '95%', maxHeight: '85vh', overflowY: 'auto' }}>
         <div style={{ background: 'var(--navy)', color: '#fff', padding: '16px 20px', borderRadius: '20px 20px 0 0', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 24 }}>check_circle</span>
+          <Icone nom="check_circle" style={{ fontSize: 24 }} />
           <div>
             <h3 style={{ fontFamily: '"Manrope", sans-serif', fontSize: 18, fontWeight: 800, margin: 0 }}>{validatedPrescription.isOrdonnance ? 'Ordonnance transmise à la pharmacie' : 'Prescription médicamenteuse validée'}</h3>
             <p style={{ fontSize: 12, opacity: 0.9, margin: '4px 0 0 0' }}>{validatedPrescription.date}</p>
@@ -32,7 +33,7 @@ export default function ValidationModal({
           <div style={{ background: 'var(--navy-lt)', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
               <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--navy)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff' }}>person</span>
+                <Icone nom="person" style={{ fontSize: 22, color: '#fff' }} />
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--txt3)', marginBottom: 2 }}>Patient</div>
@@ -46,7 +47,7 @@ export default function ValidationModal({
             </div>
             {validatedPrescription.patient.allergies && validatedPrescription.patient.allergies.length > 0 && (
               <div style={{ marginTop: 8, padding: '8px 12px', background: '#fef3c7', border: '1px solid #fbbf24', borderRadius: 8, fontSize: 12, color: '#92400e', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>warning</span>
+                <Icone nom="warning" style={{ fontSize: 14 }} />
                 <strong>Allergies:</strong> {validatedPrescription.patient.allergies.join(', ')}
               </div>
             )}
@@ -55,7 +56,7 @@ export default function ValidationModal({
           {/* Prescriber Info */}
           <div style={{ background: 'var(--bg)', borderRadius: 12, padding: '14px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--txt2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff' }}>medical_services</span>
+              <Icone nom="medical_services" style={{ fontSize: 22, color: '#fff' }} />
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--txt3)', marginBottom: 2 }}>Prescripteur</div>
@@ -70,7 +71,7 @@ export default function ValidationModal({
             {validatedPrescription.medicaments.map((m: Medicament, idx: number) => (
               <div key={idx} style={{ background: '#fff', border: '1px solid var(--bdr)', borderRadius: 10, padding: '12px 14px', marginBottom: 8, display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--navy-lt)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--navy)' }}>medication</span>
+                  <Icone nom="medication" style={{ fontSize: 18, color: 'var(--navy)' }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--txt)', marginBottom: 4 }}>{m.nom} {m.dose}</div>
@@ -94,7 +95,7 @@ export default function ValidationModal({
           {/* Notification Status */}
           {validatedPrescription.notifier && (
             <div style={{ background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#16a34a' }}>check_circle</span>
+              <Icone nom="check_circle" style={{ fontSize: 20, color: '#16a34a' }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>Infirmiers notifiés</div>
                 <div style={{ fontSize: 11, color: '#15803d' }}>Notification envoyée au service clinique</div>
@@ -105,7 +106,7 @@ export default function ValidationModal({
           {/* Premier Soin — déjà activé */}
           {premierSoinResult?.kitExistant && (
             <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 10, padding: '12px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#16a34a' }}>check_circle</span>
+              <Icone nom="check_circle" style={{ fontSize: 20, color: '#16a34a' }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#166534' }}>Kit Premier Soin déjà activé</div>
                 <div style={{ fontSize: 11, color: '#15803d' }}>
@@ -119,7 +120,7 @@ export default function ValidationModal({
           {!premierSoinResult?.kitExistant && (
             <div style={{ background: '#eff6ff', border: '1px solid #93c5fd', borderRadius: 10, padding: '14px 16px', marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#2563eb' }}>volunteer_activism</span>
+                <Icone nom="volunteer_activism" style={{ fontSize: 20, color: '#2563eb' }} />
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af' }}>Kit Premier Soin</div>
               </div>
               <p style={{ fontSize: 12, color: '#334155', marginBottom: 10 }}>
@@ -132,13 +133,13 @@ export default function ValidationModal({
               )}
               {premierSoinError && (
                 <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 12px', marginBottom: 10, fontSize: 12, color: '#991b1b', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>error</span>
+                  <Icone nom="error" style={{ fontSize: 16 }} />
                   {premierSoinError}
                 </div>
               )}
               <button className="bok" onClick={onActiverPremierSoin} disabled={premierSoinLoading}
                 style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{premierSoinLoading ? 'hourglass_empty' : 'volunteer_activism'}</span>
+                <Icone nom={premierSoinLoading ? 'hourglass_empty' : 'volunteer_activism'} style={{ fontSize: 16 }} />
                 {premierSoinLoading ? 'Vérification en cours...' : 'Activer le Kit Premier Soin'}
               </button>
             </div>

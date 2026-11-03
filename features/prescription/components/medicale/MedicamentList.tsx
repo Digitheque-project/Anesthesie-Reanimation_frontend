@@ -3,6 +3,7 @@
 import { Medicament } from './types';
 import { getFrequenceText, formatAriary } from './utils';
 import { quantiteTypeLabel } from './quantiteType';
+import { Icone } from '@/components/ui/Icone';
 
 interface Props {
   medicaments: Medicament[];
@@ -24,7 +25,7 @@ export default function MedicamentList({ medicaments, onRemove, onTogglePremierS
           <div style={{textAlign:'center',padding:'20px',color:'var(--txt3)',fontSize:'13px'}}>Aucune prescription médicamenteuse ajoutée</div>
         ) : medicaments.map(m => (
           <div key={m.id} className="rxi" style={m.premierSoin ? { borderLeft: '3px solid #2563eb', background: '#f8faff' } : undefined}>
-            <div className="rxi-ic"><span className="material-symbols-outlined">medication</span></div>
+            <div className="rxi-ic"><Icone nom="medication" /></div>
             <div className="rxi-m" style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%' }}>
                 <div style={{ flex: 1 }}>
@@ -54,11 +55,11 @@ export default function MedicamentList({ medicaments, onRemove, onTogglePremierS
                   onChange={() => onTogglePremierSoin(m.id)}
                   style={{ accentColor: '#2563eb', width: 14, height: 14 }}
                 />
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>local_hospital</span>
+                <Icone nom="local_hospital" style={{ fontSize: 14 }} />
                 Premier Soin
               </label>
             </div>
-            <button className="bdel" onClick={() => onRemove(m.id)}><span className="material-symbols-outlined">delete</span></button>
+            <button className="bdel" onClick={() => onRemove(m.id)}><Icone nom="delete" /></button>
           </div>
         ))}
       </div>
@@ -71,7 +72,7 @@ export default function MedicamentList({ medicaments, onRemove, onTogglePremierS
           {totalPremierSoin > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4, paddingTop: 4, borderTop: '1px dashed #93c5fd' }}>
               <span style={{ fontSize: 11, fontWeight: 600, color: '#2563eb', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>local_hospital</span>
+                <Icone nom="local_hospital" style={{ fontSize: 14 }} />
                 Premier Soin
               </span>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#2563eb' }}>{formatAriary(totalPremierSoin)}</span>

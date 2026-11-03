@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { usePrescriptionPanier, PanierItemStatus } from "@/features/prescription/contexts/PrescriptionPanierContext";
+import { Icone } from '@/components/ui/Icone';
 
 const TYPE_ICONS: Record<string, string> = {
   medicale: "medication",
@@ -108,9 +109,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
           transform: isOpen ? "rotate(45deg)" : "none",
         }}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 26 }}>
-          {isOpen ? "close" : "shopping_basket"}
-        </span>
+        <Icone nom={isOpen ? "close" : "shopping_basket"} style={{ fontSize: 26 }} />
         {/* Badge count */}
         {totalCount > 0 && !isOpen && (
           <div
@@ -181,7 +180,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>shopping_basket</span>
+              <Icone nom="shopping_basket" style={{ fontSize: 22 }} />
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
                   Panier de prescriptions
@@ -224,7 +223,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                   alignItems: "center",
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+                <Icone nom="close" style={{ fontSize: 18 }} />
               </button>
             </div>
           </div>
@@ -241,9 +240,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                 padding: "48px 24px",
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 48, display: "block", marginBottom: 12, opacity: 0.4 }}>
-                shopping_basket
-              </span>
+              <Icone nom="shopping_basket" style={{ fontSize: 48, display: "block", marginBottom: 12, opacity: 0.4 }} />
               <div style={{ fontWeight: 600, marginBottom: 4 }}>Le panier est vide</div>
               <div style={{ fontSize: 11, opacity: 0.8 }}>
                 Remplissez un formulaire et cliquez « Ajouter au panier »
@@ -283,9 +280,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                           flexShrink: 0,
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 18, color }}>
-                          {TYPE_ICONS[item.type] || "description"}
-                        </span>
+                        <Icone nom={TYPE_ICONS[item.type] || "description"} style={{ fontSize: 18, color }} />
                       </div>
 
                       {/* Content */}
@@ -340,7 +335,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                             onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
                             onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
+                            <Icone nom="close" style={{ fontSize: 18 }} />
                           </button>
                         )}
                         {isError && (
@@ -360,7 +355,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                               gap: 4,
                             }}
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>refresh</span>
+                            <Icone nom="refresh" style={{ fontSize: 14 }} />
                             Réessayer
                           </button>
                         )}
@@ -392,9 +387,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                           border: "1px solid #fecaca",
                         }}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 4 }}>
-                          warning
-                        </span>
+                        <Icone nom="warning" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 4 }} />
                         {item.error}
                       </div>
                     )}
@@ -426,19 +419,19 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
             >
               {draftCount > 0 && (
                 <span style={{ color: "#6b7280", fontWeight: 600 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }}>schedule</span>
+                  <Icone nom="schedule" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }} />
                   {draftCount} en attente
                 </span>
               )}
               {sentCount > 0 && (
                 <span style={{ color: "#10b981", fontWeight: 600 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }}>check_circle</span>
+                  <Icone nom="check_circle" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }} />
                   {sentCount} envoyée{sentCount > 1 ? "s" : ""}
                 </span>
               )}
               {errorCount > 0 && (
                 <span style={{ color: "#ef4444", fontWeight: 600 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }}>error</span>
+                  <Icone nom="error" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }} />
                   {errorCount} échec{errorCount > 1 ? "s" : ""}
                 </span>
               )}
@@ -459,9 +452,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                   border: "1px solid #bbf7d0",
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16, verticalAlign: "middle", marginRight: 6 }}>
-                  task_alt
-                </span>
+                <Icone nom="task_alt" style={{ fontSize: 16, verticalAlign: "middle", marginRight: 6 }} />
                 Toutes les prescriptions ont été envoyées !
               </div>
             )}
@@ -509,7 +500,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>send</span>
+                    <Icone nom="send" style={{ fontSize: 18 }} />
                     Envoyer toutes les prescriptions ({draftCount + errorCount})
                   </>
                 )}

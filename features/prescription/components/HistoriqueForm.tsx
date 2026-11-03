@@ -4,6 +4,7 @@ import SearchableSelect from '@/features/prescription/components/common/Searchab
 import { authFetch } from '@/features/prescription/lib/auth';
 import { getHistoriquePatient } from '@/features/prescription/lib/api';
 import { getDirectoryUser, formatDirectoryUserName } from '@/lib/clinical/user-directory-api';
+import { Icone } from '@/components/ui/Icone';
 
 const FILTRES = [
   { id: 'all',   label: 'Tout',             icon: 'list' },
@@ -649,7 +650,7 @@ export default function HistoriqueForm({ patient }: Props) {
 
       {/* BARRE D'OUTILS — compacte : type de prescription + bouton « Filtres » repliable */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: showFilters ? 12 : 20 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 18, color: 'var(--txt3)' }}>filter_list</span>
+            <Icone nom="filter_list" style={{ fontSize: 18, color: 'var(--txt3)' }} />
             <SearchableSelect
               options={FILTRES.map((f) => ({ value: f.id, label: f.label, icon: f.icon }))}
               value={filtre}
@@ -671,9 +672,9 @@ export default function HistoriqueForm({ patient }: Props) {
                 fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>tune</span>
+              <Icone nom="tune" style={{ fontSize: 16 }} />
               Filtres{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{showFilters ? 'expand_less' : 'expand_more'}</span>
+              <Icone nom={showFilters ? 'expand_less' : 'expand_more'} style={{ fontSize: 16 }} />
             </button>
             {advancedFilterCount > 0 && (
               <button
@@ -685,7 +686,7 @@ export default function HistoriqueForm({ patient }: Props) {
                   background: '#fff', color: 'var(--txt2)', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                <Icone nom="close" style={{ fontSize: 16 }} />
                 Réinitialiser
               </button>
             )}
@@ -753,7 +754,7 @@ export default function HistoriqueForm({ patient }: Props) {
           {/* CONTENU */}
           {loading ? (
             <div style={{ textAlign: 'center', padding: 40, color: 'var(--txt3)' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>hourglass_top</span>
+              <Icone nom="hourglass_top" style={{ fontSize: 36, display: 'block', marginBottom: 8 }} />
               Chargement...
             </div>
           ) : error ? (
@@ -762,7 +763,7 @@ export default function HistoriqueForm({ patient }: Props) {
         </div>
       ) : items.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--txt3)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 36, display: 'block', marginBottom: 8 }}>inbox</span>
+          <Icone nom="inbox" style={{ fontSize: 36, display: 'block', marginBottom: 8 }} />
           Aucune prescription trouvée
         </div>
       ) : (
@@ -780,7 +781,7 @@ export default function HistoriqueForm({ patient }: Props) {
                   width: 36, height: 36, borderRadius: 8, flexShrink: 0,
                   background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color }}>{FILTRES.find(f => f.id === item._type)?.icon || 'description'}</span>
+                  <Icone nom={FILTRES.find(f => f.id === item._type)?.icon || 'description'} style={{ fontSize: 18, color }} />
                 </div>
 
                 {/* Infos */}
@@ -844,7 +845,7 @@ export default function HistoriqueForm({ patient }: Props) {
                 <div style={{ background: color, padding: '20px 24px', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#fff' }}>{icon}</span>
+                      <Icone nom={icon} style={{ fontSize: 22, color: '#fff' }} />
                     </div>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: '#fff', letterSpacing: '.2px' }}>Prescription {label}</div>
@@ -875,7 +876,7 @@ export default function HistoriqueForm({ patient }: Props) {
                 const ic = isOk ? 'check_circle' : isKo ? 'cancel' : 'pending';
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: bg }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: fg }}>{ic}</span>
+                    <Icone nom={ic} style={{ fontSize: 18, color: fg }} />
                     <span style={{ fontSize: 13, fontWeight: 700, color: fg }}>Statut : {s}</span>
                   </div>
                 );
@@ -885,7 +886,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {patient && (patient.nom || patient.idPermanent) && (
                 <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                   <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>person</span>
+                    <Icone nom="person" style={{ fontSize: 16, color: 'var(--navy)' }} />
                     <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Patient</span>
                   </div>
                   <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -905,7 +906,7 @@ export default function HistoriqueForm({ patient }: Props) {
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {patient.groupeSanguin && (
                         <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: '#fee2e2', color: '#991b1b', fontWeight: 600 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 3 }}>bloodtype</span>{patient.groupeSanguin}
+                          <Icone nom="bloodtype" style={{ fontSize: 12, verticalAlign: 'middle', marginRight: 3 }} />{patient.groupeSanguin}
                         </span>
                       )}
                       {patient.service && (
@@ -924,7 +925,7 @@ export default function HistoriqueForm({ patient }: Props) {
                     </div>
                     {patient.allergies && patient.allergies.length > 0 && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderRadius: 8, background: '#fef3c7', border: '1px solid #fbbf24' }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#92400e' }}>warning</span>
+                        <Icone nom="warning" style={{ fontSize: 14, color: '#92400e' }} />
                         <span style={{ fontSize: 11, fontWeight: 600, color: '#92400e' }}>Allergies : {patient.allergies.join(', ')}</span>
                       </div>
                     )}
@@ -935,7 +936,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {/* ── SECTION PRESCRIPTEUR ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>stethoscope</span>
+                  <Icone nom="stethoscope" style={{ fontSize: 16, color: 'var(--navy)' }} />
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Prescripteur</span>
                 </div>
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -978,7 +979,7 @@ export default function HistoriqueForm({ patient }: Props) {
                   </div>
                   {selectedItem.sourceType === 'accueil' && (
                     <div style={{ fontSize: 11, color: 'var(--txt3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 13 }}>info</span>
+                      <Icone nom="info" style={{ fontSize: 13 }} />
                       Prescription initiée depuis le service d'Accueil
                     </div>
                   )}
@@ -988,7 +989,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {/* ── SECTION DÉTAILS CLINIQUES ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>clinical_notes</span>
+                  <Icone nom="clinical_notes" style={{ fontSize: 16, color: 'var(--navy)' }} />
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Détails cliniques</span>
                 </div>
                 <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--txt)', lineHeight: 1.7 }}>
@@ -999,7 +1000,7 @@ export default function HistoriqueForm({ patient }: Props) {
               {/* ── SECTION SUIVI / TIMELINE ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--navy)' }}>history</span>
+                  <Icone nom="history" style={{ fontSize: 16, color: 'var(--navy)' }} />
                   <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Suivi</span>
                 </div>
                 <div style={{ padding: '12px 14px' }}>

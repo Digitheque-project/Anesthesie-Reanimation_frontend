@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getQuotaPremierSoin } from '@/features/prescription/lib/api';
 import { formatAriary } from './utils';
+import { Icone } from '@/components/ui/Icone';
 
 interface Props {
   patientId: string;
@@ -38,7 +39,7 @@ export default function PremierSoinQuotaBar({ patientId, refreshKey }: Props) {
   if (error || !quota) {
     return (
       <div style={{ background: '#fef2f2', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#991b1b', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>warning</span>
+        <Icone nom="warning" style={{ fontSize: 16 }} />
         {error || 'Quota indisponible'}
       </div>
     );
@@ -59,7 +60,7 @@ export default function PremierSoinQuotaBar({ patientId, refreshKey }: Props) {
     }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16, color }}>local_hospital</span>
+          <Icone nom="local_hospital" style={{ fontSize: 16, color }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: textColor }}>Premier Soin</span>
         </div>
         <span style={{ fontSize: 11, color: textColor, fontWeight: 600 }}>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { PanierItem, usePrescriptionPanier } from '@/features/prescription/contexts/PrescriptionPanierContext';
 import { formatPayloadSummary } from './formatPayloadSummary';
+import { Icone } from '@/components/ui/Icone';
 
 const TYPE_ICONS: Record<string, string> = {
   medicale: 'medication', 'non-medicale': 'self_care', surveillance: 'monitor_heart',
@@ -59,7 +60,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
           background: 'linear-gradient(135deg, #1e3a5f, #2d5a8e)', color: '#fff',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 24 }}>check_circle</span>
+            <Icone nom="check_circle" style={{ fontSize: 24 }} />
             <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Prescription validée</h3>
           </div>
           <p style={{ margin: 0, fontSize: 12, opacity: 0.85 }}>
@@ -71,7 +72,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
           {draftItems.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--txt3, #9ca3af)' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 40, display: 'block', marginBottom: 8, opacity: 0.4 }}>inbox</span>
+              <Icone nom="inbox" style={{ fontSize: 40, display: 'block', marginBottom: 8, opacity: 0.4 }} />
               <div style={{ fontSize: 13, fontWeight: 600 }}>Aucune prescription en attente</div>
             </div>
           ) : (
@@ -94,7 +95,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
                         width: 36, height: 36, borderRadius: 10, background: `${color}12`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                       }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 18, color }}>{TYPE_ICONS[item.type] || 'description'}</span>
+                        <Icone nom={TYPE_ICONS[item.type] || 'description'} style={{ fontSize: 18, color }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--txt, #1f2937)', marginBottom: 2 }}>
@@ -113,7 +114,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
                         onMouseEnter={e => (e.currentTarget.style.color = '#ef4444')}
                         onMouseLeave={e => (e.currentTarget.style.color = '#9ca3af')}
                       >
-                        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
+                        <Icone nom="close" style={{ fontSize: 16 }} />
                       </button>
                     </div>
                   </div>
@@ -133,7 +134,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>add</span>
+            <Icone nom="add" style={{ fontSize: 18 }} />
             Ajouter une autre
           </button>
           <button
@@ -154,7 +155,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>send</span>
+                <Icone nom="send" style={{ fontSize: 18 }} />
                 Envoyer ({draftItems.length})
               </>
             )}
@@ -185,9 +186,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
               borderBottom: '1px solid var(--bdr, #e5e7eb)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 22, color: TYPE_COLORS[detailItem.type] || '#6b7280' }}>
-                  {TYPE_ICONS[detailItem.type] || 'description'}
-                </span>
+                <Icone nom={TYPE_ICONS[detailItem.type] || 'description'} style={{ fontSize: 22, color: TYPE_COLORS[detailItem.type] || '#6b7280' }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 15, fontWeight: 700 }}>{detailItem.label}</div>
                   <div style={{ fontSize: 11, color: 'var(--txt2, #6b7280)' }}>{detailItem.summary}</div>
@@ -196,14 +195,14 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
                   onClick={() => setDetailItem(null)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--txt3, #9ca3af)' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>close</span>
+                  <Icone nom="close" style={{ fontSize: 20 }} />
                 </button>
               </div>
 
               {/* Patient info */}
               {detailItem.payload?.patientNom && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>person</span>
+                  <Icone nom="person" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }} />
                   <div>
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--txt, #1f2937)' }}>
                       {detailItem.payload.patientPrenom} {detailItem.payload.patientNom}
@@ -225,7 +224,7 @@ export default function ValidationPopup({ isOpen, onClose, onAddNew, onSendAll, 
               {/* Prescripteur info */}
               {detailItem.payload?.prescripteurNom && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }}>stethoscope</span>
+                  <Icone nom="stethoscope" style={{ fontSize: 16, color: 'var(--txt3, #9ca3af)' }} />
                   <div>
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--txt, #1f2937)' }}>
                       Dr {detailItem.payload.prescripteurPrenom} {detailItem.payload.prescripteurNom}
