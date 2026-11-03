@@ -48,6 +48,7 @@ import {
 } from '@/components/clinical/dossier-patient/HistoireMaladiePanel';
 ​
 import { ConduiteATenirPanel } from '@/components/clinical/dossier-patient/ConduiteATenirPanel';
+import { Icone } from '@/components/ui/Icone';
 ​
 ​
 export type PatientMode = 'neo' | 'nour' | 'enf' | 'ado';
@@ -388,7 +389,7 @@ export function ObservationForm({
 ​
                 {section.id === '01' && errorPatient && (
                   <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-[14px] text-red-700">
-                    <span className="text-base" aria-hidden>⚠️</span>
+                    <Icone nom="warning" className="text-base" />
                     <div className="flex-1 font-semibold">{errorPatient}</div>
                     <button
                       type="button"

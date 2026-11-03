@@ -100,7 +100,7 @@ function DemandeCpaExternePageContent() {
     <main className="p-4 max-w-3xl">
       <BackButton className="mb-3" />
 
-      <h1 className="text-3xl font-extrabold text-on-surface mb-2">📋 Demande de CPA externe</h1>
+      <h1 className="text-3xl font-extrabold text-on-surface mb-2">Demande de CPA externe</h1>
       <p className="text-sm text-on-surface-variant mb-4">
         Consultation Pré-Anesthésique demandée par un autre service — ce patient n'entre pas dans le programme opératoire du bloc.
       </p>

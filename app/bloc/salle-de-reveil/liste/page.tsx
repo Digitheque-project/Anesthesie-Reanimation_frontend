@@ -97,7 +97,7 @@ export default function ListeSalleReveil() {
     <RoleGate allowedRoles={[RoleClinique.ANESTHESISTE, RoleClinique.IBODE, RoleClinique.MAJOR]} message="Vous n'avez pas accès à la salle de réveil.">
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">🛏️ Tous les patients en salle de réveil</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Tous les patients en salle de réveil</h1>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setShowProgrammeAVenir(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
@@ -108,7 +108,7 @@ export default function ListeSalleReveil() {
             onClick={chargerPatients}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
           >
-            🔄 Actualiser
+            Actualiser
           </button>
         </div>
       </div>

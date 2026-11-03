@@ -1,16 +1,20 @@
 @import "tailwindcss";
 
+/* Palette et police de la consultation externe (unification des interfaces du CHU) : fond
+   gris très clair, cartes blanches, textes ardoise, bordures gris clair, bleu #005b82,
+   Manrope partout. Les pages utilisent ces jetons : les changer ici les repeint toutes. */
 @theme {
   --font-headline: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-label: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-label: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #005EB8;
-  --color-navy-blue: #005EB8;
+  --color-primary: #005b82;
+  --color-primary-dark: #004a66;
+  --color-navy-blue: #005b82;
   --color-on-primary: #ffffff;
-  --color-primary-container: #005eb8;
-  --color-primary-fixed: #d6e3ff;
-  --color-primary-fixed-dim: #a9c7ff;
+  --color-primary-container: #006a8c;
+  --color-primary-fixed: #cfe9ef;
+  --color-primary-fixed-dim: #a9d4e0;
   --color-secondary: #006a6a;
   --color-on-secondary: #ffffff;
   --color-secondary-container: #8cf3f3;
@@ -20,33 +24,44 @@
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
-  --color-surface: #f3faff;
-  --color-on-surface: #071e27;
-  --color-surface-variant: #cfe6f2;
-  --color-on-surface-variant: #424752;
-  --color-surface-container: #dbf1fe;
-  --color-surface-container-low: #e6f6ff;
-  --color-surface-container-high: #d5ecf8;
-  --color-surface-container-highest: #cfe6f2;
+  --color-surface: #f8f9fb;
+  --color-on-surface: #1e293b;
+  --color-surface-variant: #e2e8f0;
+  --color-on-surface-variant: #64748b;
+  --color-surface-container: #f1f5f9;
+  --color-surface-container-low: #f8fafc;
+  --color-surface-container-high: #e2e8f0;
+  --color-surface-container-highest: #e2e8f0;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-dim: #c7dde9;
-  --color-surface-bright: #f3faff;
-  --color-outline: #727783;
-  --color-outline-variant: #c2c6d4;
-  --color-inverse-surface: #1e333c;
-  --color-inverse-on-surface: #dff4ff;
-  --color-inverse-primary: #a9c7ff;
+  --color-surface-dim: #cbd5e1;
+  --color-surface-bright: #f8f9fb;
+  --color-outline: #94a3b8;
+  --color-outline-variant: #e2e8f0;
+  --color-inverse-surface: #1e293b;
+  --color-inverse-on-surface: #f1f5f9;
+  --color-inverse-primary: #cfe9ef;
 
-  --radius-default: 0.125rem;
-  --radius-lg: 0.25rem;
-  --radius-xl: 0.5rem;
-  --radius-full: 0.75rem;
+  /* Gamme « blue » de Tailwind remplacée par les bleus du CHU (mêmes valeurs que l'Imagerie
+     et l'Accueil) : les bleus écrits en dur dans les pages prennent la teinte commune. */
+  --color-blue-50: #eaf6f9;
+  --color-blue-100: #d6eef3;
+  --color-blue-200: #aedce6;
+  --color-blue-300: #7fc3d3;
+  --color-blue-400: #4aa8be;
+  --color-blue-500: #0a7ea4;
+  --color-blue-600: #006a8c;
+  --color-blue-700: #004a66;
+  --color-blue-800: #003847;
+  --color-blue-900: #012430;
+
+  /* Arrondis : valeurs par défaut de Tailwind, comme la consultation (le bloc les avait
+     réduites — rounded-full ne valait que 0,75 rem). */
 }
 
 @layer base {
   body {
     @apply font-body;
-    background-color: #f3faff;
+    background-color: #f8f9fb;
   }
 
   h1, h2, h3, h4, h5, h6 {

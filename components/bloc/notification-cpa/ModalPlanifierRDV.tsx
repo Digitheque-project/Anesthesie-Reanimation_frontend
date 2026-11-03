@@ -29,7 +29,7 @@ export default function ModalPlanifierRDV({
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl">
-        <h3 className="text-xl font-extrabold mb-2">📅 Planifier Rendez-vous</h3>
+        <h3 className="text-xl font-extrabold mb-2">Planifier Rendez-vous</h3>
         <p className="text-sm text-gray-500 mb-6">
           Patient : <strong>{patientNom}</strong> — {intervention}
         </p>

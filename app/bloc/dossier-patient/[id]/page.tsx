@@ -186,7 +186,7 @@ function DossierPatientPageContent() {
     <main className="p-4">
       <BackButton className="mb-3" />
 
-      <h1 className="text-3xl font-extrabold text-on-surface mb-2">📁 Dossier Patient</h1>
+      <h1 className="text-3xl font-extrabold text-on-surface mb-2">Dossier Patient</h1>
       <p className="text-sm text-on-surface-variant mb-4">Dossier médical complet et suivi de la prise en charge</p>
 
       {/* En-tête Patient */}
@@ -330,7 +330,7 @@ function DossierPatientPageContent() {
 
         {p.statut === 'CPA_INAPTE' ? (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm font-bold text-red-700">❌ Patient inapte pour le CPA</p>
+            <p className="text-sm font-bold text-red-700">Patient inapte pour le CPA</p>
             {p.motifRefusCpa && <p className="text-sm text-red-800 mt-1">Motif : {p.motifRefusCpa}</p>}
             {estResponsableCpa ? (
               <button onClick={handleReprendreCircuitCpa} disabled={reprisEnCours}
@@ -344,12 +344,12 @@ function DossierPatientPageContent() {
           </div>
         ) : p.statut === 'CPA_REALISE' ? (
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-sm font-bold text-green-700">✅ CPA réalisée</p>
+            <p className="text-sm font-bold text-green-700">CPA réalisée</p>
             <p className="text-xs text-green-800 mt-1">La décision d'aptitude est prise pendant la consultation CPA proprement dite.</p>
           </div>
         ) : p.statut && p.statut !== 'EN_ATTENTE_CPA' ? (
           <div className={`p-3 rounded-lg border ${styleStatutPatient(p.statut).fondClair} border-current/20`}>
-            <p className={`text-sm font-bold ${styleStatutPatient(p.statut).texte}`}>✅ CPA validée — statut actuel : {libelleStatutPatient(p.statut)}</p>
+            <p className={`text-sm font-bold ${styleStatutPatient(p.statut).texte}`}>CPA validée — statut actuel : {libelleStatutPatient(p.statut)}</p>
           </div>
         ) : (
           <>

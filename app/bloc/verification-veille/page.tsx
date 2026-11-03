@@ -312,9 +312,9 @@ function VerificationVeillePageContent() {
       <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
       <div className="flex justify-end -mt-2 mb-3">
         {cpaId ? (
-          <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase tracking-wider">✅ CPA validée</span>
+          <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase tracking-wider">CPA validée</span>
         ) : (
-          <span className="px-3 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-wider">⚠️ CPA non réalisée</span>
+          <span className="px-3 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-wider">CPA non réalisée</span>
         )}
       </div>
 

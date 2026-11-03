@@ -201,7 +201,7 @@ function SalleDeReveilPageContent() {
     <main className="p-6 max-w-6xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <BackButton />
-        <h1 className="font-headline font-extrabold tracking-tight text-on-surface text-2xl">🛏️ Salle de réveil — Surveillance</h1>
+        <h1 className="font-headline font-extrabold tracking-tight text-on-surface text-2xl">Salle de réveil — Surveillance</h1>
         <div className="flex items-center gap-3">
           <PasserButton onClick={restaurerBrouillon} disabled={!brouillonTrouve} />
           <VoirDossierButton patientId={patientId} variant="icon" />
@@ -429,7 +429,7 @@ function SalleDeReveilPageContent() {
             <div className="flex gap-3">
               <button onClick={() => router.push('/bloc/salle-de-reveil/liste')}
                 className="flex-1 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all">
-                🛏️ Retour à la liste des patients
+                Retour à la liste des patients
               </button>
             </div>
           </div>
