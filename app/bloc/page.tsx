@@ -19,6 +19,7 @@ import { RoleClinique } from '@/lib/auth/role-clinique'
 import { estPatientTraite } from '@/lib/notifications/patient-traite'
 import { dedupeParPatient } from '@/lib/notifications/dedupe'
 import { normaliserDemandeExterne } from '@/lib/notifications/normaliser-demande-externe'
+import { sansUrgentsDuFil } from '@/lib/notifications/urgents-cpa'
 import { apiClient } from '@/lib/api/client'
 
 // Même règle de visibilité que le menu latéral (voir rolesExclus dans Sidebar.tsx) — sans ce
@@ -102,12 +103,16 @@ export default function DashboardPage() {
       const demandesExternes = demandesRes.status === 'fulfilled'
         ? (Array.isArray(demandesRes.value?.data) ? demandesRes.value.data : []).map(normaliserDemandeExterne)
         : []
-      const enAttente = dedupeParPatient([
+      // Patients urgents en attente de CPA : comptés dans « CPA à faire » (VPA depuis le fil de
+      // travail), plus dans les prescriptions — même règle que la page Prescription.
+      const urgentsCpa = (cpaRes.status === 'fulfilled' ? (cpaRes.value?.data || []) : [])
+        .filter((p: any) => p.niveauUrgence === 'URGENT' || p.niveauUrgence === 'TRES_URGENT')
+      const enAttente = sansUrgentsDuFil(dedupeParPatient([
         ...(notifsRes.value?.data || []),
         ...demandesExternes,
       ]).filter(
         (n: any) => n.statut === 'EN_ATTENTE' && !estPatientTraite(n) && estAujourdhui(n.createdAt)
-      )
+      ), urgentsCpa)
       setPrescriptions(enAttente.map((n: any): LignePlanning => {
         const patientId = n.patient?.id || n.patientId
         return {

@@ -9,6 +9,7 @@ import ProgrammeAVenirModal from '@/components/bloc/patient-du-jour/ProgrammeAVe
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus';
 import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate';
 import { Icone } from '@/components/ui/Icone';
+import { patientsUrgentsEnAttenteCpa } from '@/lib/notifications/urgents-cpa';
 
 type Onglet = 'CPA' | 'VERIFICATION_VEILLE';
 
@@ -107,13 +108,9 @@ export default function RendezVousPage() {
         // Patients URGENTS / TRÈS URGENTS dont la CPA reste à faire : comptés sur le tableau de
         // bord, mais absents de toute liste (ce fil ne gardait que les patients normaux à
         // créneau réservé, le programme opératoire ne les prend qu'une fois prêts). Toujours
-        // visibles ici, en tête, quelle que soit la date : leur CPA est une VPA immédiate.
-        const urgents = await Promise.all(['TRES_URGENT', 'URGENT'].map((niveau) =>
-          patientService.getAll({ statut: 'EN_ATTENTE_CPA', niveauUrgence: niveau, limite: 200 })
-            .then((r: any) => (Array.isArray(r?.data) ? r.data : []))
-            .catch(() => []),
-        ));
-        const urgentRows = urgents.flat().map((p: any) => ({
+        // visibles ici, en tête, quelle que soit la date : leur CPA est une VPA immédiate (la
+        // Prescription les retire, même liste : voir lib/notifications/urgents-cpa).
+        const urgentRows = (await patientsUrgentsEnAttenteCpa()).map((p: any) => ({
           id: `vpa-${p.patientId}`,
           heureDebut: null,
           dateIntervention: p.dateIntervention || null,

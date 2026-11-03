@@ -19,6 +19,7 @@ import { RoleClinique } from '@/lib/auth/role-clinique'
 import { useRefetchOnFocus } from '@/lib/hooks/useRefetchOnFocus'
 import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpdate'
 import { estPatientTraite } from '@/lib/notifications/patient-traite'
+import { patientsUrgentsEnAttenteCpa, sansUrgentsDuFil } from '@/lib/notifications/urgents-cpa'
 import { Icone } from '@/components/ui/Icone'
 
 export default function NotificationCPAPage() {
@@ -63,9 +64,10 @@ export default function NotificationCPAPage() {
   const charger = async () => {
     try {
       if (!aDejaCharge.current) setLoading(true)
-      const [data, demandesExternesRes] = await Promise.all([
+      const [data, demandesExternesRes, urgents] = await Promise.all([
         notificationService.getAll(1, 100),
         apiClient.get('/demandes-cpa-externes', { params: { statut: 'EN_ATTENTE' } }).catch(() => ({ data: [] })),
+        patientsUrgentsEnAttenteCpa(),
       ])
       const notifs = data.data || []
       const demandesExternes = (Array.isArray(demandesExternesRes.data) ? demandesExternesRes.data : []).map(normaliserDemandeExterne)
@@ -93,7 +95,9 @@ export default function NotificationCPAPage() {
       // NB : on ne filtre PAS ici sur `lu` — "lue" dans la cloche n'équivaut pas à "traitée" : un
       // patient marqué lu mais dont la CPA reste à faire doit continuer d'apparaître dans le fil
       // de travail (seule la cloche retire les notifications lues, voir NotificationModal).
-      const actionnables = toutes.filter((n: any) => !estPatientTraite(n))
+      // Les patients urgents en attente de CPA sont traités depuis le fil de travail (VPA
+      // immédiate) : ils n'apparaissent plus ici. Le son d'arrivée ci-dessus est conservé.
+      const actionnables = sansUrgentsDuFil(toutes.filter((n: any) => !estPatientTraite(n)), urgents)
 
       setNotifications(actionnables)
       setErreur(null)
