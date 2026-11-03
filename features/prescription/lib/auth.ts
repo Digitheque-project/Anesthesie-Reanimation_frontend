@@ -1,16 +1,18 @@
 /**
- * Adaptateur d'auth pour la suite Prescription portée depuis front-clinique.
- * Redirige getStoredToken/parseJwt/authFetch vers la session centrale de
- * blocope-front (lib/auth/central-session.ts), pour porter les composants
- * sans les modifier.
+ * Adaptateur d'auth pour la suite Prescription embarquee.
+ *
+ * Le prescription_front standalone lisait le JWT sous la cle "prescription_jwt"
+ * via son propre "@/lib/auth". Dans front-clinique, la source unique du token
+ * est le session-store clinique (localStorage "auth_token" / "access_token").
+ * Ce shim redirige donc authFetch / getStoredToken / parseJwt vers lui, ce qui
+ * permet de porter les composants du prescription_front sans les modifier.
  */
-import { getStoredToken as _getStoredToken } from "@/lib/clinical-auth/token";
-import { decoderToken } from "@/lib/auth/central-session";
+import { getStoredToken as _getStoredToken, decodeJwtPayload } from "@/features/prescription/platform/session-store";
 
 export const getStoredToken = _getStoredToken;
 
 export function parseJwt(token: string): Record<string, unknown> | null {
-  return decoderToken(token) as Record<string, unknown> | null;
+  return decodeJwtPayload(token);
 }
 
 export function authFetch(url: string, options: RequestInit = {}): Promise<Response> {

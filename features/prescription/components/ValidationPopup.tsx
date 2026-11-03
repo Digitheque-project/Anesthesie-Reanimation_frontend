@@ -13,9 +13,9 @@ const TYPE_ICONS: Record<string, string> = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  medicale: '#3b82f6', 'non-medicale': '#10b981', surveillance: '#f59e0b',
+  medicale: '#3b82f6', 'non-medicale': '#10b981', surveillance: '#0369a1',
   transfusion: '#ef4444', bloc: '#8b5cf6', labo: '#06b6d4',
-  imagerie: '#ec4899', anapath: '#14b8a6', eeg: '#f97316',
+  imagerie: '#ec4899', anapath: '#14b8a6', eeg: '#2563eb',
   kine: '#22c55e', endoscopie: '#6366f1', dialyse: '#0ea5e9',
 };
 

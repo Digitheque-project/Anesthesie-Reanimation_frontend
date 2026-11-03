@@ -25,9 +25,27 @@
 	--navy-dk: var(--navy-hover, #04556f);
 	--navy-mid: #b8d4e3;
 	--bg: var(--card, #ffffff);
+	--bg2: #eef2f6;
 	--inp: var(--input, #f2f4f8);
 	--shadow: 0 2px 8px rgba(5, 102, 141, 0.06);
 	--amber: #d97706;
+	/* Amber warning palette (statuts "en attente", alertes de sécurité) */
+	--amber-dk: #92400e;
+	--amber-lt: #fef3c7;
+	--amber-bg: #fef3c7;
+	--amber-bdr: #fbbf24;
+	--amber-warn: #f59e0b;
+	--amber-warn-lt: #fffbeb;
+	--amber-warn-bdr: #f59e0b;
+	/* Vert (distinction ECG) */
+	--green-dk: #16a34a;
+	/* Premier Soin: ces variables etaient referencees par les composants sans
+	   etre declarees, ce qui rendait notamment le bouton actif blanc/invisible. */
+	--blue-ps: #05668d;
+	--blue-ps-dk: #034b68;
+	--blue-ps-lt: #ebf5fb;
+	--blue-ps-bdr: #b8d4e3;
+	--blue-info: #0369a1;
 }
 
 /* ── Hospital readability: slightly larger, high-legibility type ───────── */
@@ -223,6 +241,13 @@
 	transform: translateY(1px);
 }
 
+/* ── Bouton principal "Valider" : plus gros pour un meilleur confort de clic ── */
+.psx .bp {
+	padding: 16px 24px;
+	font-size: 16px;
+	border-radius: 10px;
+}
+
 /* ── Item d'analyse (checklist labo) : ligne nette, case avant le texte ── */
 .psx .cr {
 	display: flex;
@@ -236,64 +261,244 @@
 	background: rgba(5, 102, 141, 0.06);
 }
 
-/* ── Cases à cocher et boutons radio : forme et taille uniformes ────────────
- * Les classes `.rc` (carte d'option) et `.tog` (interrupteur) attendues par les
- * formulaires portés viennent du globals.css de l'application d'origine, qui n'a
- * jamais été porté ici : elles ne sont définies nulle part. Les contrôles
- * retombaient donc sur le rendu natif du navigateur — radios ronds à côté de
- * cases carrées, toutes à la taille par défaut, soit deux formes et deux tailles
- * concurrentes dans un même formulaire (Surveillance, Transfusion, Non médicale...).
- * On aligne ici tout le module sur la même règle que les checklists du bloc
- * (components/ui/Checkbox et Radio) : rond, même diamètre, même accent.
+
+/* ── Sous-onglets Prescription / navigation para-clinique ───────────────
+ * Vert du design system front-clinique, distinct du bleu des actions principales.
  */
-.psx input[type="checkbox"],
-.psx input[type="radio"] {
-	appearance: none;
-	-webkit-appearance: none;
-	width: 1.5rem;
-	height: 1.5rem;
-	flex: 0 0 auto;
-	margin: 0;
-	border: 2px solid var(--border, #cbd5e1);
-	border-radius: 9999px;
-	background: #fff;
+.psx .psx-subtab {
+	background: var(--green-lt, #eafdf3);
+	color: #166534;
+	border: 1px solid #b7efcf;
 	cursor: pointer;
-	display: inline-grid;
-	place-content: center;
-	transition: border-color 0.12s ease, background 0.12s ease;
+	transition: background-color 0.18s ease, color 0.18s ease,
+		border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
-.psx input[type="checkbox"]:hover:not(:disabled),
-.psx input[type="radio"]:hover:not(:disabled) {
-	border-color: var(--navy, #05668d);
+.psx .psx-subtab:hover {
+	background: #d8f8e6;
+	color: #14532d;
+	border-color: #5bd78f;
+	box-shadow: 0 2px 8px rgba(46, 204, 113, 0.16);
+	transform: translateY(-1px);
 }
-/* La pastille centrale marque l'état coché — identique pour les deux types, la
- * distinction radio/checkbox restant portée par le comportement, pas la forme. */
-.psx input[type="checkbox"]::before,
-.psx input[type="radio"]::before {
-	content: "";
-	width: 0.75rem;
-	height: 0.75rem;
-	border-radius: 9999px;
-	transform: scale(0);
-	transition: transform 0.12s ease;
-	background: #fff;
+.psx .psx-subtab:focus-visible {
+	outline: 3px solid rgba(46, 204, 113, 0.28);
+	outline-offset: 2px;
 }
-.psx input[type="checkbox"]:checked,
-.psx input[type="radio"]:checked {
+.psx .psx-subtab.is-active,
+.psx .psx-subtab.is-active:hover {
+	background: var(--green, #2ecc71);
+	color: #103d29;
+	border-color: var(--green, #2ecc71);
+	box-shadow: 0 2px 8px rgba(46, 204, 113, 0.24);
+	transform: none;
+}
+
+/* ==========================================================================
+ * COLONNES DROITES (recapitulatif / validation) - defilement maitrise
+ *
+ * Probleme corrige : ces panneaux etaient `position: sticky; top: 16` sans
+ * hauteur bornee. Des que leur contenu depassait la hauteur de l'ecran (quota
+ * Premier Soin + remarques + bouton Valider + listes), le haut restait colle
+ * mais le bas sortait du viewport : il fallait faire defiler toute la page et
+ * le panneau "sautait" brutalement d'un bloc a l'autre.
+ *
+ * Correctif : le panneau est borne a la hauteur du viewport et defile
+ * DANS lui-meme, de facon fluide, sans entrainer la page (overscroll-behavior).
+ * Le bouton Valider reste ainsi toujours atteignable.
+ * ========================================================================== */
+.psx .psx-side {
+	align-self: start;
+	/* --psx-vh = hauteur REELLE du panneau scrollable du dossier patient,
+	 * mesuree par useStickyViewport. Fallback 100vh hors dossier. */
+	max-height: calc(var(--psx-vh, 100vh) - 2 * var(--psx-sticky-top, 16px));
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scroll-behavior: smooth;
+	/* Evite que l'ombre des cartes soit rognee par le conteneur scrollable. */
+	padding: 2px 4px 2px 2px;
+	margin: -2px -4px -2px -2px;
+}
+
+/* Barre de defilement discrete, coherente avec la palette clinique. */
+.psx .psx-side {
+	top: var(--psx-sticky-top, 16px);
+	scrollbar-width: thin;
+	scrollbar-color: var(--navy-mid, #b8d4e3) transparent;
+}
+.psx .psx-side::-webkit-scrollbar {
+	width: 8px;
+}
+.psx .psx-side::-webkit-scrollbar-track {
+	background: transparent;
+}
+.psx .psx-side::-webkit-scrollbar-thumb {
+	background: var(--navy-mid, #b8d4e3);
+	border-radius: 8px;
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+.psx .psx-side::-webkit-scrollbar-thumb:hover {
 	background: var(--navy, #05668d);
-	border-color: var(--navy, #05668d);
+	background-clip: content-box;
 }
-.psx input[type="checkbox"]:checked::before,
-.psx input[type="radio"]:checked::before {
-	transform: scale(1);
+
+/* Sur petits ecrans la grille passe en une colonne : le panneau reprend son
+ * flux normal, sans hauteur bornee ni adherence. */
+@media (max-width: 900px) {
+	.psx .psx-side {
+		position: static !important;
+		max-height: none;
+		overflow-y: visible;
+	}
 }
-.psx input[type="checkbox"]:focus-visible,
-.psx input[type="radio"]:focus-visible {
-	outline: none;
-	box-shadow: 0 0 0 4px rgba(5, 102, 141, 0.25);
+
+/* Defilement fluide (et non abrupt) pour tous les conteneurs internes de la
+ * suite prescription, y compris les listes du milieu. */
+.psx,
+.psx .card,
+.psx [class*="scroll"] {
+	scroll-behavior: smooth;
 }
-.psx input[type="checkbox"]:disabled,
-.psx input[type="radio"]:disabled {
-	cursor: not-allowed;
-	opacity: 0.5;
+
+/* ==========================================================================
+ * ANCRAGE STICKY - hauteur de reference
+ *
+ * Dans le dossier patient, la page ne defile PAS dans la fenetre : le contenu
+ * de l'onglet vit dans un panneau interne `h-full overflow-y-auto`, situe sous
+ * l'en-tete patient et la barre d'onglets, donc bien plus court que le viewport.
+ * Borner les panneaux sticky avec `100vh` les rendait plus hauts que la zone
+ * visible : le bas (bouton Valider) restait hors ecran et il fallait encore
+ * faire defiler le panneau parent -> defilement brutal.
+ *
+ * `--psx-vh` est renseignee en JS par `useStickyViewport` avec le clientHeight
+ * reel de ce panneau. `100vh` ne sert plus que de repli.
+ * ========================================================================== */
+.psx {
+	--psx-sticky-top: 16px;
+}
+
+/* Menu lateral gauche (PRESCRIPTIONS) */
+.psx .psx-menu {
+	position: sticky;
+	top: var(--psx-sticky-top, 16px);
+	max-height: calc(var(--psx-vh, 100vh) - 2 * var(--psx-sticky-top, 16px));
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scroll-behavior: smooth;
+	scrollbar-width: thin;
+	scrollbar-color: var(--navy-mid, #b8d4e3) transparent;
+}
+.psx .psx-menu::-webkit-scrollbar {
+	width: 8px;
+}
+.psx .psx-menu::-webkit-scrollbar-track {
+	background: transparent;
+}
+.psx .psx-menu::-webkit-scrollbar-thumb {
+	background: var(--navy-mid, #b8d4e3);
+	border-radius: 8px;
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+
+/* Colonne centrale : hauteur plancher = zone visible, pour que la hauteur
+ * totale ne s'effondre pas d'une section a l'autre (le menu resterait sinon
+ * sans plage d'adherence sur les sections courtes). */
+.psx .psx-content {
+	min-height: calc(var(--psx-vh, 100vh) - 2 * var(--psx-sticky-top, 16px));
+}
+
+@media (max-width: 900px) {
+	.psx .psx-menu {
+		position: static;
+		max-height: none;
+		overflow-y: visible;
+	}
+	.psx .psx-content {
+		min-height: 0;
+	}
+}
+
+/* ------------------------------------------------------------------
+   Zone de defilement interne des modals (details d'historique).
+   Seul le corps du modal defile : l'en-tete colore et le pied
+   "Fermer" restent fixes. Meme barre fine que les colonnes de droite
+   (.psx-side) pour rester coherent dans toute la suite.
+   ------------------------------------------------------------------ */
+/* Corps scrollable du modal historique.
+   Le selecteur n'est volontairement pas limite a `.psx .…` : la zone reste
+   fonctionnelle si le modal est plus tard rendu dans un portal React. */
+.psx-modal-scroll {
+	min-height: 0;
+	overflow-y: scroll !important;
+	overflow-x: hidden !important;
+	overscroll-behavior: contain;
+	touch-action: pan-y;
+	scrollbar-gutter: stable;
+}
+
+/* CORRECTION ESSENTIELLE : le corps est un flex-column. Sans cette regle,
+   ses cartes conservent flex-shrink: 1 et sont compressees/coupees pour tenir
+   dans la hauteur disponible. En les rendant non reductibles, leur hauteur
+   totale depasse correctement le viewport interne et cree le scroll. */
+.psx-modal-scroll > * {
+	flex-shrink: 0 !important;
+}
+
+/* Chrome, Edge et Safari */
+.psx-modal-scroll::-webkit-scrollbar {
+	width: 12px;
+}
+.psx-modal-scroll::-webkit-scrollbar-track {
+	background: rgba(5, 102, 141, 0.1);
+	border-radius: 10px;
+	margin: 8px 0;
+}
+.psx-modal-scroll::-webkit-scrollbar-thumb {
+	background: var(--navy, #05668d);
+	border: 3px solid transparent;
+	background-clip: padding-box;
+	border-radius: 10px;
+	min-height: 44px;
+}
+.psx-modal-scroll::-webkit-scrollbar-thumb:hover,
+.psx-modal-scroll::-webkit-scrollbar-thumb:active {
+	background: var(--navy-dk, #044f6d);
+	background-clip: padding-box;
+	border: 2px solid transparent;
+}
+
+/* Firefox uniquement. Isoler ces proprietes evite qu'elles neutralisent les
+   pseudo-elements WebKit dans les versions recentes de Chrome. */
+@supports (-moz-appearance: none) {
+	.psx-modal-scroll {
+		scrollbar-width: thin;
+		scrollbar-color: var(--navy, #05668d) rgba(5, 102, 141, 0.1);
+	}
+}
+
+
+/* Action d'arrêt d'une prescription : cible suffisamment grande, contraste
+   explicite et libellé stable dans toutes les familles de prescription. */
+.psx .btn-stop-prescription {
+  min-height: 34px !important;
+  margin-left: auto !important;
+  padding: 6px 11px !important;
+  border: 1px solid #fda4af !important;
+  border-radius: 9px !important;
+  background: #fff1f2 !important;
+  color: #be123c !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  box-shadow: 0 1px 2px rgba(190, 18, 60, 0.08) !important;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s !important;
+}
+.psx .btn-stop-prescription:hover {
+  border-color: #fb7185 !important;
+  background: #ffe4e6 !important;
+  transform: translateY(-1px);
+}
+.psx .btn-stop-prescription:focus-visible {
+  outline: 3px solid rgba(244, 63, 94, 0.22) !important;
+  outline-offset: 2px;
 }

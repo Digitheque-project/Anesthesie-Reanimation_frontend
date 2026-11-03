@@ -14,6 +14,8 @@ import {
   TriangleAlert, Undo2, User, UserCheck, Users, UsersRound, Utensils, UtensilsCrossed, Waypoints, Wind, X, Zap,
   Brain, ClipboardClock, ClockAlert, Dumbbell, GlassWater, HandHeart, Hourglass, Inbox, Scan, Send, ShoppingBasket,
   SlidersHorizontal, TestTubes,
+  Armchair, ArrowUpDown, Bandage, CircleMinus, CirclePlus, CircleStop, Droplets, Ear, FilePlus, Focus, Hand, Heart,
+  Moon, Pencil, PersonStanding, Pipette, Radar, Receipt, ScanLine, ShowerHead, Square,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -61,6 +63,12 @@ const ICONES: Record<string, LucideIcon> = {
   neurology: Brain, pending: ClockAlert, pending_actions: ClipboardClock, radiology: Scan, refresh: RefreshCw,
   science: TestTubes, self_care: HandHeart, send: Send, shopping_basket: ShoppingBasket, tune: SlidersHorizontal,
   volunteer_activism: HandHeart, water_full: GlassWater,
+  add_circle: CirclePlus, airline_seat_recline_extra: Armchair, autorenew: RefreshCw, bedtime: Moon,
+  center_focus_strong: Focus, dentistry: Smile, edit: Pencil, favorite: Heart, healing: Bandage, hearing: Ear,
+  note_add: FilePlus, receipt_long: Receipt, stop: Square, stop_circle: CircleStop, surgical: Scissors,
+  accessibility_new: PersonStanding, back_hand: Hand, colorize: Pipette, document_scanner: ScanLine,
+  fitness_center: Dumbbell, radar: Radar, remove_circle: CircleMinus, restaurant: Utensils, shower: ShowerHead,
+  soap: Droplets, swap_vert: ArrowUpDown,
 }
 
 export function Icone({ nom, className, style, title }: {

@@ -1,10 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { creerPrescriptionNonMedicale, getPrescriptionsPatient, updateStatutPrescription } from '@/features/prescription/lib/api';
+import { useState, useEffect, useRef, startTransition } from 'react';
+import { getPrescriptionsPatient, arreterPlanningItem } from '@/features/prescription/lib/api';
 import { usePrescriptionPanier } from '@/features/prescription/contexts/PrescriptionPanierContext';
+import { useAuth } from '@/features/prescription/contexts/AuthContext';
 import ValidationPopup from './ValidationPopup';
+import DrawerPanel from './DrawerPanel';
+import ArretPlanningDialog from './ArretPlanningDialog';
+import { Patient, Prescripteur, urgenceClasses } from './types';
+import { getFrequenceText, nowDateStr, nowHeureStr } from './medicale/utils';
+import { filterExpired } from '@/features/prescription/lib/prescriptionUtils';
+import { subscribeSoinsMaj } from '@/features/prescription/platform/soins-realtime';
+import { scrollPrescriptionContentToTop } from '@/features/prescription/lib/scrollUtils';
+import { useDraftPersistence, loadDraft } from '@/features/prescription/hooks/useDraftPersistence';
+import AutocompleteInput from './AutocompleteInput';
+import ItemNotifierSelector from './ItemNotifierSelector';
+import { useKeyboardNavigation } from '@/features/prescription/hooks/useKeyboardNavigation';
 import { Icone } from '@/components/ui/Icone';
+
+interface NMDraftData {
+  items: NMItem[];
+  instructions: string;
+  urgence: 'NORMAL' | 'URGENT' | 'TRES_URGENT';
+}
 
 interface NMItem {
   id: string;
@@ -17,12 +35,14 @@ interface NMItem {
   dateDebut: string;
   heureDebut: string;
   instructions: string;
+  notifierInfirmier?: boolean;
+  serviceNotifId?: string;
 }
 
 interface PrescriptionNonMedEnCours {
   statut?: string;
   id: string;
-  items: { typeLabel: string; description: string; duree?: string; frequence?: string; dateDebut?: string }[];
+  items: { id?: string; typeLabel: string; description: string; duree?: string; frequence?: string; dateDebut?: string; planningActif?: boolean }[];
   notifierInfirmier?: boolean;
   prescripteur?: { nom: string };
 }
@@ -37,110 +57,142 @@ const TABS: { key: NMTab; label: string; icon: string }[] = [
 const chipStyle = (active: boolean): React.CSSProperties => ({
   display: 'flex', alignItems: 'center', gap: 6,
   padding: '8px 14px', borderRadius: 10, border: 'none', cursor: 'pointer',
-  fontSize: 12, fontWeight: active ? 600 : 500, flexShrink: 0,
-  background: active ? 'var(--navy)' : 'var(--inp)',
-  color: active ? '#fff' : 'var(--txt2)', transition: 'all .15s',
+  fontSize: 13, fontWeight: active ? 600 : 500, flexShrink: 0,
+  // Onglets actifs en VERT (couleur d'action de l'ergonomie clinique),
+  // et non en navy. Texte vert fonce pour garder un contraste AA sur
+  // le vert clair, comme les sous-onglets paracliniques (.psx-subtab).
+  background: active ? 'var(--green, #2ECC71)' : 'var(--inp)',
+  color: active ? '#103d29' : 'var(--txt2)', transition: 'all .15s',
 });
 
 const TYPE_OPTIONS = [
   { value: 'regime', label: 'Régime alimentaire' },
   { value: 'mobilisation', label: 'Mobilisation / Positionnement' },
-  { value: 'nursing', label: 'Soins infirmiers / Nursing' },
   { value: 'hygiene', label: 'Hygiène' },
   { value: 'contention', label: 'Contention / Attelle' },
-  { value: 'autre', label: 'Autre' },
 ];
 
+const TYPE_LABELS = TYPE_OPTIONS.map(o => o.label);
+const TYPE_VALUE_BY_LABEL: Record<string, string> = Object.fromEntries(TYPE_OPTIONS.map(o => [o.label, o.value]));
+
 const TYPE_ICON: Record<string, string> = {
-  regime: 'restaurant', mobilisation: 'accessibility_new', nursing: 'health_and_safety',
-  hygiene: 'soap', contention: 'back_hand', autre: 'more_horiz',
+  regime: 'restaurant', mobilisation: 'accessibility_new',
+  hygiene: 'soap', contention: 'back_hand',
 };
 
 interface Props {
-  patient: { 
-    id: string; 
-    nom?: string; 
-    prenom?: string;
-    sexe?: string;
-    dateNaissance?: string;
-    allergies?: string[];
-    groupeSanguin?: string;
-  };
-  prescripteur: { id?: string; nom?: string; prenom?: string; service?: string };
+  patient: Patient;
+  prescripteur: Prescripteur;
   patientType?: 'hospitalise' | 'consultation_externe' | 'accueil';
 }
 
-const TYPES_WITHOUT_FREQUENCE = ['contention', 'regime'];
-const TYPES_WITH_OPTIONAL_FREQUENCE = ['autre'];
+const TYPES_WITHOUT_FREQUENCE_LABELS = ['Régime alimentaire', 'Contention / Attelle'];
+const KNOWN_TYPE_LABELS = TYPE_OPTIONS.map(o => o.label);
 
-function parseDureeMs(d: string): number {
-  const parts = d.split(' ');
-  if (parts.length !== 2) return 0;
-  const val = Number(parts[0]);
-  const unit = parts[1];
-  if (isNaN(val)) return 0;
-  switch (unit) {
-    case 'heures': return val * 3600_000;
-    case 'jours':  return val * 86400_000;
-    case 'mois':   return val * 30 * 86400_000;
-    default: return 0;
-  }
-}
-
-function filterExpired(prescriptions: PrescriptionNonMedEnCours[]): PrescriptionNonMedEnCours[] {
-  const now = Date.now();
-  return prescriptions.filter(p => {
-    if (p.statut !== 'ACTIVE') return false;
-    return p.items?.some(item => {
-      if (!item.dateDebut || !item.duree) return true;
-      const start = new Date(item.dateDebut).getTime();
-      return (start + parseDureeMs(item.duree)) > now;
-    });
-  });
+function getTypeValue(label: string): string {
+  return TYPE_VALUE_BY_LABEL[label] || label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_');
 }
 
 export default function NonMedicaleForm({ patient, prescripteur, patientType }: Props) {
+  const { containerRef, handleKeyDown } = useKeyboardNavigation();
   const { addToPanier, setPatientId, sendAll } = usePrescriptionPanier();
+  const { user } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const chuId = (user?.services as any[])?.[0]?.chu?.id || process.env.NEXT_PUBLIC_CHU_ID;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serviceId = (user?.services as any[])?.[0]?.serviceId;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serviceName = (user?.services as any[])?.[0]?.serviceName;
   const [activeTab, setActiveTab] = useState<NMTab>('nouvelle');
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [dureeJours, setDureeJours] = useState<number>(0);
   const [frequenceType, setFrequenceType] = useState('');
   const [frequenceValeur, setFrequenceValeur] = useState<number>(0);
-  const [dateDebut, setDateDebut] = useState(new Date().toISOString().split('T')[0]);
-  const [heureDebut, setHeureDebut] = useState('');
+  const [dateDebut, setDateDebut] = useState(nowDateStr);
+  const [heureDebut, setHeureDebut] = useState(nowHeureStr);
   const [instructions, setInstructions] = useState('');
   const [urgence, setUrgence] = useState<'NORMAL'|'URGENT'|'TRES_URGENT'>('NORMAL');
   const [items, setItems] = useState<NMItem[]>([]);
-  const [notifOn, setNotifOn] = useState(false);
+  const [notifierInfirmier, setNotifierInfirmier] = useState(false);
+  const [serviceNotifId, setServiceNotifId] = useState('');
+  const [jno, setJno] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(false);
-  const urgenceClasses: Record<string, string> = { NORMAL: 'un', URGENT: 'uu', TRES_URGENT: 'utu' };
   const [apiError, setApiError] = useState('');
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<PrescriptionNonMedEnCours[]>([]);
-  const [erreurEnCours, setErreurEnCours] = useState(false);
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [nomMedecin, setNomMedecin] = useState('');
   const [numeroONM, setNumeroONM] = useState('');
+  const [, setDraftRestored] = useState(false);
+  const [, setDraftSavedAt] = useState<Date | null>(null);
+  const [showNMDrawer, setShowNMDrawer] = useState(false);
+  const [arretCible, setArretCible] = useState<{ kind: 'itemNonMedical'; id: string; label: string } | null>(null);
+  const [arretBusy, setArretBusy] = useState(false);
+  const prevPatientIdRef = useRef<string | null>(null);
   const isAccueil = prescripteur?.service?.toLowerCase().includes('accueil') ?? false;
 
-  const isFrequenceRequired = !TYPES_WITHOUT_FREQUENCE.includes(type) && !TYPES_WITH_OPTIONAL_FREQUENCE.includes(type) && patientType !== 'accueil';
-  const isDureeRequired = isFrequenceRequired;
-  const showFrequence = !TYPES_WITHOUT_FREQUENCE.includes(type);
+  const { clearDraft } = useDraftPersistence<NMDraftData>(
+    `draft:non-medicale:${patient.id}`,
+    { items, instructions, urgence },
+    { skip: !patient.id }
+  );
+
+  const isKnownType = KNOWN_TYPE_LABELS.includes(type);
+  const isFrequenceRequired = isKnownType && !TYPES_WITHOUT_FREQUENCE_LABELS.includes(type) && patientType !== 'accueil';
+  const isDureeRequired = isFrequenceRequired && !jno;
+  const showFrequence = !TYPES_WITHOUT_FREQUENCE_LABELS.includes(type);
 
   const canValidate = items.length > 0;
-  const isAddValid = type && description.trim() && (!showFrequence || patientType === 'accueil' || TYPES_WITH_OPTIONAL_FREQUENCE.includes(type) || (dureeJours > 0 && (frequenceType === 'SOS' || frequenceType === 'CONTINU' || frequenceValeur > 0)));
+  const isAddValid = type && description.trim() && (!showFrequence || patientType === 'accueil' || ((jno || dureeJours > 0) && (frequenceType === 'SOS' || frequenceType === 'CONTINU' || frequenceValeur > 0)));
 
 
   useEffect(() => {
+    const patientChanged = prevPatientIdRef.current !== patient.id;
+    prevPatientIdRef.current = patient.id;
     setPatientId(patient.id);
-    refreshPrescriptions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    if (patientChanged) {
+      const draftKey = `draft:non-medicale:${patient.id}`;
+      const draftData = loadDraft<NMDraftData>(draftKey);
+      if (draftData) {
+        let savedAt: Date | null = null;
+        try {
+          const raw = localStorage.getItem(draftKey);
+          if (raw) {
+            const envelope = JSON.parse(raw);
+            if (envelope?.savedAt) savedAt = new Date(envelope.savedAt);
+          }
+        } catch {}
+        startTransition(() => {
+          setDraftRestored(false);
+          setDraftSavedAt(null);
+          if (draftData.items?.length > 0) setItems(draftData.items);
+          if (draftData.instructions) setInstructions(draftData.instructions);
+          if (draftData.urgence && draftData.urgence !== 'NORMAL') setUrgence(draftData.urgence);
+          setDraftRestored(true);
+          if (savedAt) setDraftSavedAt(savedAt);
+        });
+      } else {
+        startTransition(() => {
+          setDraftRestored(false);
+          setDraftSavedAt(null);
+        });
+      }
+    }
+
+    async function fetchPrescriptions() {
+      try {
+        const data = await getPrescriptionsPatient('non-medicale', patient.id);
+        setPrescriptionsEnCours(filterExpired(data, 'items'));
+      } catch {}
+    }
+    fetchPrescriptions();
   }, [patient.id, setPatientId]);
 
-  function showToast(msg: string) { setToast(msg); window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => setToast(''), 2800); }
+  function showToast(msg: string) { setToast(msg); scrollPrescriptionContentToTop(); setTimeout(() => setToast(''), 2800); }
 
   function validateAddForm(): boolean {
     const newErrors: Record<string, string> = {};
@@ -148,7 +200,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
     if (!description.trim()) newErrors.description = 'La description est requise';
     if (isDureeRequired && dureeJours <= 0) newErrors.dureeJours = 'La durée en jours est requise';
     if (isFrequenceRequired && !frequenceType) newErrors.frequenceType = 'Le type de fréquence est requis';
-    if (isFrequenceRequired && (frequenceType === 'HEURES' || frequenceType === 'PAR_JOUR') && frequenceValeur <= 0) {
+    if (isFrequenceRequired && (frequenceType === 'HEURES' || frequenceType === 'MINUTES' || frequenceType === 'PAR_JOUR') && frequenceValeur <= 0) {
       newErrors.frequenceValeur = 'La valeur de fréquence est requise';
     }
     setErrors(newErrors);
@@ -157,14 +209,20 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
 
   function handleAdd() {
     if (!validateAddForm()) return;
-    const typeLabel = TYPE_OPTIONS.find(o => o.value === type)?.label ?? type;
+    const typeValue = getTypeValue(type);
     setItems(prev => [...prev, {
-      id: Date.now().toString(), type, typeLabel,
-      description: description.trim(), dureeJours, frequenceType, frequenceValeur,
+      id: Date.now().toString(), type: typeValue, typeLabel: type,
+      description: description.trim(), dureeJours: jno ? 0 : dureeJours, frequenceType, frequenceValeur,
       dateDebut, heureDebut, instructions: instructions.trim(),
+      notifierInfirmier,
+      serviceNotifId: notifierInfirmier ? (serviceNotifId || serviceId) : '',
     }]);
     setType(''); setDescription(''); setDureeJours(0); setFrequenceType(''); setFrequenceValeur(0);
-    setDateDebut(''); setHeureDebut(''); setInstructions(''); setErrors({});
+    setDateDebut(nowDateStr); setHeureDebut(nowHeureStr); setInstructions(''); setErrors({});
+    setJno(false);
+    setNotifierInfirmier(false);
+    setServiceNotifId('');
+    setShowNMDrawer(false);
   }
 
   function handleDelete(id: string) { setItems(prev => prev.filter(i => i.id !== id)); }
@@ -172,27 +230,30 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
   async function refreshPrescriptions() {
     try {
       const data = await getPrescriptionsPatient('non-medicale', patient.id);
-      setPrescriptionsEnCours(filterExpired(data));
-      setErreurEnCours(false);
-    } catch {
-      setErreurEnCours(true);
-    }
+      setPrescriptionsEnCours(filterExpired(data, 'items'));
+    } catch {}
   }
 
-  async function terminerPrescription(id: string) {
+  useEffect(() => subscribeSoinsMaj(detail => {
+    if (!detail.patientId || detail.patientId === patient.id) void refreshPrescriptions();
+  }), [patient.id]);
+
+  async function handleConfirmArret(motif: string) {
+    if (!arretCible) return;
+    setArretBusy(true);
     try {
-      await updateStatutPrescription('non-medicale', id, 'TERMINEE');
-      await refreshPrescriptions();
-    } catch { console.error('Erreur terminaison'); }
-  }
-
-  function getFrequenceText(type: string, valeur: number): string {
-    switch (type) {
-      case 'HEURES': return `Toutes les ${valeur}h`;
-      case 'PAR_JOUR': return `${valeur}× par jour`;
-      case 'SOS': return 'Si besoin (SOS)';
-      case 'CONTINU': return 'En continu';
-      default: return type;
+      await arreterPlanningItem(arretCible.kind, arretCible.id, prescripteur?.id, motif || undefined);
+      setPrescriptionsEnCours(prev => prev.map(p => ({
+        ...p,
+        items: (p.items || []).filter(i => i.id !== arretCible.id),
+      })).filter(p => (p.items?.length ?? 0) > 0));
+      setArretCible(null);
+      showToast('Prescription arrêtée');
+    } catch {
+      setArretCible(null);
+      showToast("Erreur lors de l'arrêt");
+    } finally {
+      setArretBusy(false);
     }
   }
 
@@ -201,11 +262,13 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
     setLoading(true);
     setApiError('');
     try {
+      const isAccueilService = prescripteur?.service?.toLowerCase().includes('accueil') ?? false;
       const prescriptionData = {
         patientId: patient.id,
         prescripteurId: prescripteur.id,
+        sourceType: isAccueilService ? 'EXTERNE' : 'INTERNE',
         urgence,
-        notifierInfirmier: notifOn,
+        notifierInfirmier: items.some(i => i.notifierInfirmier),
         nomMedecinPrescripteur: nomMedecin,
         numeroONM: numeroONM,
         patientNom: patient.nom,
@@ -214,16 +277,18 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
         prescripteurPrenom: prescripteur.prenom,
         prescripteurService: prescripteur.service,
         items: items.map(item => ({
-          type: item.type, typeLabel: item.typeLabel, description: item.description, dureeJours: item.dureeJours, frequenceType: item.frequenceType, frequenceValeur: item.frequenceValeur, dateDebut: item.dateDebut ? new Date(item.dateDebut) : undefined, heureDebut: item.heureDebut || undefined, instructions: item.instructions
+          type: item.type, typeLabel: item.typeLabel, description: item.description, dureeJours: item.dureeJours, frequenceType: item.frequenceType, frequenceValeur: item.frequenceValeur, dateDebut: item.dateDebut ? new Date(item.dateDebut) : undefined, heureDebut: item.heureDebut || undefined, instructions: item.instructions,
+          notifierInfirmier: item.notifierInfirmier,
+          serviceNotifId: item.notifierInfirmier ? item.serviceNotifId : undefined,
         })),
       };
 
       const summary = `${items.length} soin(s) non médicamenteux`;
       addToPanier('non-medicale', summary, prescriptionData);
+      clearDraft();
 
       setShowValidationPopup(true);
       setItems([]);
-      setNotifOn(false);
       setInstructions('');
       setUrgence('NORMAL');
       await refreshPrescriptions();
@@ -235,7 +300,7 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
   }
 
   return (
-    <div>
+    <div ref={containerRef} onKeyDown={handleKeyDown}>
       {apiError && (
         <div style={{ background: "var(--red-lt)", border: "1px solid var(--red-bdr)", borderRadius: 8, padding: "10px 12px", fontSize: 12, color: "var(--red)", marginBottom: 12 }}>
           {apiError}
@@ -272,79 +337,33 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
 
       {/* === ONGLET NOUVELLE PRESCRIPTION === */}
       {activeTab === 'nouvelle' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 16, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 16, alignItems: 'start' }}>
           {/* COLONNE GAUCHE */}
           <div>
+            {/* Bouton déclencheur pour ajouter une prescription */}
             <div className="card mb12" style={{ padding: 12 }}>
-              <div className="mb12">
-                <label className="lbl">Type de prescription <span className="req">*</span></label>
-                <select value={type} onChange={e => { setType(e.target.value); if (errors.type) setErrors({...errors, type: ''}); }} style={errors.type ? { borderColor: 'var(--red)' } : {}}>
-                  <option value="">Sélectionner un type</option>
-                  {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-                {errors.type && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.type}</div>}
-              </div>
-              <div className="mb12">
-                <label className="lbl">Description précise <span className="req">*</span></label>
-                <input type="text" placeholder="Ex : Régime sans sel strict..." value={description} onChange={e => { setDescription(e.target.value); if (errors.description) setErrors({...errors, description: ''}); }} style={errors.description ? { borderColor: 'var(--red)' } : {}} />
-                {errors.description && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.description}</div>}
-              </div>
-              <div className="mb12">
-                <label className="lbl">Degré d&apos;urgence</label>
-                <div className={`urgr ${urgenceClasses[urgence]}`} style={{ marginBottom: 8 }}>
-                  <div className="urgd" />
-                  <select className="urgs" value={urgence} onChange={e => setUrgence(e.target.value as 'NORMAL'|'URGENT'|'TRES_URGENT')}>
-                    <option value="NORMAL">Normal</option>
-                    <option value="URGENT">Urgent</option>
-                    <option value="TRES_URGENT">Très urgent</option>
-                  </select>
-                </div>
-              </div>
-              {isAccueil && (
-                <>
-                  <div>
-                    <label className="lbl">Nom du médecin prescripteur *</label>
-                    <input type="text" value={nomMedecin} onChange={e => setNomMedecin(e.target.value)} placeholder="Dr ..." />
+              <button
+                onClick={() => { setType(''); setDescription(''); setDureeJours(0); setFrequenceType(''); setFrequenceValeur(0); setDateDebut(nowDateStr); setHeureDebut(nowHeureStr); setInstructions(''); setJno(false); setNotifierInfirmier(false); setServiceNotifId(''); setErrors({}); setShowNMDrawer(true); }}
+                style={{
+                  width: '100%', padding: '14px 16px', borderRadius: 10,
+                  border: '2px dashed var(--navy-mid)',
+                  background: items.length > 0 ? 'var(--blue-ps-lt)' : '#fff',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  transition: 'all 0.15s',
+                }}
+              >
+                <Icone nom="self_care" style={{ fontSize: 22, color: 'var(--navy)' }} />
+                <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--navy)' }}>
+                    Ajouter une prescription non médicamenteuse
                   </div>
-                  <div>
-                    <label className="lbl">N° ONM *</label>
-                    <input type="text" value={numeroONM} onChange={e => setNumeroONM(e.target.value)} placeholder="ONM-..." />
-                  </div>
-                </>
-              )}
-              {showFrequence && (
-                <div className="mb12" style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-                  <div style={{ flex: 1 }}>
-                    <label className="lbl">Type de fréquence {isFrequenceRequired ? <span className="req">*</span> : <span className="opt">(optionnel)</span>}</label>
-                    <select value={frequenceType} onChange={e => { setFrequenceType(e.target.value); if (errors.frequenceType) setErrors({...errors, frequenceType: ''}); }} style={errors.frequenceType ? { borderColor: 'var(--red)' } : {}}>
-                      <option value="">Sélectionner</option>
-                      <option value="HEURES">Toutes les X heures</option>
-                      <option value="PAR_JOUR">X fois par jour</option>
-                      <option value="SOS">Si besoin (SOS)</option>
-                      <option value="CONTINU">En continu</option>
-                    </select>
-                    {errors.frequenceType && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequenceType}</div>}
-                  </div>
-                  {(frequenceType === 'HEURES' || frequenceType === 'PAR_JOUR') && (
-                    <div style={{ flex: 1 }}>
-                      <label className="lbl">Valeur <span className="req">*</span></label>
-                      <input type="number" min={1} value={frequenceValeur || ''} onChange={e => { setFrequenceValeur(parseInt(e.target.value) || 0); if (errors.frequenceValeur) setErrors({...errors, frequenceValeur: ''}); }} placeholder={frequenceType === 'HEURES' ? 'Ex : 8h' : 'Ex : 3x'} style={errors.frequenceValeur ? { borderColor: 'var(--red)' } : {}} />
-                      {errors.frequenceValeur && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequenceValeur}</div>}
-                    </div>
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <label className="lbl">Durée (jours) {isDureeRequired ? <span className="req">*</span> : <span className="opt">(optionnel)</span>}</label>
-                    <input type="number" min={1} value={dureeJours || ''} onChange={e => { setDureeJours(parseInt(e.target.value) || 0); if (errors.dureeJours) setErrors({...errors, dureeJours: ''}); }} placeholder="Ex : 7" style={errors.dureeJours ? { borderColor: 'var(--red)' } : {}} />
-                    {errors.dureeJours && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.dureeJours}</div>}
+                  <div style={{ fontSize: 11, color: 'var(--txt3)' }}>
+                    {items.length > 0
+                      ? `${items.length} prescription${items.length > 1 ? 's' : ''} ajoutée${items.length > 1 ? 's' : ''} — cliquer pour en ajouter une autre`
+                      : 'Cliquez pour ouvrir le formulaire d\'ajout'}
                   </div>
                 </div>
-              )}
-              <div className="g2 mb12">
-                <div><label className="lbl">Date de début</label><input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)} /></div>
-                <div><label className="lbl">Heure de début</label><input type="time" value={heureDebut} onChange={e => setHeureDebut(e.target.value)} /></div>
-              </div>
-              <button className="badd" onClick={handleAdd} style={{ opacity: isAddValid ? 1 : 0.5 }}>
-                <Icone nom="add" style={{ fontSize: 17 }} /> Ajouter
+                <Icone nom={items.length > 0 ? 'add_circle' : 'add_circle'} style={{ fontSize: 18, color: 'var(--navy)', marginLeft: 'auto' }} />
               </button>
             </div>
             <div className="sh mb12">Prescriptions non médicamenteuses ajoutées</div>
@@ -367,17 +386,10 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
           </div>
 
           {/* COLONNE DROITE — sticky */}
-          <div style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="psx-side" style={{ position: 'sticky', top: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div className="card" style={{ padding: 12 }}>
               <label className="lbl">Instructions pour l&apos;équipe soignante</label>
               <textarea rows={4} placeholder="Précisions pour l'équipe..." value={instructions} onChange={e => setInstructions(e.target.value)} />
-            </div>
-            <div className="card" style={{ padding: 12 }}>
-              <div className="togr">
-                <div className="togr-l"><p>Notifier les infirmiers</p><span>Envoyer une notification au service</span></div>
-                <label className="tog"><input type="checkbox" checked={notifOn} onChange={e => setNotifOn(e.target.checked)}/><span className="tog-t"></span></label>
-              </div>
-              {notifOn && <div className="hint"><Icone nom="notifications_active" style={{ fontSize: 13, verticalAlign: 'middle', color: 'var(--navy)' }} /> Notification envoyée aux infirmiers de garde.</div>}
             </div>
 
             {!canValidate && (
@@ -393,6 +405,121 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
         </div>
       )}
 
+      {/* DrawerPanel pour le formulaire d'ajout */}
+      <DrawerPanel
+        isOpen={showNMDrawer}
+        onClose={() => setShowNMDrawer(false)}
+        title="Ajouter une prescription non médicamenteuse"
+        subtitle={`${items.length} prescription${items.length > 1 ? 's' : ''} déjà ajoutée${items.length > 1 ? 's' : ''}`}
+        icon="self_care"
+        footer={
+          <button
+            className="badd"
+            onClick={handleAdd}
+            style={{ opacity: isAddValid ? 1 : 0.5, width: '100%' }}
+          >
+            <Icone nom="add" style={{ fontSize: 16 }} /> Ajouter
+          </button>
+        }
+      >
+        <div className="mb12">
+          <AutocompleteInput
+            label="Type de prescription"
+            value={type}
+            onChange={v => { setType(v); if (errors.type) setErrors({...errors, type: ''}); }}
+            suggestions={TYPE_LABELS}
+            storageKey="rx_non_medicale_types"
+            placeholder="Rechercher ou saisir un type..."
+            required
+            error={errors.type}
+          />
+        </div>
+        <div className="mb12">
+          <label className="lbl">Description précise <span className="req">*</span></label>
+          <input type="text" placeholder="Ex : Régime sans sel strict..." value={description} onChange={e => { setDescription(e.target.value); if (errors.description) setErrors({...errors, description: ''}); }} style={errors.description ? { borderColor: 'var(--red)' } : {}} />
+          {errors.description && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.description}</div>}
+        </div>
+        <div className="mb12">
+          <label className="lbl">Degré d&apos;urgence</label>
+          <div className={`urgr ${urgenceClasses[urgence]}`} style={{ marginBottom: 8 }}>
+            <div className="urgd" />
+            <select className="urgs" value={urgence} onChange={e => setUrgence(e.target.value as 'NORMAL'|'URGENT'|'TRES_URGENT')}>
+              <option value="NORMAL">Normal</option>
+              <option value="URGENT">Urgent</option>
+              <option value="TRES_URGENT">Très urgent</option>
+            </select>
+          </div>
+        </div>
+        {isAccueil && (
+          <>
+            <div className="mb12">
+              <label className="lbl">Nom du médecin prescripteur *</label>
+              <input type="text" value={nomMedecin} onChange={e => setNomMedecin(e.target.value)} placeholder="Dr ..." />
+            </div>
+            <div className="mb12">
+              <label className="lbl">N° ONM *</label>
+              <input type="text" value={numeroONM} onChange={e => setNumeroONM(e.target.value)} placeholder="ONM-..." />
+            </div>
+          </>
+        )}
+        {showFrequence && (
+          <div className="mb12">
+            {/*
+              Grille de frequence : `auto-fit` avec 150px minimum par champ, au lieu
+              de trois `flex:1` qui comprimaient le select jusqu'a tronquer
+              "Toutes les X heures". La case "Jusqu'a nouvelle ordre" passe sur sa
+              propre ligne sous la grille pour ne plus decaler le champ "Duree".
+            */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, alignItems: 'end' }}>
+            <div>
+              <label className="lbl">Type de fréquence {isFrequenceRequired && <span className="req">*</span>}</label>
+              <select value={frequenceType} onChange={e => { setFrequenceType(e.target.value); if (errors.frequenceType) setErrors({...errors, frequenceType: ''}); }} style={errors.frequenceType ? { borderColor: 'var(--red)' } : {}}>
+                <option value="">Sélectionner</option>
+                <option value="HEURES">Toutes les X heures</option>
+                <option value="MINUTES">Toutes les X minutes</option>
+                <option value="PAR_JOUR">X fois par jour</option>
+                <option value="SOS">Si besoin</option>
+                <option value="CONTINU">En continu</option>
+              </select>
+              {errors.frequenceType && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequenceType}</div>}
+            </div>
+            {(frequenceType === 'HEURES' || frequenceType === 'MINUTES' || frequenceType === 'PAR_JOUR') && (
+              <div>
+                <label className="lbl">Valeur <span className="req">*</span></label>
+                <input type="number" min={1} value={frequenceValeur || ''} onChange={e => { setFrequenceValeur(parseInt(e.target.value) || 0); if (errors.frequenceValeur) setErrors({...errors, frequenceValeur: ''}); }} placeholder={frequenceType === 'HEURES' ? 'Ex : 8h' : frequenceType === 'MINUTES' ? 'Ex : 30' : 'Ex : 3x'} style={errors.frequenceValeur ? { borderColor: 'var(--red)' } : {}} />
+                {errors.frequenceValeur && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequenceValeur}</div>}
+              </div>
+            )}
+            {!jno && (
+              <div>
+                <label className="lbl">Durée (jours) {isDureeRequired && <span className="req">*</span>}</label>
+                <input type="number" min={1} value={dureeJours || ''} onChange={e => { setDureeJours(parseInt(e.target.value) || 0); if (errors.dureeJours) setErrors({...errors, dureeJours: ''}); }} placeholder="Ex : 7" style={errors.dureeJours ? { borderColor: 'var(--red)' } : {}} />
+                {errors.dureeJours && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.dureeJours}</div>}
+              </div>
+            )}
+            </div>
+            {['HEURES', 'MINUTES', 'PAR_JOUR'].includes(frequenceType) && (
+              <label className="lbl" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, marginTop: 8, marginBottom: 0, whiteSpace: 'nowrap' }}>
+                <input type="checkbox" checked={jno} onChange={e => { setJno(e.target.checked); if (errors.dureeJours) setErrors({...errors, dureeJours: ''}); }} /> Jusqu&apos;à nouvelle ordre
+              </label>
+            )}
+          </div>
+        )}
+        <div className="g2 mb12">
+          <div><label className="lbl">Date de début</label><input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)} /></div>
+          <div><label className="lbl">Heure de début</label><input type="time" value={heureDebut} onChange={e => setHeureDebut(e.target.value)} /></div>
+        </div>
+        <ItemNotifierSelector
+          notifier={notifierInfirmier}
+          setNotifier={setNotifierInfirmier}
+          serviceNotifId={serviceNotifId}
+          setServiceNotifId={setServiceNotifId}
+          defaultServiceId={serviceId}
+          serviceName={serviceName}
+          chuId={chuId}
+        />
+      </DrawerPanel>
+
       {/* === ONGLET PRESCRIPTIONS EN COURS === */}
       {activeTab === 'encours' && (
         <div style={{ maxWidth: 700 }}>
@@ -401,43 +528,51 @@ export default function NonMedicaleForm({ patient, prescripteur, patientType }: 
             {prescriptionsEnCours.length > 0 ? prescriptionsEnCours.map(p => (
               <div key={p.id} style={{ position: 'relative' }}>
                 {p.items?.map((item, idx) => (
-                  <div key={`${p.id}-${idx}`} className="active-rx-item">
-                    <strong>{item.typeLabel}</strong>
-                    <span> — {item.description}{item.duree ? ` (${item.duree})` : ''}{item.frequence ? ` · ${item.frequence}` : ''}{p.prescripteur?.nom ? ` · Dr ${p.prescripteur.nom}` : ''}</span>
-                    {p.notifierInfirmier && <span style={{ display: 'block', fontSize: 10, color: 'var(--navy)', marginTop: 2 }}>Infirmier notifié</span>}
+                  <div key={`${p.id}-${idx}`} className="active-rx-item" style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <strong>{item.typeLabel}</strong>
+                      <span> — {item.description}{item.duree ? ` (${item.duree})` : ''}{item.frequence ? ` · ${item.frequence}` : ''}{p.prescripteur?.nom ? ` · Dr ${p.prescripteur.nom}` : ''}</span>
+                      {p.notifierInfirmier && <span style={{ display: 'block', fontSize: 10, color: 'var(--navy)', marginTop: 2 }}>Infirmier notifié</span>}
+                    </div>
+                    {item.planningActif !== false && item.id && (
+                      <button
+                        onClick={() => setArretCible({ kind: 'itemNonMedical', id: item.id as string, label: item.typeLabel })}
+                        className="btn-stop-prescription"
+                        title="Arrêter ce soin"
+                        style={{
+                          background: 'none', border: '1.5px solid var(--red-lt, #fecaca)', color: 'var(--red)',
+                          fontSize: 11, fontWeight: 600, borderRadius: 8, padding: '4px 8px',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+                        }}>
+                        <Icone nom="stop" style={{ fontSize: 14 }} />
+                        Arrêter
+                      </button>
+                    )}
                   </div>
                 ))}
-                <button
-                  onClick={() => terminerPrescription(p.id)}
-                  title="Terminer cette prescription"
-                  style={{
-                    position: 'absolute', right: 4, top: 4,
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: 'var(--txt3)', fontSize: 16, lineHeight: 1,
-                  }}
-                >
-                  <Icone nom="check_circle" />
-                </button>
               </div>
-            )) : erreurEnCours ? (
-              <div className="active-rx-item" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ color: 'var(--red)' }}>Échec du chargement des prescriptions en cours</span>
-                <button onClick={refreshPrescriptions} style={{ background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Réessayer</button>
-              </div>
-            ) : (
+            )) : (
               <div className="active-rx-item"><span style={{ color: 'var(--txt3)' }}>Aucune prescription en cours</span></div>
             )}
           </div>
         </div>
       )}
 
+      <ArretPlanningDialog
+        key={arretCible?.id || 'arret'}
+        cible={arretCible}
+        busy={arretBusy}
+        onClose={() => { if (!arretBusy) setArretCible(null); }}
+        onConfirm={handleConfirmArret}
+      />
+
       <ValidationPopup
         isOpen={showValidationPopup}
         onClose={() => setShowValidationPopup(false)}
-        onAddNew={() => { setActiveTab('nouvelle'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        onAddNew={() => { setActiveTab('nouvelle'); scrollPrescriptionContentToTop(); }}
         onSendAll={async () => {
           setIsSending(true);
-          try { await sendAll(patient.id); } catch {} finally { setIsSending(false); }
+          try { const result = await sendAll(patient.id); if (result?.allSent) showToast("Prescriptions envoyées avec succès"); else if (result?.errorCount) setApiError("Erreur lors de l'envoi"); } catch { setApiError("Erreur lors de l'envoi"); } finally { setIsSending(false); }
         }}
         isSending={isSending}
       />

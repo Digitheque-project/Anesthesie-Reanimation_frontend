@@ -1,49 +1,57 @@
 "use client";
 import { useState, useEffect } from 'react';
-import SearchableSelect from '@/features/prescription/components/common/SearchableSelect';
-import { authFetch } from '@/features/prescription/lib/auth';
 import { getHistoriquePatient } from '@/features/prescription/lib/api';
-import { getDirectoryUser, formatDirectoryUserName } from '@/lib/clinical/user-directory-api';
 import { Icone } from '@/components/ui/Icone';
 
 const FILTRES = [
   { id: 'all',   label: 'Tout',             icon: 'list' },
-  { id: 'med',   label: 'Médicamenteuse',   icon: 'medication' },
-  { id: 'nm',    label: 'Non Médicamenteuse', icon: 'self_care' },
-  { id: 'surv',  label: 'Surveillance',     icon: 'monitor_heart' },
-  { id: 'trans', label: 'Transfusion',      icon: 'bloodtype' },
+  { id: 'medicale',   label: 'Médicamenteuse',   icon: 'medication' },
+  { id: 'nonMedicale',    label: 'Non Médicamenteuse', icon: 'self_care' },
+  { id: 'soinsInfirmier', label: 'Soins / Actes', icon: 'health_and_safety' },
+  { id: 'surveillance',  label: 'Surveillance',     icon: 'monitor_heart' },
+  { id: 'transfusion', label: 'Transfusion sanguine', icon: 'bloodtype' },
   { id: 'labo',  label: 'Laboratoire',      icon: 'science' },
-  { id: 'imag',  label: 'Imagerie',         icon: 'radiology' },
+  { id: 'imagerie',  label: 'Imagerie',         icon: 'radiology' },
+  { id: 'anapath',   label: 'Anapath',          icon: 'biotech' },
+  { id: 'endoscopie',  label: 'Endoscopie',       icon: 'visibility' },
+  { id: 'dialyse',  label: 'Dialyse',          icon: 'water_full' },
   { id: 'eeg',   label: 'EEG',              icon: 'neurology' },
+  { id: 'ecg',   label: 'ECG',              icon: 'favorite' },
+  { id: 'polysomnographie', label: 'Polysomnographie', icon: 'bedtime' },
+  { id: 'orl',   label: 'ORL',              icon: 'hearing' },
+  { id: 'actesOrl', label: 'Actes ORL',     icon: 'hearing' },
   { id: 'kine',  label: 'Kinésithérapie',   icon: 'exercise' },
-  { id: 'endo',  label: 'Endoscopie',       icon: 'visibility' },
-  { id: 'dial',  label: 'Dialyse',          icon: 'water_full' },
-  { id: 'ana',   label: 'Anapath',          icon: 'biotech' },
   { id: 'bloc',  label: 'Intervention chirurgicale',  icon: 'medical_services' },
+  { id: 'cpa',   label: 'CPA',                        icon: 'local_hospital' },
 ];
 
-// Palette neutre (UI/UX) : une seule teinte d'accent au lieu de l'arc-en-ciel.
-const ACCENT = '#1e3a5f';
 const TYPE_COLORS: Record<string, string> = {
-  med:   ACCENT, nm:   ACCENT, surv:  ACCENT,
-  trans: ACCENT, labo: ACCENT, imag:  ACCENT,
-  eeg:   ACCENT, kine: ACCENT, endo:  ACCENT,
-  dial:  ACCENT, ana:  ACCENT, bloc:  ACCENT,
+  medicale:   '#3b82f6', nonMedicale:   '#8b5cf6', soinsInfirmier: '#0891b2',
+  surveillance:  '#10b981', transfusion: '#ef4444', labo: '#0369a1', imagerie:  '#06b6d4',
+  eeg:   '#6366f1', ecg: '#dc2626', polysomnographie: '#7c3aed', orl: '#0284c7', actesOrl: '#0e7490',
+  kine: '#84cc16', endoscopie:  '#2563eb',
+  dialyse:  '#14b8a6', anapath:  '#ec4899', bloc:  '#1e40af', cpa:  '#1e40af',
 };
 
 const ENDPOINTS: Record<string, string> = {
-  med:   'prescriptions/medicale',
-  nm:    'prescriptions/non-medicale',
-  surv:  'prescriptions/surveillance',
-  trans: 'prescriptions/transfusion',
+  medicale:   'prescriptions/medicale',
+  nonMedicale:    'prescriptions/non-medicale',
+  soinsInfirmier: 'prescriptions/soins-infirmier',
+  surveillance:  'prescriptions/surveillance',
+  transfusion: 'prescriptions/transfusion',
   labo:  'prescriptions/labo',
-  imag:  'prescriptions/imagerie',
+  imagerie:  'prescriptions/imagerie',
   eeg:   'prescriptions/eeg',
+  ecg:   'prescriptions/ecg',
+  polysomnographie: 'prescriptions/polysomnographie',
+  orl:   'prescriptions/orl',
+  actesOrl: 'prescriptions/actes-orl',
   kine:  'prescriptions/kine',
-  endo:  'prescriptions/endoscopie',
-  dial:  'prescriptions/dialyse',
-  ana:   'prescriptions/anapath',
+  endoscopie:  'prescriptions/endoscopie',
+  dialyse:  'prescriptions/dialyse',
+  anapath:   'prescriptions/anapath',
   bloc:  'prescriptions/bloc',
+  cpa:   'prescriptions/cpa',
 };
 
 interface PrescriptionItem {
@@ -69,21 +77,28 @@ interface PrescriptionItem {
   intervention?: string;
   urgence?: string;
   alertes?: string;
+  motif?: string;
+  dateSouhaitee?: string;
   renseignements?: string;
+  renseignementsCliniques?: string;
   notes?: string;
   notifierInfirmier?: boolean;
   nomMedecinPrescripteur?: string;
   numeroONM?: string;
   prescripteurId?: string;
+  prescripteur?: { nom?: string; prenoms?: string } | null;
   serviceIdSource?: string;
   serviceIdDest?: string;
   premierSoin?: boolean;
   aJeun?: boolean;
   motifRefus?: string;
   medicaments?: PrescriptionItem[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cocktails?: any[];
   items?: PrescriptionItem[];
   parametres?: PrescriptionItem[];
   analyses?: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   examens?: Record<string, any>;
   typeEEG?: string;
   typeKine?: string;
@@ -92,14 +107,24 @@ interface PrescriptionItem {
   autreContreIndic?: string;
   objectifs?: string;
   typeExamen?: string;
+  typeActe?: string;
+  typePrescription?: string;
+  motifConsultation?: string;
+  serviceOrigine?: string;
+  nomAgentAccueil?: string;
   typeDialyse?: string;
+  numeroCycle?: string | number;
+  jourCycle?: string | number;
+  dateDebutEffective?: string;
   data?: Record<string, unknown>;
+  demandes?: PrescriptionItem[];
   libelle?: string;
   risqueHemorragique?: string;
   typeChirurgie?: string;
   chirurgien?: string;
   consignes?: string;
   dateIntervention?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   actes?: Record<string, any>[];
   atcdTransfusion?: boolean;
   incident?: string;
@@ -125,10 +150,12 @@ interface PrescriptionItem {
   statutBanqueSang?: string;
   motifRefusBanqueSang?: string;
   produits?: PrescriptionItem[];
+  // Soins infirmier specific
+  valeur?: string;
   // Dialyse specific
   diagnosticRenal?: string;
-  dateSouhaitee?: string;
-  statutClinique?: string;
+
+
   observationsTol?: string;
   // EEG specific
   aeActuel?: string;
@@ -141,6 +168,9 @@ interface PrescriptionItem {
   // Kine specific
   autreKine?: string;
   sourceType?: string;
+  interpretation?: string;
+  interpreteParId?: string;
+  interpreteLe?: string;
 }
 
 interface Props {
@@ -166,6 +196,7 @@ interface Props {
 export default function HistoriqueForm({ patient }: Props) {
   const [filtre, setFiltre] = useState('all');
   const [items, setItems] = useState<PrescriptionItem[]>([]);
+  const [availableTypes, setAvailableTypes] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedItem, setSelectedItem] = useState<PrescriptionItem | null>(null);
@@ -175,13 +206,15 @@ export default function HistoriqueForm({ patient }: Props) {
   const [dateTo, setDateTo] = useState('');
   const [medicamentFilter, setMedicamentFilter] = useState('');
   const [examenFilter, setExamenFilter] = useState('');
-  // Filtres avancés repliables (masqués par défaut pour laisser la place aux résultats)
-  const [showFilters, setShowFilters] = useState(false);
-  const advancedFilterCount = [periodeFilter, dateFrom, dateTo, medicamentFilter, examenFilter].filter(Boolean).length;
-  // Cache de resolution des prescripteurs par id (via /api/users/:id).
-  // Valeur = nom formate ('Nom Prenom'), ou '' si introuvable.
-  const [prescripteurNames, setPrescripteurNames] = useState<Record<string, string>>({});
-  const [prescripteurLoadingId, setPrescripteurLoadingId] = useState<string | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(true);
+
+  const activeAdvancedFiltersCount = [periodeFilter, dateFrom, dateTo, medicamentFilter, examenFilter].filter(v => v && v.trim()).length;
+
+  useEffect(() => {
+    if (activeAdvancedFiltersCount > 0) {
+      setShowAdvancedFilters(true);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchHistorique() {
@@ -202,6 +235,11 @@ export default function HistoriqueForm({ patient }: Props) {
           periode: periodeFilter || undefined,
         });
         setItems(Array.isArray(results) ? results : []);
+        if (filtre === 'all' && Array.isArray(results)) {
+          const types = new Set<string>();
+          results.forEach((item: PrescriptionItem) => { if (item._type) types.add(item._type); });
+          setAvailableTypes(types);
+        }
       } catch (e: unknown) {
         setError('Erreur lors du chargement : ' + (e instanceof Error ? e.message : String(e)));
       } finally {
@@ -210,35 +248,6 @@ export default function HistoriqueForm({ patient }: Props) {
     }
     fetchHistorique();
   }, [filtre, patient?.id, periodeFilter, dateFrom, dateTo, medicamentFilter, examenFilter]);
-
-  // Option 1 : si le nom du prescripteur n'a pas ete saisi a la creation,
-  // on le resout dynamiquement depuis prescripteurId via l'annuaire
-  // (/api/users/:id), avec un cache par id pour eviter les appels repetes.
-  useEffect(() => {
-    const id = selectedItem?.prescripteurId?.trim();
-    if (!showModal || !id) return;
-    if (selectedItem?.nomMedecinPrescripteur) return; // deja renseigne a la source
-    if (id in prescripteurNames) return; // deja resolu (ou marque introuvable)
-
-    let annule = false;
-    setPrescripteurLoadingId(id);
-    getDirectoryUser(id)
-      .then((user) => {
-        if (annule) return;
-        setPrescripteurNames((prev) => ({
-          ...prev,
-          [id]: formatDirectoryUserName(user),
-        }));
-      })
-      .finally(() => {
-        if (!annule)
-          setPrescripteurLoadingId((cur) => (cur === id ? null : cur));
-      });
-
-    return () => {
-      annule = true;
-    };
-  }, [showModal, selectedItem, prescripteurNames]);
 
   function formatDate(dateStr?: string) {
     if (!dateStr) return '—';
@@ -252,18 +261,29 @@ export default function HistoriqueForm({ patient }: Props) {
 
   function getResume(item: PrescriptionItem, type: string) {
     switch (type) {
-      case 'med':   return item.medicament || item.nom || 'Médicament';
-      case 'nm':    return item.type || item.description || 'Non médicamenteuse';
-      case 'surv':  return item.parametre || item.type || 'Surveillance';
-      case 'trans': return item.produit || item.groupe || 'Transfusion';
+      case 'medicale':   {
+        const parts: string[] = [];
+        if (item.medicaments?.length) parts.push(`${item.medicaments.length} médicament(s)`);
+        if (item.cocktails?.length) parts.push(`${item.cocktails.length} cocktail(s)`);
+        return parts.length > 0 ? parts.join(' + ') : (item.medicament || item.nom || 'Médicament');
+      }
+      case 'nonMedicale':    return item.type || item.description || 'Non médicamenteuse';
+      case 'surveillance':  return item.parametre || item.type || 'Surveillance';
+      case 'transfusion': return item.produit || item.groupe || 'Transfusion';
       case 'labo':  return item.examen || item.analyse || 'Analyse laboratoire';
-      case 'imag':  return getImagerieExamenType(item) || item.examen || item.type || 'Imagerie';
+      case 'imagerie':  return getImagerieExamenType(item) || item.examen || item.type || 'Imagerie';
       case 'eeg':   return item.type || 'EEG';
+      case 'ecg':   return item.renseignements || 'ECG';
+      case 'polysomnographie': return item.renseignements || 'Polysomnographie';
+      case 'orl':   return item.renseignements || 'ORL';
+      case 'actesOrl': return item.demandes?.length ? `${item.demandes.length} acte(s) ORL` : 'Actes ORL';
+      case 'soinsInfirmier': return item.items?.length ? `${item.items.length} acte(s)` : 'Soins infirmier';
       case 'kine':  return item.type || item.seance || 'Kinésithérapie';
-      case 'endo':  return item.type || 'Endoscopie';
-      case 'dial':  return item.type || 'Dialyse';
-      case 'ana':   return item.examen || item.type || 'Anapath';
+      case 'endoscopie':  return item.type || 'Endoscopie';
+      case 'dialyse':  return item.type || 'Dialyse';
+      case 'anapath':   return item.examen || item.type || 'Anapath';
       case 'bloc':  return item.intervention || item.type || 'Intervention chirurgicale';
+      case 'cpa':   return item.motif || 'Demande de CPA';
       default:      return item.description || item.nom || '—';
     }
   }
@@ -321,6 +341,7 @@ export default function HistoriqueForm({ patient }: Props) {
     // Case 2: Old format - array of objects with 'type' field
     if (Array.isArray(examData) && examData.length > 0) {
       if (typeof examData[0] === 'object' && 'type' in examData[0]) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return examData.map((e: any) => e.type).filter(Boolean).join(', ');
       }
       // Case 3: Old format - array of strings
@@ -336,13 +357,15 @@ export default function HistoriqueForm({ patient }: Props) {
     const color = TYPE_COLORS[type] || 'var(--navy)';
 
     switch (type) {
-      case 'med':
+      case 'medicale':
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
             {item.remarques && renderDetailField('Remarques générales', item.remarques)}
             {item.notifierInfirmier !== undefined && renderDetailField('Notifier infirmier', item.notifierInfirmier ? 'Oui' : 'Non')}
             {item.premierSoin !== undefined && renderDetailField('Premier Soin', item.premierSoin ? 'Oui' : 'Non')}
+            {item.numeroCycle && renderDetailField('Numéro de cycle', item.numeroCycle)}
+            {item.jourCycle && renderDetailField('Jour du cycle', item.jourCycle)}
             {item.medicaments && Array.isArray(item.medicaments) && item.medicaments.length > 0 && (
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Médicaments prescrits ({item.medicaments.length})</div>
@@ -353,9 +376,10 @@ export default function HistoriqueForm({ patient }: Props) {
                     {renderDetailField('Quantité', med.quantite)}
                     {renderDetailField('Type quantité', med.quantiteType)}
                     {renderDetailField('Voie', med.voie)}
-                    {renderDetailField('Fréquence', med.frequenceType ? `${med.frequenceType} ${med.frequenceValeur || ''}`.trim() : med.frequence)}
-                    {renderDetailField('Durée (jours)', med.dureeJours)}
+                    {renderDetailField('Fréquence', med.frequence || (med.frequenceType ? `${med.frequenceType} ${med.frequenceValeur || ''}`.trim() : undefined))}
+                    {renderDetailField('Durée (jours)', med.dureeJours || med.duree)}
                     {renderDetailField('Date de début', med.dateDebut)}
+                    {renderDetailField('Date début effective', med.dateDebutEffective)}
                     {renderDetailField('Heure de début', med.heureDebut)}
                     {renderDetailField('Instructions', med.instructions)}
                     {renderDetailField('Remarques', med.remarques)}
@@ -364,10 +388,57 @@ export default function HistoriqueForm({ patient }: Props) {
                 ))}
               </div>
             )}
+            {item.cocktails && Array.isArray(item.cocktails) && item.cocktails.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#006A8C', marginBottom: 8 }}>
+                  <Icone nom="science" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 4 }} />
+                  Cocktails de médicaments ({item.cocktails.length})
+                </div>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {item.cocktails.map((cocktail: any, ci: number) => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const totalComp = cocktail.composants?.reduce((s: number, c: any) => s + (c.quantite * (c.prixUnitaire || 0)), 0) || 0;
+                  return (
+                    <div key={ci} style={{ background: 'rgba(5,102,141,0.06)', borderLeft: '3px solid #006A8C', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+                      {renderDetailField('Nom', cocktail.nom)}
+                      {cocktail.instructionsMelange && renderDetailField('Instructions mélange', cocktail.instructionsMelange)}
+                      {renderDetailField('Voie', cocktail.voie)}
+                      {renderDetailField('Fréquence', cocktail.frequenceType ? `${cocktail.frequenceType} ${cocktail.frequenceValeur || ''}`.trim() : undefined)}
+                      {renderDetailField('Durée (jours)', cocktail.dureeJours)}
+                      {renderDetailField('Date de début', cocktail.dateDebut)}
+                      {renderDetailField('Heure de début', cocktail.heureDebut)}
+                      {renderDetailField('Instructions', cocktail.instructions)}
+                      {renderDetailField('Remarques', cocktail.remarques)}
+                      {cocktail.premierSoin !== undefined && renderDetailField('Premier Soin', cocktail.premierSoin ? 'Oui' : 'Non')}
+                      {cocktail.composants && cocktail.composants.length > 0 && (
+                        <div style={{ marginTop: 6 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--txt3)', marginBottom: 4 }}>Composants ({cocktail.composants.length})</div>
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {cocktail.composants.map((comp: any, cpi: number) => (
+                            <div key={cpi} style={{ background: 'var(--bg2)', padding: 8, borderRadius: 6, marginBottom: 4, borderLeft: '2px solid #006A8C' }}>
+                              {renderDetailField('Nom', comp.nom)}
+                              {renderDetailField('Dose', comp.dose)}
+                              {renderDetailField('Quantité', comp.quantite)}
+                              {comp.prixUnitaire != null && renderDetailField('Prix unitaire', `${comp.prixUnitaire} Ar`)}
+                              {comp.premierSoin !== undefined && renderDetailField('Premier Soin', comp.premierSoin ? 'Oui' : 'Non')}
+                            </div>
+                          ))}
+                          {totalComp > 0 && (
+                            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--navy)', marginTop: 4, textAlign: 'right' }}>
+                              Total: {totalComp.toLocaleString('fr-FR')} Ar
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
 
-      case 'nm':
+      case 'nonMedicale':
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
@@ -379,8 +450,8 @@ export default function HistoriqueForm({ patient }: Props) {
                   <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
                     {renderDetailField('Type', itm.typeLabel || itm.type)}
                     {renderDetailField('Description', itm.description)}
-                    {renderDetailField('Durée', itm.duree)}
-                    {renderDetailField('Fréquence', itm.frequence)}
+                    {renderDetailField('Durée', itm.duree || (itm.dureeJours ? `${itm.dureeJours} jours` : undefined))}
+                    {renderDetailField('Fréquence', itm.frequence || (itm.frequenceType ? `${itm.frequenceType} ${itm.frequenceValeur || ''}`.trim() : undefined))}
                     {renderDetailField('Date de début', itm.dateDebut)}
                     {renderDetailField('Heure de début', itm.heureDebut)}
                     {renderDetailField('Instructions', itm.instructions)}
@@ -391,7 +462,7 @@ export default function HistoriqueForm({ patient }: Props) {
           </div>
         );
 
-      case 'surv':
+      case 'surveillance':
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
@@ -403,8 +474,8 @@ export default function HistoriqueForm({ patient }: Props) {
                 {item.parametres.map((param: PrescriptionItem, idx: number) => (
                   <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
                     {renderDetailField('Paramètre', param.parametre)}
-                    {renderDetailField('Fréquence', param.frequence)}
-                    {renderDetailField('Durée', param.duree)}
+                    {renderDetailField('Fréquence', param.frequence || (param.frequenceType ? `${param.frequenceType} ${param.frequenceValeur || ''}`.trim() : undefined))}
+                    {renderDetailField('Durée', param.duree || (param.dureeJours ? `${param.dureeJours} jours` : undefined))}
                     {renderDetailField('Seuil', param.seuil)}
                   </div>
                 ))}
@@ -413,7 +484,7 @@ export default function HistoriqueForm({ patient }: Props) {
           </div>
         );
 
-      case 'trans':
+      case 'transfusion':
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
@@ -422,6 +493,7 @@ export default function HistoriqueForm({ patient }: Props) {
             {item.incident && renderDetailField('Incidents précédents', item.incident)}
             {item.groupage && renderDetailField('Groupage sanguin', item.groupage)}
             {item.hb && renderDetailField('Hémoglobine', item.hb)}
+            {item.remarques && renderDetailField('Remarques', item.remarques)}
             {item.notes && renderDetailField('Notes', item.notes)}
             {item.produits && Array.isArray(item.produits) && item.produits.length > 0 && (
               <div style={{ marginTop: 12 }}>
@@ -432,12 +504,14 @@ export default function HistoriqueForm({ patient }: Props) {
                     {renderDetailField('Quantité', prod.quantite)}
                     {renderDetailField('Plaquettes', prod.plaquettes)}
                     {renderDetailField('Date prévue', prod.datePrevue)}
+                    {renderDetailField('Statut', prod.statut)}
+                    {renderDetailField('Motif de refus', prod.motifRefus)}
                     {prod.statutBanqueSang && (
                       <div style={{ marginTop: 6 }}>
                         <span style={{
                           fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 6,
-                          background: prod.statutBanqueSang === 'VALIDEE' ? '#dcfce7' : prod.statutBanqueSang === 'REFUSEE' ? '#fee2e2' : prod.statutBanqueSang === 'LIVREE' ? '#dbeafe' : '#f3f4f6',
-                          color: prod.statutBanqueSang === 'VALIDEE' ? '#166534' : prod.statutBanqueSang === 'REFUSEE' ? '#991b1b' : prod.statutBanqueSang === 'LIVREE' ? '#1e40af' : '#4b5563',
+                          background: prod.statutBanqueSang === 'VALIDEE' ? 'var(--green-lt)' : prod.statutBanqueSang === 'REFUSEE' ? 'var(--red-lt)' : prod.statutBanqueSang === 'LIVREE' ? 'var(--blue-ps-lt)' : 'var(--surface-alt)',
+                          color: prod.statutBanqueSang === 'VALIDEE' ? 'var(--green-dk)' : prod.statutBanqueSang === 'REFUSEE' ? 'var(--red-dk)' : prod.statutBanqueSang === 'LIVREE' ? 'var(--blue-info)' : 'var(--txt2)',
                         }}>
                           {prod.statutBanqueSang}{prod.motifRefusBanqueSang ? ` — ${prod.motifRefusBanqueSang}` : ''}
                         </span>
@@ -471,11 +545,57 @@ export default function HistoriqueForm({ patient }: Props) {
           </div>
         );
 
-      case 'imag':
-        const modaliteKey = getImagerieModaliteKey(item.typeExamen);
-        const examData = modaliteKey && item.examens ? item.examens[modaliteKey] : null;
-        const isScanner = item.typeExamen?.toUpperCase() === 'SCANNER';
-        const isCurrentFormat = examData && typeof examData === 'object' && !Array.isArray(examData);
+      case 'imagerie':
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const renderExamenDetails = (examen: any, idx: number) => {
+          const exType = examen.typeExamen || examen.type || '';
+          const typeLabel = exType.toUpperCase();
+          return (
+            <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+              {(examen.renseignementsCliniques || examen.renseignement) && renderDetailField('Renseignements cliniques / Diagnostic', examen.renseignementsCliniques || examen.renseignement)}
+              {examen.questionRadio && renderDetailField('Question posée au radiologue', examen.questionRadio)}
+              {renderDetailField('Type', typeLabel)}
+              {typeLabel === 'SCANNER' && (
+                <>
+                  {renderDetailField('Sous-type', examen.scanType)}
+                  {renderDetailField('Glasgow', examen.scanGlasgow || examen.glasgow)}
+                  {renderDetailField('Agitation', examen.scanAgite || examen.agite)}
+                  {renderDetailField('Allergie', examen.scanAllergie || examen.allergie)}
+                  {renderDetailField('Détail allergie', examen.scanAllergieDetail || examen.allergieDetail)}
+                  {renderDetailField('Créatinine', examen.scanCreatinine || examen.creatinine)}
+                  {renderDetailField('Clairance', examen.scanClearance || examen.clearance)}
+                  {renderDetailField('Diabète', examen.scanDiabete || examen.diabete)}
+                </>
+              )}
+              {typeLabel === 'ECHOGRAPHIE' && (
+                <>
+                  {renderDetailField('Sous-type', examen.echoType)}
+                  {examen.echoDoppler !== undefined && renderDetailField('Doppler', examen.echoDoppler ? 'Oui' : 'Non')}
+                </>
+              )}
+              {typeLabel === 'RADIOGRAPHIE' && (
+                <>
+                  {renderDetailField('Sous-type', examen.rxType)}
+                  {examen.rxIncidences && Array.isArray(examen.rxIncidences) && renderDetailField('Incidences', examen.rxIncidences.join(', '))}
+                </>
+              )}
+              {typeLabel === 'GESTE' && (
+                <>
+                  {renderDetailField('Sous-type', examen.gesteType)}
+                </>
+              )}
+              {typeLabel === 'RADIO_SPECIALE' && (
+                <>
+                  {renderDetailField('Sous-type', examen.rxspType)}
+                  {renderDetailField('Préparation', examen.rxspPrep || examen.preparation)}
+                </>
+              )}
+              {renderDetailField('Précisions', examen.scanPrecisions || examen.echoPrecisions || examen.rxPrecisions || examen.gestePrecisions || examen.rxspPrecisions || examen.precisions)}
+            </div>
+          );
+        };
+
+        const hasExamensArray = item.examens && Array.isArray(item.examens) && item.examens.length > 0;
 
         return (
           <div>
@@ -483,37 +603,83 @@ export default function HistoriqueForm({ patient }: Props) {
             {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
             {item.statutPatient && renderDetailField('Statut patient', item.statutPatient)}
             {item.typeExamen && renderDetailField("Type d'examen", item.typeExamen)}
-            {getImagerieExamenType(item) && renderDetailField("Examen demandé", getImagerieExamenType(item))}
-            {isScanner && isCurrentFormat && examData && (
-              <>
-                {renderDetailField('Glasgow', examData.glasgow)}
-                {renderDetailField('Agitation', examData.agite)}
-                {renderDetailField('Allergie', examData.allergie)}
-                {examData.allergieDetail && renderDetailField('Détail allergie', examData.allergieDetail)}
-                {renderDetailField('Créatinine', examData.creatinine)}
-                {renderDetailField('Clairance', examData.clearance)}
-                {renderDetailField('Diabète', examData.diabete)}
-              </>
-            )}
-            {isCurrentFormat && examData && (
-              <>
-                {renderDetailField('Précisions', examData.precisions)}
-                {renderDetailField('Préparation', examData.preparation)}
-              </>
-            )}
-            {!isCurrentFormat && item.examens && typeof item.examens === 'object' && Object.keys(item.examens).length > 0 && (
+            {getImagerieExamenType(item) && !hasExamensArray && renderDetailField("Examen demandé", getImagerieExamenType(item))}
+            {hasExamensArray && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Examens demandés:</div>
-                {Object.entries(item.examens).map(([typeEx, exams]: [string, unknown]) => (
-                  <div key={typeEx} style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--txt3)' }}>{typeEx}:</div>
-                    {Array.isArray(exams) && exams.map((exam: unknown, idx: number) => (
-                      <div key={idx} style={{ fontSize: 12, marginLeft: 8 }}>• {String(exam)}</div>
-                    ))}
-                  </div>
-                ))}
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Examens demandés ({item.examens?.length || 0})</div>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {item.examens?.map((examen: any, idx: number) => renderExamenDetails(examen, idx))}
               </div>
             )}
+            {!hasExamensArray && (() => {
+              const modaliteKey = getImagerieModaliteKey(item.typeExamen);
+              const examData = modaliteKey && item.examens ? item.examens[modaliteKey] : null;
+              const isScanner = item.typeExamen?.toUpperCase() === 'SCANNER';
+              const isCurrentFormat = examData && typeof examData === 'object' && !Array.isArray(examData);
+              if (isScanner && isCurrentFormat && examData) {
+                return (
+                  <div style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginTop: 8 }}>
+                    {renderDetailField('Glasgow', examData.glasgow)}
+                    {renderDetailField('Agitation', examData.agite)}
+                    {renderDetailField('Allergie', examData.allergie)}
+                    {examData.allergieDetail && renderDetailField('Détail allergie', examData.allergieDetail)}
+                    {renderDetailField('Créatinine', examData.creatinine)}
+                    {renderDetailField('Clairance', examData.clearance)}
+                    {renderDetailField('Diabète', examData.diabete)}
+                    {renderDetailField('Précisions', examData.precisions)}
+                    {renderDetailField('Préparation', examData.preparation)}
+                  </div>
+                );
+              }
+              if (isCurrentFormat && examData) {
+                return (
+                  <div style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginTop: 8 }}>
+                    {renderDetailField('Précisions', examData.precisions)}
+                    {renderDetailField('Préparation', examData.preparation)}
+                  </div>
+                );
+              }
+              if (!isCurrentFormat && item.examens && typeof item.examens === 'object' && Object.keys(item.examens).length > 0) {
+                return (
+                  <div style={{ marginTop: 12 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Examens demandés:</div>
+                    {Object.entries(item.examens).map(([typeEx, exams]: [string, unknown]) => {
+                      if (!Array.isArray(exams)) return null;
+                      return (
+                        <div key={typeEx} style={{ marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--txt3)', textTransform: 'capitalize' }}>{typeEx}:</div>
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {exams.map((exam: any, idx: number) => {
+                            if (exam && typeof exam === 'object') {
+                              return (
+                                <div key={idx} style={{ background: 'var(--bg2)', padding: 8, borderRadius: 6, marginTop: 4, marginLeft: 8 }}>
+                                  {(exam.renseignementsCliniques || exam.renseignement) && renderDetailField('Renseignements cliniques / Diagnostic', exam.renseignementsCliniques || exam.renseignement)}
+                                  {exam.questionRadio && renderDetailField('Question posée au radiologue', exam.questionRadio)}
+                                  {exam.type && renderDetailField('Type', exam.type)}
+                                  {exam.precisions && renderDetailField('Précisions', exam.precisions)}
+                                  {exam.preparation && renderDetailField('Préparation', exam.preparation)}
+                                  {exam.glasgow && renderDetailField('Glasgow', exam.glasgow)}
+                                  {exam.agite && renderDetailField('Agitation', exam.agite)}
+                                  {exam.allergie && renderDetailField('Allergie', exam.allergie)}
+                                  {exam.allergieDetail && renderDetailField('Détail allergie', exam.allergieDetail)}
+                                  {exam.creatinine && renderDetailField('Créatinine', exam.creatinine)}
+                                  {exam.clearance && renderDetailField('Clairance', exam.clearance)}
+                                  {exam.diabete && renderDetailField('Diabète', exam.diabete)}
+                                  {exam.doppler !== undefined && renderDetailField('Doppler', exam.doppler ? 'Oui' : 'Non')}
+                                  {exam.incidences && Array.isArray(exam.incidences) && renderDetailField('Incidences', exam.incidences.join(', '))}
+                                </div>
+                              );
+                            }
+                            return <div key={idx} style={{ fontSize: 12, marginLeft: 8 }}>• {String(exam)}</div>;
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              }
+              return null;
+            })()}
             {item.notes && renderDetailField('Notes', item.notes)}
             {item.motifRefus && renderDetailField('Motif de refus', item.motifRefus)}
           </div>
@@ -532,6 +698,94 @@ export default function HistoriqueForm({ patient }: Props) {
             {item.dateDerniereCrise && renderDetailField('Date dernière crise', item.dateDerniereCrise)}
             {item.remarques && renderDetailField('Remarques', item.remarques)}
             {item.motifRefus && renderDetailField('Motif de refus', item.motifRefus)}
+          </div>
+        );
+
+      case 'ecg':
+        return (
+          <div>
+            {item.alertes && renderDetailField('Alertes', item.alertes)}
+            {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
+            {item.remarques && renderDetailField('Remarques', item.remarques)}
+          </div>
+        );
+
+      case 'polysomnographie':
+        return (
+          <div>
+            {item.alertes && renderDetailField('Alertes', item.alertes)}
+            {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
+            {item.remarques && renderDetailField('Remarques', item.remarques)}
+          </div>
+        );
+
+      case 'orl':
+        return (
+          <div>
+            {item.typePrescription && renderDetailField('Type', item.typePrescription === 'CONSULTATION' ? 'Demande de consultation' : 'Prescription d\'examens')}
+            {item.motifConsultation && renderDetailField('Motif de la demande', item.motifConsultation)}
+            {item.serviceOrigine && renderDetailField('Service d\'origine', item.serviceOrigine)}
+            {item.alertes && renderDetailField('Alertes', item.alertes)}
+            {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
+            {item.demandes && Array.isArray(item.demandes) && item.demandes.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Actes ORL demandés ({item.demandes.length})</div>
+                {item.demandes.map((dem: PrescriptionItem, idx: number) => (
+                  <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+                    {renderDetailField('Type d\'acte', dem.typeActe || dem.typeExamen)}
+                    {dem.renseignementsCliniques && renderDetailField('Renseignements cliniques', dem.renseignementsCliniques)}
+                    {dem.remarques && renderDetailField('Remarques', dem.remarques)}
+                  </div>
+                ))}
+              </div>
+            )}
+            {item.nomAgentAccueil && renderDetailField('Agent d\'accueil', item.nomAgentAccueil)}
+          </div>
+        );
+
+      case 'actesOrl':
+        return (
+          <div>
+            {item.alertes && renderDetailField('Alertes', item.alertes)}
+            {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
+            {item.remarques && renderDetailField('Remarques', item.remarques)}
+            {item.demandes && Array.isArray(item.demandes) && item.demandes.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Actes ORL demandés ({item.demandes.length})</div>
+                {item.demandes.map((dem: PrescriptionItem, idx: number) => (
+                  <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+                    {renderDetailField('Type d\'acte', dem.typeActe || dem.type || dem.typeExamen)}
+                    {dem.renseignementsCliniques && renderDetailField('Renseignements cliniques', dem.renseignementsCliniques)}
+                    {dem.remarques && renderDetailField('Remarques', dem.remarques)}
+                  </div>
+                ))}
+              </div>
+            )}
+            {item.nomAgentAccueil && renderDetailField('Agent d\'accueil', item.nomAgentAccueil)}
+          </div>
+        );
+
+      case 'soinsInfirmier':
+        return (
+          <div>
+            {item.alertes && renderDetailField('Alertes', item.alertes)}
+            {item.notifierInfirmier !== undefined && renderDetailField('Notifier infirmier', item.notifierInfirmier ? 'Oui' : 'Non')}
+            {item.items && Array.isArray(item.items) && item.items.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Actes ({item.items.length})</div>
+                {item.items.map((itm: PrescriptionItem, idx: number) => (
+                  <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+                    {renderDetailField('Type', itm.typeLabel || itm.type)}
+                    {renderDetailField('Description', itm.description)}
+                    {renderDetailField('Durée', itm.duree || (itm.dureeJours ? `${itm.dureeJours} jours` : undefined))}
+                    {renderDetailField('Fréquence', itm.frequence || (itm.frequenceType ? `${itm.frequenceType} ${itm.frequenceValeur || ''}`.trim() : undefined))}
+                    {renderDetailField('Date de début', itm.dateDebut)}
+                    {renderDetailField('Heure de début', itm.heureDebut)}
+                    {renderDetailField('Instructions', itm.instructions)}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
 
@@ -556,41 +810,97 @@ export default function HistoriqueForm({ patient }: Props) {
           </div>
         );
 
-      case 'endo':
+      case 'endoscopie':
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
             {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
-            {item.typeExamen && renderDetailField("Type d'examen", item.typeExamen)}
+            {item.demandes && Array.isArray(item.demandes) && item.demandes.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Examens demandés ({item.demandes.length})</div>
+                {item.demandes.map((dem: PrescriptionItem, idx: number) => (
+                  <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+                    {renderDetailField('Type d\'examen', dem.typeExamen)}
+                    {renderDetailField('Renseignements cliniques', dem.renseignementsCliniques)}
+                    {renderDetailField('Remarques', dem.remarques)}
+                  </div>
+                ))}
+              </div>
+            )}
+            {!item.demandes && item.typeExamen && renderDetailField("Type d'examen", item.typeExamen)}
             {item.remarques && renderDetailField('Remarques', item.remarques)}
           </div>
         );
 
-      case 'dial':
+      case 'dialyse':
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
             {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
             {item.diagnosticRenal && renderDetailField('Diagnostic rénal', item.diagnosticRenal)}
-            {item.dateSouhaitee && renderDetailField('Date souhaitée', item.dateSouhaitee)}
-            {item.statutClinique && renderDetailField('Statut clinique', item.statutClinique)}
             {item.observationsTol && renderDetailField('Observations tolérance', item.observationsTol)}
             {item.remarques && renderDetailField('Remarques', item.remarques)}
             {item.motifRefus && renderDetailField('Motif de refus', item.motifRefus)}
           </div>
         );
 
-      case 'ana':
+      case 'anapath':
+        const ANA_TYPE_LABELS: Record<string, string> = {
+          fcv: 'Frottis Cervico-Vaginal',
+          cyto: 'Cytoponction',
+          liq: 'Liquide',
+          bio: 'Biopsie',
+          pos: 'Pièce Opératoire',
+          poc: 'Prélèvement Opératoire au Crible',
+          ext: 'Extemporané',
+        };
+        const ANA_FIELD_LABELS: Record<string, string> = {
+          renseign: 'Renseignements cliniques',
+          renseignementsCliniques: 'Renseignements cliniques',
+          fcvService: 'Service', fcvGPA: 'GPA', fcvDDR: 'DDR', fcvMeno: 'Ménorragies',
+          fcvMenarche: 'Ménarche', fcvRapport: 'Rapport', fcvContra: 'Contraception',
+          fcvTtt: 'Traitement', fcvPapLieu: 'Lieu Pap', fcvPapNb: 'Nb Pap',
+          fcvPapDate: 'Date Pap', fcvPapRes: 'Résultat Pap', fcvAtcd: 'ATCD',
+          fcvMeth: 'Méthode', fcvNote: 'Note',
+          cytoService: 'Service', cytoSiege: 'Siège', cytoOrgane: 'Organe',
+          cytoFix: 'Fixateur', cytoFixAutre: 'Autre fixateur', cytoNotes: 'Notes',
+          liqService: 'Service', liqUnite: 'Unité', liqNat: 'Nature',
+          liqNatAutre: 'Autre nature', liqNotes: 'Notes',
+          bioService: 'Service', bioExamAnt: 'Examen antérieur', bioResAnt: 'Résultat antérieur',
+          bioGPA: 'GPA', bioDDR: 'DDR', bioMeno: 'Ménorragies', bioAtcd: 'ATCD',
+          bioDatePrelev: 'Date prélèvement', bioFixateur: 'Fixateur', bioOrgane: 'Organe',
+          bioNature: 'Nature', bioNatureAutre: 'Autre nature', bioSuspicion: 'Suspicion',
+          bioFaitA: 'Fait à', bioFaitLe: 'Fait le', bioNote: 'Note',
+          extService: 'Service', extChirurgien: 'Chirurgien', extIntervention: 'Intervention',
+          extNature: 'Nature', extOrgane: 'Organe', extQuestion: 'Question',
+          extDatePrevue: 'Date prévue', extHeure: 'Heure', extNote: 'Note',
+        };
         return (
           <div>
             {item.alertes && renderDetailField('Alertes', item.alertes)}
-            {item.typeExamen && renderDetailField("Type d'examen", item.typeExamen)}
+            {item.renseignements && renderDetailField('Renseignements cliniques', item.renseignements)}
+            {item.demandes && Array.isArray(item.demandes) && item.demandes.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Demandes anapath ({item.demandes.length})</div>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {item.demandes.map((dem: any, idx: number) => (
+                  <div key={idx} style={{ background: 'var(--bg2)', padding: 10, borderRadius: 6, marginBottom: 8 }}>
+                    {renderDetailField('Type d\'examen', ANA_TYPE_LABELS[dem.typeExamen] || dem.typeExamen)}
+                    {dem.renseign && renderDetailField('Renseignements cliniques', dem.renseign)}
+                    {Object.entries(dem).filter(([k, v]) => v && k !== 'id' && k !== 'typeExamen' && k !== 'renseign').map(([key, value]) => (
+                      renderDetailField(ANA_FIELD_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1), value)
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+            {!item.demandes && item.typeExamen && renderDetailField("Type d'examen", item.typeExamen)}
             {item.data && typeof item.data === 'object' && Object.keys(item.data).length > 0 && (
               <div style={{ marginTop: 12 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>Détails:</div>
                 {Object.entries(item.data).map(([key, value]: [string, unknown]) => (
                   <div key={key}>
-                    {renderDetailField(key.charAt(0).toUpperCase() + key.slice(1), value)}
+                    {renderDetailField(ANA_FIELD_LABELS[key] || key.charAt(0).toUpperCase() + key.slice(1), value)}
                   </div>
                 ))}
               </div>
@@ -606,6 +916,7 @@ export default function HistoriqueForm({ patient }: Props) {
             {item.actes && item.actes.length > 0 && (
               <div style={{ marginTop: 8 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, color: 'var(--txt3)', marginBottom: 6 }}>Actes ({item.actes.length})</div>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {item.actes.map((acte: any, idx: number) => (
                   <div key={acte.id || idx} style={{ background: 'var(--bg2)', border: '1px solid var(--bdr)', borderRadius: 8, padding: 10, marginBottom: 6, fontSize: 12 }}>
                     <div style={{ fontWeight: 600, marginBottom: 4 }}>#{idx + 1} — {acte.libelle}</div>
@@ -626,6 +937,19 @@ export default function HistoriqueForm({ patient }: Props) {
           </div>
         );
 
+      case 'cpa':
+        return (
+          <div>
+            {item.motif && renderDetailField('Motif', item.motif)}
+            {renderDetailField("Degré d'urgence", getUrgenceLabel(item.urgence))}
+            {item.dateSouhaitee && renderDetailField('Date souhaitée', new Date(item.dateSouhaitee).toLocaleDateString('fr-FR'))}
+            {item.alertes && renderDetailField('Alertes', item.alertes)}
+            {item.consignes && renderDetailField('Consignes', item.consignes)}
+            {item.nomMedecinPrescripteur && renderDetailField('Médecin prescripteur', item.nomMedecinPrescripteur)}
+            {item.numeroONM && renderDetailField('N° ONM', item.numeroONM)}
+          </div>
+        );
+
       default:
         return (
           <div>
@@ -643,113 +967,145 @@ export default function HistoriqueForm({ patient }: Props) {
         <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--txt)', margin: 0 }}>
           Historique des prescriptions
         </h2>
-        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--txt2)', marginTop: 4 }}>
+        <p style={{ fontSize: 12, color: 'var(--txt3)', marginTop: 4 }}>
           {items.length} prescription{items.length > 1 ? 's' : ''} trouvée{items.length > 1 ? 's' : ''}
         </p>
       </div>
 
-      {/* BARRE D'OUTILS — compacte : type de prescription + bouton « Filtres » repliable */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: showFilters ? 12 : 20 }}>
-            <Icone nom="filter_list" style={{ fontSize: 18, color: 'var(--txt3)' }} />
-            <SearchableSelect
-              options={FILTRES.map((f) => ({ value: f.id, label: f.label, icon: f.icon }))}
-              value={filtre}
-              onChange={setFiltre}
-              placeholder="Type de prescription"
-              searchPlaceholder="Rechercher un type…"
-              ariaLabel="Filtrer par type de prescription"
-              style={{ minWidth: 240, maxWidth: 320 }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowFilters((v) => !v)}
-              aria-expanded={showFilters}
+      {/* FILTRES */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
+        {FILTRES.filter(f => f.id === 'all' || availableTypes.has(f.id)).map(f => {
+          const active = filtre === f.id;
+          return (
+            <button key={f.id} onClick={() => setFiltre(f.id)} style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              padding: '5px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+              border: active ? 'none' : '1px solid var(--bdr)',
+              background: active ? (f.id === 'all' ? 'var(--navy)' : TYPE_COLORS[f.id] || 'var(--navy)') : 'var(--card)',
+              color: active ? '#fff' : 'var(--txt2)',
+              cursor: 'pointer', transition: 'all .15s',
+            }}>
+              <Icone nom={f.icon} style={{ fontSize: 14 }} />
+              {f.label}
+            </button>
+          );
+        })}
+        <button
+          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          style={{
+            marginLeft: 'auto',
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+            border: showAdvancedFilters ? 'none' : '1px solid var(--bdr)',
+            background: showAdvancedFilters ? 'var(--navy)' : 'var(--card)',
+            color: showAdvancedFilters ? '#fff' : 'var(--txt2)',
+            cursor: 'pointer', transition: 'all .15s',
+          }}
+        >
+          <Icone nom="tune" style={{ fontSize: 14 }} />
+          Filtres avancés
+          {activeAdvancedFiltersCount > 0 && (
+            <span style={{
+              background: 'var(--red)',
+              color: '#fff',
+              fontSize: 10,
+              fontWeight: 700,
+              padding: '2px 6px',
+              borderRadius: 10,
+              minWidth: 18,
+              textAlign: 'center',
+            }}>
+              {activeAdvancedFiltersCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Advanced filters */}
+      {showAdvancedFilters && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: 10,
+          marginBottom: 20,
+          padding: 12,
+          background: 'var(--card)',
+          border: '1px solid var(--bdr)',
+          borderRadius: 8,
+        }}>
+          <div>
+            <label className="lbl" style={{ fontSize: 11, marginBottom: 4 }}>Période</label>
+            <select
+              value={periodeFilter}
+              onChange={(e) => setPeriodeFilter(e.target.value)}
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
+                width: '100%',
                 padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
-                background: (showFilters || advancedFilterCount > 0) ? 'var(--navy-lt)' : '#fff',
-                color: advancedFilterCount > 0 ? 'var(--navy)' : 'var(--txt2)',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                background: '#fff', color: 'var(--txt)', fontSize: 12,
               }}
             >
-              <Icone nom="tune" style={{ fontSize: 16 }} />
-              Filtres{advancedFilterCount > 0 ? ` (${advancedFilterCount})` : ''}
-              <Icone nom={showFilters ? 'expand_less' : 'expand_more'} style={{ fontSize: 16 }} />
-            </button>
-            {advancedFilterCount > 0 && (
-              <button
-                type="button"
-                onClick={() => { setPeriodeFilter(''); setDateFrom(''); setDateTo(''); setMedicamentFilter(''); setExamenFilter(''); }}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  padding: '8px 10px', borderRadius: 8, border: '1px solid var(--bdr)',
-                  background: '#fff', color: 'var(--txt2)', fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
-                }}
-              >
-                <Icone nom="close" style={{ fontSize: 16 }} />
-                Réinitialiser
-              </button>
-            )}
+              <option value="">Toute période</option>
+              <option value="jour">Aujourd&apos;hui</option>
+              <option value="semaine">7 derniers jours</option>
+              <option value="mois">30 derniers jours</option>
+            </select>
           </div>
-
-          {/* FILTRES AVANCÉS — repliables, largeurs fixes pour rester compacts sur une seule ligne */}
-          {showFilters && (
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-              <select
-                value={periodeFilter}
-                onChange={(e) => setPeriodeFilter(e.target.value)}
-                style={{
-                  width: 160, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
-                  background: '#fff', color: 'var(--txt)', fontSize: 13,
-                }}
-              >
-                <option value="">Toute période</option>
-                <option value="jour">Aujourd'hui</option>
-                <option value="semaine">7 derniers jours</option>
-                <option value="mois">30 derniers jours</option>
-              </select>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                aria-label="Date de début"
-                style={{
-                  width: 150, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
-                  background: '#fff', color: 'var(--txt)', fontSize: 13,
-                }}
-              />
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                aria-label="Date de fin"
-                style={{
-                  width: 150, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
-                  background: '#fff', color: 'var(--txt)', fontSize: 13,
-                }}
-              />
-              <input
-                type="text"
-                value={medicamentFilter}
-                onChange={(e) => setMedicamentFilter(e.target.value)}
-                placeholder="Recherche médicament..."
-                style={{
-                  width: 200, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
-                  background: '#fff', color: 'var(--txt)', fontSize: 13,
-                }}
-              />
-              <input
-                type="text"
-                value={examenFilter}
-                onChange={(e) => setExamenFilter(e.target.value)}
-                placeholder="Recherche examen..."
-                style={{
-                  width: 200, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
-                  background: '#fff', color: 'var(--txt)', fontSize: 13,
-                }}
-              />
-            </div>
-          )}
+          <div>
+            <label className="lbl" style={{ fontSize: 11, marginBottom: 4 }}>Du</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
+                background: '#fff', color: 'var(--txt)', fontSize: 12,
+              }}
+            />
+          </div>
+          <div>
+            <label className="lbl" style={{ fontSize: 11, marginBottom: 4 }}>Au</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
+                background: '#fff', color: 'var(--txt)', fontSize: 12,
+              }}
+            />
+          </div>
+          <div>
+            <label className="lbl" style={{ fontSize: 11, marginBottom: 4 }}>Médicament</label>
+            <input
+              type="text"
+              value={medicamentFilter}
+              onChange={(e) => setMedicamentFilter(e.target.value)}
+              placeholder="Recherche..."
+              style={{
+                width: '100%',
+                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
+                background: '#fff', color: 'var(--txt)', fontSize: 12,
+              }}
+            />
+          </div>
+          <div>
+            <label className="lbl" style={{ fontSize: 11, marginBottom: 4 }}>Examen</label>
+            <input
+              type="text"
+              value={examenFilter}
+              onChange={(e) => setExamenFilter(e.target.value)}
+              placeholder="Recherche..."
+              style={{
+                width: '100%',
+                padding: '8px 12px', borderRadius: 8, border: '1px solid var(--bdr)',
+                background: '#fff', color: 'var(--txt)', fontSize: 12,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
           {/* CONTENU */}
           {loading ? (
@@ -788,32 +1144,46 @@ export default function HistoriqueForm({ patient }: Props) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{
-                      fontSize: 12, fontWeight: 700, padding: '3px 9px',
+                      fontSize: 10, fontWeight: 700, padding: '2px 7px',
                       borderRadius: 10, background: color + '20', color,
                     }}>
                       {getTypeLabel(item._type)}
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--txt2)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--txt3)' }}>
                       {formatDate(item.createdAt || item.date)}
                     </span>
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--txt)', marginTop: 4 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--txt)', marginTop: 4 }}>
                     {getResume(item, item._type)}
                   </div>
-                  {item.remarque || item.remarques || item.instructions ? (
-                    <div style={{ fontSize: 13, color: 'var(--txt2)', marginTop: 3 }}>
-                      {item.remarque || item.remarques || item.instructions}
-                    </div>
-                  ) : null}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
+                    {item.remarque || item.remarques || item.instructions ? (
+                      <span style={{ fontSize: 11, color: 'var(--txt3)' }}>
+                        {item.remarque || item.remarques || item.instructions}
+                      </span>
+                    ) : null}
+                    {item.prescripteur && (
+                      <span style={{ fontSize: 10, color: 'var(--txt3)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Icone nom="person" style={{ fontSize: 13 }} />
+                        Dr {item.prescripteur.prenoms} {item.prescripteur.nom}
+                      </span>
+                    )}
+                    {item.nomMedecinPrescripteur && !item.prescripteur && (
+                      <span style={{ fontSize: 10, color: 'var(--txt3)', display: 'flex', alignItems: 'center', gap: 3 }}>
+                        <Icone nom="person" style={{ fontSize: 13 }} />
+                        {item.nomMedecinPrescripteur}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Statut */}
-                {item.statut && (
+                  {item.statut && (
                   <div style={{
-                    fontSize: 12, fontWeight: 700, padding: '3px 9px',
+                    fontSize: 10, fontWeight: 700, padding: '3px 8px',
                     borderRadius: 10, flexShrink: 0,
-                    background: item.statut === 'validé' ? '#d1fae5' : '#fef3c7',
-                    color: item.statut === 'validé' ? '#065f46' : '#92400e',
+                    background: item.statut === 'validé' ? 'var(--green-lt)' : 'var(--amber-lt)',
+                    color: item.statut === 'validé' ? 'var(--green-dk)' : 'var(--amber-dk)',
                   }}>
                     {item.statut}
                   </div>
@@ -828,12 +1198,29 @@ export default function HistoriqueForm({ patient }: Props) {
       {showModal && selectedItem && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000,
+          background: 'rgba(15,23,42,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, backdropFilter: 'blur(2px)',
+          padding: 16, overflow: 'hidden', height: '100dvh', boxSizing: 'border-box',
         }} onClick={() => setShowModal(false)}>
+          {/*
+            Structure de defilement du modal de details.
+            Avant : la carte entiere etait `overflowY: auto`, donc l'en-tete colore
+            et le bouton "Fermer" defilaient avec le contenu, et l'overlay pouvait
+            defiler en meme temps (deux barres de defilement imbriquees).
+            Maintenant : la carte est une colonne flex qui ne deborde pas
+            (`overflow: hidden`), l'en-tete et le pied restent fixes
+            (`flexShrink: 0`) et seule la zone centrale defile, avec
+            `overscrollBehavior: contain` pour ne pas propager le defilement au
+            dossier patient situe derriere.
+          */}
           <div className="card" style={{
-            maxWidth: 680, width: '95%', maxHeight: '88vh', overflowY: 'auto',
-            padding: 0, borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+            maxWidth: 680, width: '100%',
+            /* Une hauteur REELLE est indispensable : avec seulement maxHeight,
+               certains navigateurs laissaient le corps flex garder sa hauteur
+               naturelle et coupaient le bas sans creer de zone scrollable. */
+            height: 'min(88dvh, 900px)', maxHeight: 'calc(100dvh - 32px)', minHeight: 0,
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            padding: 0, borderRadius: 16, boxShadow: '0 20px 60px rgba(0,0,0,.2)',
           }} onClick={(e) => e.stopPropagation()}>
 
             {/* ── HEADER coloré ── */}
@@ -842,7 +1229,7 @@ export default function HistoriqueForm({ patient }: Props) {
               const icon = FILTRES.find(f => f.id === selectedItem._type)?.icon || 'description';
               const label = getTypeLabel(selectedItem._type);
               return (
-                <div style={{ background: color, padding: '20px 24px', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ background: color, padding: '20px 24px', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icone nom={icon} style={{ fontSize: 22, color: '#fff' }} />
@@ -854,25 +1241,32 @@ export default function HistoriqueForm({ patient }: Props) {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {selectedItem.urgence && selectedItem.urgence !== 'NORMAL' && (
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: selectedItem.urgence === 'TRES_URGENT' ? '#ef4444' : '#f59e0b', color: '#fff' }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: selectedItem.urgence === 'TRES_URGENT' ? 'var(--red)' : 'var(--amber)', color: '#fff' }}>
                         {getUrgenceLabel(selectedItem.urgence)}
                       </span>
                     )}
-                    <button onClick={() => setShowModal(false)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 700 }}>×</button>
+                    <button onClick={() => setShowModal(false)} style={{ background: 'rgba(255,255,255,.15)', border: 'none', cursor: 'pointer', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 700, transition: 'all .15s' }}>×</button>
                   </div>
                 </div>
               );
             })()}
 
-            <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div className="psx-modal-scroll" style={{
+              padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16,
+              /* `scroll` (et non `auto`) garantit une vraie zone de defilement
+                 et reserve toujours la barre, meme avant le premier geste. */
+              flex: '1 1 0%', height: 0, minHeight: 0, overflowY: 'scroll', overflowX: 'hidden',
+              overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-y', scrollBehavior: 'smooth',
+            }}>
 
               {/* ── STATUT ── */}
               {selectedItem.statut && (() => {
                 const s = selectedItem.statut;
                 const isOk = s === 'ACTIVE' || s === 'EXECUTEE' || s === 'validé' || s === 'CREEE';
                 const isKo = s === 'ANNULEE' || s === 'REJETEE' || s === 'EXPIREE';
-                const bg = isOk ? '#d1fae5' : isKo ? '#fee2e2' : '#fef3c7';
-                const fg = isOk ? '#065f46' : isKo ? '#991b1b' : '#92400e';
+                const bg = isOk ? 'var(--green-lt)' : isKo ? 'var(--red-lt)' : 'var(--amber-lt)';
+                const fg = isOk ? 'var(--green-dk)' : isKo ? 'var(--red-dk)' : 'var(--amber-dk)';
                 const ic = isOk ? 'check_circle' : isKo ? 'cancel' : 'pending';
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 10, background: bg }}>
@@ -881,6 +1275,39 @@ export default function HistoriqueForm({ patient }: Props) {
                   </div>
                 );
               })()}
+
+              {/* ── SECTION PRESCRIPTEUR ── */}
+              <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
+                <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Icone nom="stethoscope" style={{ fontSize: 16, color: 'var(--navy)' }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Prescripteur</span>
+                </div>
+                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    {selectedItem.nomMedecinPrescripteur ? (
+                      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--txt)' }}>Dr {selectedItem.nomMedecinPrescripteur}</span>
+                    ) : (
+                      <span style={{ fontSize: 13, color: 'var(--txt3)', fontStyle: 'italic' }}>Prescripteur non renseigné</span>
+                    )}
+                    {selectedItem.numeroONM && (
+                      <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'var(--bg2)', color: 'var(--txt2)', fontWeight: 500 }}>N° ONM : {selectedItem.numeroONM}</span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {selectedItem.sourceType && (
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
+                        background: selectedItem.sourceType === 'accueil' ? '#ede9fe' : selectedItem.sourceType === 'hospitalisation' ? '#dbeafe' : '#f0fdf4',
+                        color: selectedItem.sourceType === 'accueil' ? '#5b21b6' : selectedItem.sourceType === 'hospitalisation' ? '#1e40af' : '#166534',
+                      }}>
+                        Via {selectedItem.sourceType.toUpperCase()}
+                      </span>
+                    )}
+                    {selectedItem.nomAgentAccueil && (
+                      <span style={{ fontSize: 10, color: 'var(--txt3)', padding: '2px 6px', borderRadius: 6, background: 'var(--bg2)' }}>Agent : {selectedItem.nomAgentAccueil}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
 
               {/* ── SECTION PATIENT ── */}
               {patient && (patient.nom || patient.idPermanent) && (
@@ -933,59 +1360,6 @@ export default function HistoriqueForm({ patient }: Props) {
                 </div>
               )}
 
-              {/* ── SECTION PRESCRIPTEUR ── */}
-              <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
-                <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Icone nom="stethoscope" style={{ fontSize: 16, color: 'var(--navy)' }} />
-                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--navy)' }}>Prescripteur</span>
-                </div>
-                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    {(() => {
-                      const pid = selectedItem.prescripteurId?.trim();
-                      const resolved =
-                        selectedItem.nomMedecinPrescripteur ||
-                        (pid ? prescripteurNames[pid] : '');
-                      if (resolved) {
-                        return (
-                          <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--txt)' }}>Dr {resolved}</span>
-                        );
-                      }
-                      if (pid && prescripteurLoadingId === pid) {
-                        return (
-                          <span style={{ fontSize: 13, color: 'var(--txt3)', fontStyle: 'italic' }}>Résolution du prescripteur…</span>
-                        );
-                      }
-                      return (
-                        <span style={{ fontSize: 13, color: 'var(--txt3)', fontStyle: 'italic' }}>Prescripteur non renseigné</span>
-                      );
-                    })()}
-                    {selectedItem.numeroONM && (
-                      <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 6, background: 'var(--bg2)', color: 'var(--txt2)', fontWeight: 500 }}>N° ONM : {selectedItem.numeroONM}</span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {selectedItem.sourceType && (
-                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 6,
-                        background: selectedItem.sourceType === 'accueil' ? '#ede9fe' : selectedItem.sourceType === 'hospitalisation' ? '#dbeafe' : '#f0fdf4',
-                        color: selectedItem.sourceType === 'accueil' ? '#5b21b6' : selectedItem.sourceType === 'hospitalisation' ? '#1e40af' : '#166534',
-                      }}>
-                        Via {selectedItem.sourceType.toUpperCase()}
-                      </span>
-                    )}
-                    {selectedItem.serviceIdSource && (
-                      <span style={{ fontSize: 10, color: 'var(--txt3)', padding: '2px 6px', borderRadius: 6, background: 'var(--bg2)' }}>Service : {selectedItem.serviceIdSource.slice(0, 8)}…</span>
-                    )}
-                  </div>
-                  {selectedItem.sourceType === 'accueil' && (
-                    <div style={{ fontSize: 11, color: 'var(--txt3)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Icone nom="info" style={{ fontSize: 13 }} />
-                      Prescription initiée depuis le service d'Accueil
-                    </div>
-                  )}
-                </div>
-              </div>
-
               {/* ── SECTION DÉTAILS CLINIQUES ── */}
               <div style={{ border: '1px solid var(--bdr)', borderRadius: 12, overflow: 'hidden' }}>
                 <div style={{ background: 'var(--bg2)', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1013,21 +1387,15 @@ export default function HistoriqueForm({ patient }: Props) {
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>Prescription créée</div>
                         <div style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 2 }}>{formatDate(selectedItem.createdAt)}</div>
-                        {(() => {
-                          const pid = selectedItem.prescripteurId?.trim();
-                          const resolved =
-                            selectedItem.nomMedecinPrescripteur ||
-                            (pid ? prescripteurNames[pid] : '');
-                          return resolved ? (
-                            <div style={{ fontSize: 11, color: 'var(--txt2)', marginTop: 2 }}>par Dr {resolved}</div>
-                          ) : null;
-                        })()}
+                        {selectedItem.nomMedecinPrescripteur && (
+                          <div style={{ fontSize: 11, color: 'var(--txt2)', marginTop: 2 }}>par Dr {selectedItem.nomMedecinPrescripteur}</div>
+                        )}
                       </div>
                     </div>
                     {/* Modification (si différente de création) */}
                     {selectedItem.updatedAt && selectedItem.updatedAt !== selectedItem.createdAt && (
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, paddingBottom: 14, position: 'relative' }}>
-                        <div style={{ position: 'absolute', left: -22, top: 2, width: 14, height: 14, borderRadius: '50%', background: '#f59e0b', border: '2px solid #fff', boxShadow: '0 0 0 2px #f59e0b' }} />
+                        <div style={{ position: 'absolute', left: -22, top: 2, width: 14, height: 14, borderRadius: '50%', background: '#006A8C', border: '2px solid #fff', boxShadow: '0 0 0 2px #006A8C' }} />
                         <div>
                           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>Dernière modification</div>
                           <div style={{ fontSize: 11, color: 'var(--txt3)', marginTop: 2 }}>{formatDate(selectedItem.updatedAt)}</div>
@@ -1059,7 +1427,10 @@ export default function HistoriqueForm({ patient }: Props) {
                 </div>
               </div>
 
-              {/* ── FOOTER ── */}
+            </div>
+
+            {/* ── FOOTER ── hors de la zone de defilement, toujours visible */}
+            <div style={{ flexShrink: 0, padding: '14px 24px', borderTop: '1px solid var(--bdr)', background: 'var(--card)', borderRadius: '0 0 16px 16px' }}>
               <button
                 onClick={() => setShowModal(false)}
                 style={{ width: '100%', padding: '12px', borderRadius: 10, background: 'var(--navy)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '.2px' }}

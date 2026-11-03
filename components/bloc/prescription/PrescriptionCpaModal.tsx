@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import PrescriptionModule from '@/features/prescription/PrescriptionModule'
+import ModulePrescriptionBloc from '@/components/bloc/prescription/ModulePrescriptionBloc'
 import type { ServiceDestOverride } from '@/features/prescription/contexts/PrescriptionPanierContext'
 import { Icone } from '@/components/ui/Icone'
 
@@ -57,7 +58,9 @@ export default function PrescriptionCpaModal({ open, onClose, patientId, service
             hauteur de son contenu et la zone se fait rogner par le overflow-hidden de la modale
             (infos masquées, pire en zoom) au lieu de défiler. */}
         <div className="overflow-auto p-5 bg-surface-container-lowest/40 flex-1 min-h-0">
-          <PrescriptionModule patientId={patientId} serviceDestOverride={serviceDestOverride} />
+          <ModulePrescriptionBloc>
+            <PrescriptionModule patientId={patientId} serviceDestOverride={serviceDestOverride} />
+          </ModulePrescriptionBloc>
         </div>
       </div>
     </div>,

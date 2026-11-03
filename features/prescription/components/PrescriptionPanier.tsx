@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { usePrescriptionPanier, PanierItemStatus } from "@/features/prescription/contexts/PrescriptionPanierContext";
+import {
+  usePrescriptionPanier,
+  PanierItemStatus,
+} from "@/features/prescription/contexts/PrescriptionPanierContext";
 import { Icone } from '@/components/ui/Icone';
 
 const TYPE_ICONS: Record<string, string> = {
@@ -10,6 +13,7 @@ const TYPE_ICONS: Record<string, string> = {
   surveillance: "monitor_heart",
   transfusion: "bloodtype",
   bloc: "medical_services",
+  cpa: "local_hospital",
   labo: "science",
   imagerie: "radiology",
   anapath: "biotech",
@@ -19,35 +23,39 @@ const TYPE_ICONS: Record<string, string> = {
   dialyse: "water_full",
 };
 
-export default function PrescriptionPanier({ prescripteurId = "" }: { prescripteurId?: string }) {
-  const { panier, removeFromPanier, sendAll, retryItem, resetPanier } = usePrescriptionPanier();
+export default function PrescriptionPanier({
+  prescripteurId = "",
+}: {
+  prescripteurId?: string;
+}) {
+  const { panier, removeFromPanier, sendAll, retryItem, resetPanier } =
+    usePrescriptionPanier();
   const [isOpen, setIsOpen] = useState(false);
   const [isSending, setIsSending] = useState(false);
 
   const getStatusColor = (status: PanierItemStatus) => {
     switch (status) {
-      case "draft": return "var(--txt3)";
-      case "sending": return "#3b82f6";
-      case "sent": return "#10b981";
-      case "error": return "#ef4444";
-    }
-  };
-
-  const getStatusIcon = (status: PanierItemStatus) => {
-    switch (status) {
-      case "draft": return "schedule";
-      case "sending": return "hourglass_top";
-      case "sent": return "check_circle";
-      case "error": return "error";
+      case "draft":
+        return "var(--txt3)";
+      case "sending":
+        return "#3b82f6";
+      case "sent":
+        return "#10b981";
+      case "error":
+        return "#ef4444";
     }
   };
 
   const getStatusLabel = (status: PanierItemStatus) => {
     switch (status) {
-      case "draft": return "En attente";
-      case "sending": return "Envoi...";
-      case "sent": return "Envoyé ✓";
-      case "error": return "Échec ✗";
+      case "draft":
+        return "En attente";
+      case "sending":
+        return "Envoi...";
+      case "sent":
+        return "Envoyé ✓";
+      case "error":
+        return "Échec ✗";
     }
   };
 
@@ -55,8 +63,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
     setIsSending(true);
     try {
       await sendAll(prescripteurId);
-    } catch (error) {
-      console.error("Erreur envoi groupé:", error);
+    } catch {
     } finally {
       setIsSending(false);
     }
@@ -65,21 +72,22 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
   const handleRetry = async (localId: string) => {
     try {
       await retryItem(localId);
-    } catch (error) {
-      console.error("Erreur relance:", error);
-    }
+    } catch {}
   };
 
   const draftCount = panier.items.filter((i) => i.status === "draft").length;
   const sentCount = panier.items.filter((i) => i.status === "sent").length;
   const errorCount = panier.items.filter((i) => i.status === "error").length;
-  const sendingCount = panier.items.filter((i) => i.status === "sending").length;
+  const sendingCount = panier.items.filter(
+    (i) => i.status === "sending",
+  ).length;
   const totalCount = panier.items.length;
 
   // Summary text after sending
-  const summaryText = sentCount > 0 || errorCount > 0
-    ? `${sentCount} envoyée${sentCount > 1 ? "s" : ""}${errorCount > 0 ? `, ${errorCount} échec${errorCount > 1 ? "s" : ""}` : ""}`
-    : "";
+  const summaryText =
+    sentCount > 0 || errorCount > 0
+      ? `${sentCount} envoyée${sentCount > 1 ? "s" : ""}${errorCount > 0 ? `, ${errorCount} échec${errorCount > 1 ? "s" : ""}` : ""}`
+      : "";
 
   return (
     <>
@@ -94,9 +102,12 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
           width: 56,
           height: 56,
           borderRadius: "50%",
-          background: totalCount > 0
-            ? (errorCount > 0 ? "linear-gradient(135deg, #ef4444, #dc2626)" : "linear-gradient(135deg, #1e3a5f, #2d5a8e)")
-            : "linear-gradient(135deg, #6b7280, #9ca3af)",
+          background:
+            totalCount > 0
+              ? errorCount > 0
+                ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                : "linear-gradient(135deg, #1e3a5f, #2d5a8e)"
+              : "linear-gradient(135deg, #6b7280, #9ca3af)",
           color: "#fff",
           border: "none",
           cursor: "pointer",
@@ -178,7 +189,13 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
             color: "#fff",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <Icone nom="shopping_basket" style={{ fontSize: 22 }} />
               <div>
@@ -240,8 +257,10 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                 padding: "48px 24px",
               }}
             >
-              <Icone nom="shopping_basket" style={{ fontSize: 48, display: "block", marginBottom: 12, opacity: 0.4 }} />
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>Le panier est vide</div>
+              <Icone nom="shopping_basket" style={{ fontSize: 48, display: "block", marginBottom: 12, opacity: 0.4, }} />
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                Le panier est vide
+              </div>
               <div style={{ fontSize: 11, opacity: 0.8 }}>
                 Remplissez un formulaire et cliquez « Ajouter au panier »
               </div>
@@ -258,7 +277,11 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                   <div
                     key={item.localId}
                     style={{
-                      background: isSent ? "#f0fdf4" : isError ? "#fef2f2" : "#fff",
+                      background: isSent
+                        ? "#f0fdf4"
+                        : isError
+                          ? "#fef2f2"
+                          : "#fff",
                       border: `1px solid ${isSent ? "#bbf7d0" : isError ? "#fecaca" : "var(--bdr, #e5e7eb)"}`,
                       borderRadius: 12,
                       padding: "12px 14px",
@@ -266,7 +289,13 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                       transition: "all 0.2s ease",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 10,
+                      }}
+                    >
                       {/* Type icon */}
                       <div
                         style={{
@@ -285,8 +314,21 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
 
                       {/* Content */}
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--txt, #1f2937)" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                            marginBottom: 3,
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "var(--txt, #1f2937)",
+                            }}
+                          >
                             {item.label}
                           </span>
                           <span
@@ -316,7 +358,14 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                       </div>
 
                       {/* Actions */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          flexShrink: 0,
+                        }}
+                      >
                         {isDraft && (
                           <button
                             onClick={() => removeFromPanier(item.localId)}
@@ -332,8 +381,12 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                               color: "#9ca3af",
                               transition: "color 0.15s",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.color = "#ef4444")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.color = "#9ca3af")
+                            }
                           >
                             <Icone nom="close" style={{ fontSize: 18 }} />
                           </button>
@@ -387,7 +440,7 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                           border: "1px solid #fecaca",
                         }}
                       >
-                        <Icone nom="warning" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 4 }} />
+                        <Icone nom="warning" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 4, }} />
                         {item.error}
                       </div>
                     )}
@@ -419,43 +472,46 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
             >
               {draftCount > 0 && (
                 <span style={{ color: "#6b7280", fontWeight: 600 }}>
-                  <Icone nom="schedule" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }} />
+                  <Icone nom="schedule" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2, }} />
                   {draftCount} en attente
                 </span>
               )}
               {sentCount > 0 && (
                 <span style={{ color: "#10b981", fontWeight: 600 }}>
-                  <Icone nom="check_circle" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }} />
+                  <Icone nom="check_circle" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2, }} />
                   {sentCount} envoyée{sentCount > 1 ? "s" : ""}
                 </span>
               )}
               {errorCount > 0 && (
                 <span style={{ color: "#ef4444", fontWeight: 600 }}>
-                  <Icone nom="error" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2 }} />
+                  <Icone nom="error" style={{ fontSize: 12, verticalAlign: "middle", marginRight: 2, }} />
                   {errorCount} échec{errorCount > 1 ? "s" : ""}
                 </span>
               )}
             </div>
 
             {/* Summary text after send */}
-            {summaryText && sentCount > 0 && errorCount === 0 && draftCount === 0 && (
-              <div
-                style={{
-                  textAlign: "center",
-                  fontSize: 12,
-                  color: "#10b981",
-                  fontWeight: 600,
-                  marginBottom: 12,
-                  padding: "8px 12px",
-                  background: "#f0fdf4",
-                  borderRadius: 8,
-                  border: "1px solid #bbf7d0",
-                }}
-              >
-                <Icone nom="task_alt" style={{ fontSize: 16, verticalAlign: "middle", marginRight: 6 }} />
-                Toutes les prescriptions ont été envoyées !
-              </div>
-            )}
+            {summaryText &&
+              sentCount > 0 &&
+              errorCount === 0 &&
+              draftCount === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    fontSize: 12,
+                    color: "#10b981",
+                    fontWeight: 600,
+                    marginBottom: 12,
+                    padding: "8px 12px",
+                    background: "#f0fdf4",
+                    borderRadius: 8,
+                    border: "1px solid #bbf7d0",
+                  }}
+                >
+                  <Icone nom="task_alt" style={{ fontSize: 16, verticalAlign: "middle", marginRight: 6, }} />
+                  Toutes les prescriptions ont été envoyées !
+                </div>
+              )}
 
             {/* Send button */}
             {(draftCount > 0 || errorCount > 0) && (
@@ -470,7 +526,8 @@ export default function PrescriptionPanier({ prescripteurId = "" }: { prescripte
                   border: "none",
                   fontSize: 14,
                   fontWeight: 700,
-                  cursor: isSending || sendingCount > 0 ? "not-allowed" : "pointer",
+                  cursor:
+                    isSending || sendingCount > 0 ? "not-allowed" : "pointer",
                   background:
                     isSending || sendingCount > 0
                       ? "#d1d5db"
