@@ -522,7 +522,7 @@ export function DossierPatientComplet({
                   episodeId={resolvedEpisodeId}
                 />
               ) : activeTab === "historique" && patientId ? (
-                <HistoriqueTab patientId={patientId} />
+                <HistoriqueTab patientId={patientId} chuId={resolvedChuId} />
               ) : activeTab === "resultats" && patientId ? (
                 <ResultatsParacliniquesTab patientId={patientId} />
               ) : null}

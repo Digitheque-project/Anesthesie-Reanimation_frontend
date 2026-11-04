@@ -196,7 +196,7 @@ export default function ListeSalleReveil() {
                           onClick={() => router.push(`/bloc/salle-de-reveil/suivi?patientId=${patient.id}&patientNom=${encodeURIComponent(formaterNomPatient(patient))}&intervention=${encodeURIComponent(patient.intervention)}`)}
                           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition shadow-md hover:shadow-lg"
                         >
-                          📋 Surveiller
+                          <span className="inline-flex items-center gap-1.5"><Icone nom="monitor_heart" className="text-[15px]" /> Surveiller</span>
                         </button>
                         <VoirDossierButton patientId={patient.id} variant="icon" />
                       </div>

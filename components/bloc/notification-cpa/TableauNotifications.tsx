@@ -114,7 +114,7 @@ export default function TableauNotifications({
                           : 'bg-primary text-white hover:bg-primary-dark'
                       }`}
                     >
-                      {estTresUrgent ? '⚡ VPA Direct' : '📋 Planifier CPA'}
+                      <span className="inline-flex items-center gap-1.5"><Icone nom={estTresUrgent ? 'bolt' : 'event'} className="text-[14px]" /> {estTresUrgent ? 'VPA Direct' : 'Planifier CPA'}</span>
                     </button>
                   </td>
                 </tr>

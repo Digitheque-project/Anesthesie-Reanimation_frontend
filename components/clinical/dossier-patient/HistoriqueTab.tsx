@@ -19,6 +19,8 @@ interface HistoriqueEntry {
 
 interface Props {
   patientId: string;
+  /** CHU de l'agent : exigé par le service Dossier patient (sinon 403 « chuId requis »). */
+  chuId?: string;
 }
 
 const actionLabels: Record<TypeAction, string> = {
@@ -39,19 +41,19 @@ const actionColors: Record<TypeAction, string> = {
   transfert: 'bg-orange-100 text-orange-700',
 };
 
-export default function HistoriqueTab({ patientId }: Props) {
+export default function HistoriqueTab({ patientId, chuId }: Props) {
   const [historique, setHistorique] = useState<HistoriqueEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterModule, setFilterModule] = useState<string>('Tous');
 
   useEffect(() => {
     fetchHistorique();
-  }, [patientId]);
+  }, [patientId, chuId]);
 
   const fetchHistorique = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/patients/${patientId}/historique`);
+      const res = await api.get(`/patients/${patientId}/historique`, { params: { chuId } });
       setHistorique(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       // L'endpoint d'historique n'est pas encore disponible côté backend (404) :
