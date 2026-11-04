@@ -78,7 +78,7 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
   const load = async () => {
     try {
       const res = await api.get(`/patients/${patientId}/suivis`, {
-        params: { chuId, serviceId },
+        params: { chuId }, // sans serviceId : tout le suivi du patient dans le CHU
       });
       setSuivis(res.data || []);
     } catch (e) {

@@ -125,13 +125,14 @@ export function DiagnosticTab({
   }, [patientId, chuId, serviceId]);
 
   const load = async () => {
-    if (!patientId || !chuId || !serviceId) {
+    if (!patientId || !chuId) {
       setCurrent(null);
       return;
     }
     try {
+      // Sans serviceId : tous les diagnostics du patient dans le CHU, pas seulement ceux du bloc.
       const res = await api.get("/diagnostics", {
-        params: { chuId, serviceId, patientId },
+        params: { chuId, patientId },
       });
       const raw: Diagnostic[] = res.data || [];
       const sorted = raw

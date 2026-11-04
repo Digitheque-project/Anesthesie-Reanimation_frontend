@@ -66,7 +66,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
   const [selected, setSelected] = useState<Observation | null>(null);
 ​
   useEffect(() => {
-    if (!patientId || !chuId || !serviceId || !isDossierPatientApiConfigured()) {
+    if (!patientId || !chuId || !isDossierPatientApiConfigured()) {
       setLoading(false);
       return;
     }
@@ -74,8 +74,10 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
     (async () => {
       setLoading(true);
       try {
+        // Sans serviceId : tout le dossier du patient dans le CHU (Clinique, consultation…), pas
+        // seulement ce que le bloc a saisi — le bloc n'y écrit d'ailleurs rien.
         const res = await api.get(`/observations/patient/${patientId}`, {
-          params: { chuId, serviceId },
+          params: { chuId },
         });
         if (cancelled) return;
         const list: Observation[] = res.data?.data || [];
@@ -97,7 +99,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [patientId, chuId, serviceId]);
+  }, [patientId, chuId]);
 ​
   if (selected) {
     return (
