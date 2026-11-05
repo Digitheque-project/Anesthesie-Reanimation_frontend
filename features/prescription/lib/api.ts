@@ -1175,3 +1175,31 @@ export async function getAnalysesLaboEnRupture(chuId: string): Promise<string[]>
     return [];
   }
 }
+
+// ── LABO : catalogue commun des analyses ─────────────────────
+/** Catalogue commun (prescription_back) : mêmes noms et identifiants pour tous les services et le labo. */
+export async function getCatalogueAnalysesLabo(chuId?: string): Promise<AnalyseCatalogueLabo[]> {
+  try {
+    const params = new URLSearchParams();
+    if (chuId) params.set('chuId', chuId);
+    const res = await fetch(`${API_URL}/prescriptions/labo/catalogue?${params.toString()}`, { headers: headers() });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+export interface AnalyseCatalogueLabo {
+  id: string;
+  nom: string;
+  categorieId: string;
+  categorie: string;
+  couleur: string | null;
+  couleurTexte: string | null;
+  tube: string | null;
+  sousGroupe: string | null;
+  ordre: number;
+  bloquee: boolean;
+}

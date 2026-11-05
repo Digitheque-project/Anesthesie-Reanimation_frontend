@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import DrawerPanel from '../DrawerPanel';
 import { getAnalysesLaboEnRupture } from '@/features/prescription/lib/api';
 import { Icone } from '@/components/ui/Icone';
+import { getCatalogueAnalysesLabo } from '@/features/prescription/lib/api';
 
 // Le laboratoire bloque une analyse sous le nom de SON catalogue (« NFS »,
 // « VSH », « TQ ») ; le formulaire la nomme autrement (« NFS complète »,
@@ -47,6 +48,27 @@ const CATEGORIES = [
   ]},
 ];
 
+// Catégories construites depuis le catalogue commun (mêmes noms que le labo et
+// les autres services) ; la liste ci-dessus ne sert que si le serveur ne répond pas.
+function categoriesDepuisCatalogue(liste: { nom: string; categorieId: string; categorie: string; couleur: string | null; couleurTexte: string | null; tube: string | null; sousGroupe: string | null }[]): typeof CATEGORIES {
+  const parCategorie = new Map<string, { id: string; label: string; color: string; textColor: string; tube: string; analyses: string[]; groupes: Map<string, string[]> }>();
+  for (const a of liste) {
+    let c = parCategorie.get(a.categorieId);
+    if (!c) {
+      c = { id: a.categorieId, label: a.categorie, color: a.couleur ?? '#64748b', textColor: a.couleurTexte ?? '#334155', tube: a.tube ?? '', analyses: [], groupes: new Map() };
+      parCategorie.set(a.categorieId, c);
+    }
+    if (a.sousGroupe) c.groupes.set(a.sousGroupe, [...(c.groupes.get(a.sousGroupe) ?? []), a.nom]);
+    else c.analyses.push(a.nom);
+  }
+  return [...parCategorie.values()].map((c) =>
+    c.groupes.size > 0
+      ? { id: c.id, label: c.label, color: c.color, textColor: c.textColor, tube: c.tube, subGroups: [...c.groupes].map(([label, analyses]) => ({ label, analyses })) }
+      : { id: c.id, label: c.label, color: c.color, textColor: c.textColor, tube: c.tube, analyses: c.analyses },
+  ) as unknown as typeof CATEGORIES;
+}
+
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -58,6 +80,12 @@ interface Props {
 export default function LaboExamensPopup({ isOpen, onClose, onConfirm, initialSelected = [], chuId }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set(initialSelected));
   const [ruptures, setRuptures] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<typeof CATEGORIES>(CATEGORIES);
+  useEffect(() => {
+    let annule = false;
+    getCatalogueAnalysesLabo(chuId).then(liste => { if (!annule && liste.length > 0) setCategories(categoriesDepuisCatalogue(liste)); });
+    return () => { annule = true; };
+  }, []);
 
   useEffect(() => {
     if (!isOpen || !chuId) return;
@@ -132,7 +160,7 @@ export default function LaboExamensPopup({ isOpen, onClose, onConfirm, initialSe
           {ruptureCount} analyse{ruptureCount > 1 ? 's' : ''} indisponible{ruptureCount > 1 ? 's' : ''} (rupture de réactif) — grisée{ruptureCount > 1 ? 's' : ''} et non cochable{ruptureCount > 1 ? 's' : ''}.
         </div>
       )}
-      {CATEGORIES.map(cat => {
+      {categories.map(cat => {
         const allAnalyses = cat.subGroups
           ? cat.subGroups.flatMap(sg => sg.analyses)
           : cat.analyses!;
