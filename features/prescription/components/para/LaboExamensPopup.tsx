@@ -5,6 +5,27 @@ import DrawerPanel from '../DrawerPanel';
 import { getAnalysesLaboEnRupture } from '@/features/prescription/lib/api';
 import { Icone } from '@/components/ui/Icone';
 
+// Le laboratoire bloque une analyse sous le nom de SON catalogue (« NFS »,
+// « VSH », « TQ ») ; le formulaire la nomme autrement (« NFS complète »,
+// « VSH 1ère heure », « TQ / TP »). Correspondance par mots entiers : « NFS »
+// bloque « NFS complète », mais « TP » ne bloque pas « INR ».
+function motsAnalyse(s: string): string[] {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+}
+
+function estAnalyseBloquee(nom: string, bloquees: Set<string>): boolean {
+  if (bloquees.has(nom)) return true;
+  const mots = motsAnalyse(nom);
+  for (const b of bloquees) {
+    const cle = motsAnalyse(b);
+    if (cle.length === 0 || cle.length > mots.length) continue;
+    for (let i = 0; i + cle.length <= mots.length; i++) {
+      if (cle.every((m, j) => mots[i + j] === m)) return true;
+    }
+  }
+  return false;
+}
+
 const CATEGORIES = [
   { id: 'hemato', label: '1. Hématologie & NFS', color: '#7c3aed', textColor: '#6d28d9', tube: 'Tube violet', analyses: ['NFS complète','Réticulocytes','VSH 1ère heure','VSH 2ème heure','Frottis sanguin','Groupage ABO / Rh','Test d\'Emmel (drépanocytose)'] },
   { id: 'hemostase', label: '2. Hémostase', color: '#0284c7', textColor: '#075985', tube: 'Tube bleu', analyses: ['Temps de saignement (TS)','TQ / TP','INR','TCA','D-Dimères','TT (Temps de Thrombine)'] },
@@ -49,7 +70,7 @@ export default function LaboExamensPopup({ isOpen, onClose, onConfirm, initialSe
 
   if (!isOpen) return null;
 
-  const isRupture = (a: string) => ruptures.has(a);
+  const isRupture = (a: string) => estAnalyseBloquee(a, ruptures);
 
   function toggle(val: string) {
     if (isRupture(val)) return;
