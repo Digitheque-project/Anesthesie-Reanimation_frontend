@@ -8,7 +8,8 @@ export function formaterNomPatient(patient?: { nom?: string | null; prenom?: str
   return prenom ? `${nom} ${prenom}` : nom
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+// Un UUID n'importe où dans la valeur (ex. « CHU-<uuid> ») : identifiant technique, jamais affiché.
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
 
 // N° de dossier à afficher — jamais l'id technique du patient (interdit), même en repli. Certains
 // enregistrements (identité non résolue côté Accueil, admission ancienne...) se retrouvent avec

@@ -1,6 +1,7 @@
 import { PatientBloc, NiveauUrgence } from "@/types/bloc";
 import { libelleUrgence, styleUrgence } from "@/lib/urgence";
 import { Icone } from '@/components/ui/Icone';
+import { formaterIdDossier } from '@/lib/patient'
 
 interface PatientsTableProps {
   patients: PatientBloc[];
@@ -40,9 +41,11 @@ export default function PatientsTable({ patients }: PatientsTableProps) {
                       <span className="font-bold text-on-surface uppercase">
                         {patient.nom}, {patient.prenom}
                       </span>
-                      <span className="text-[10px] text-on-surface-variant font-medium">
-                        #{patient.patientId}
-                      </span>
+                      {formaterIdDossier(patient.patientId) && (
+                        <span className="text-[10px] text-on-surface-variant font-medium">
+                          #{formaterIdDossier(patient.patientId)}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-on-surface-variant font-medium">
