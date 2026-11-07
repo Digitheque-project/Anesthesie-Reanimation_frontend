@@ -175,9 +175,9 @@ function ActivitePendantOperationPageContent() {
   ]
 
   return (
-    <main className="h-[calc(100vh-6rem)] flex flex-col">
+    <main className="flex flex-col">
       {/* TopAppBar */}
-      <header className="bg-white/80 backdrop-blur-xl z-50 shrink-0 border-b border-surface-container-highest shadow-sm flex justify-between items-center w-full px-6 py-2">
+      <header className="sticky top-16 bg-white/80 backdrop-blur-xl z-30 shrink-0 border-b border-surface-container-highest shadow-sm flex justify-between items-center w-full px-6 py-2">
         <div className="flex items-center gap-6">
           <BackButton />
           <div className="h-10 w-px bg-surface-container-highest"></div>
@@ -226,7 +226,7 @@ function ActivitePendantOperationPageContent() {
       {/* Body : colonne gauche scrollable (anesthésiste uniquement) + colonne droite fixe
           (boutons de chronologie, ne défile jamais avec la page) — l'IBODE ne voit que les
           boutons, aucun formulaire clinique ni checklist. */}
-      <div className="flex-1 min-h-0 flex items-start gap-6 p-6 overflow-y-auto">
+      <div className="flex items-start gap-6 p-6">
         {estAnesthesiste && (
         <div className="flex-1 min-w-0 flex flex-col gap-6">
         <div className="space-y-6">
