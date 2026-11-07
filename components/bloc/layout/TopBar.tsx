@@ -15,6 +15,7 @@ import { estPatientTraite } from '@/lib/notifications/patient-traite';
 import { estEchelleUrgente } from '@/lib/urgence';
 import Clock from '@/components/bloc/layout/Clock';
 import { Icone } from '@/components/ui/Icone';
+import PointServeur from "@/components/PointServeur";
 
 export default function TopBar() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -225,7 +226,7 @@ export default function TopBar() {
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex min-w-0 flex-col text-right">
             <span className="truncate text-[13px] font-extrabold leading-tight text-gray-900">
-              {session ? `${session.payload.firstname} ${session.payload.name}` : '—'}
+              <PointServeur />{session ? `${session.payload.firstname} ${session.payload.name}` : '—'}
             </span>
             <span className="mt-0.5 hidden truncate text-[10px] font-bold uppercase leading-tight tracking-widest text-gray-400 sm:block">
               {session?.acces.roleName || ''}

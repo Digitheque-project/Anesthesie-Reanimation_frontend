@@ -29,6 +29,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="chu-onglet-cache" strategy="beforeInteractive">
           {`(function(){if(window.__chuOngletCache)return;window.__chuOngletCache=1;var origine=window.setInterval,PAS_CACHE=120000;window.setInterval=function(action,ms){if(typeof action!=='function'||!(ms>=5000))return origine.apply(window,arguments);var args=[].slice.call(arguments,2),dernier=0;return origine.call(window,function(){var t=Date.now();if(document.hidden&&t-dernier<PAS_CACHE)return;dernier=t;return action.apply(this,args);},ms);};})();`}
         </Script>
+        {/* Point « serveur prêt » de l'en-tête (comme la consultation externe) :
+            déduit des vraies requêtes vers le serveur, jamais d'un ping dédié. */}
+        <Script id="chu-etat-serveur" strategy="beforeInteractive">
+          {`(function(){if(window.__chuServeur)return;var etat={pret:false};window.__chuServeur=etat;function maj(ok){if(etat.pret===ok)return;etat.pret=ok;window.dispatchEvent(new Event('chu-serveur'));}function suivie(u){try{var url=new URL(String(u),location.href);if(url.pathname.indexOf('/messagerie/widget.js')>=0)return false;return url.origin!==location.origin||url.pathname.indexOf('/api/')===0;}catch(e){return false;}}function verdict(s){return s>0&&s<500&&s!==429;}var f=window.fetch;if(f){window.fetch=function(i){var u=typeof i==='string'?i:(i&&i.url)||String(i);var p=f.apply(this,arguments);if(suivie(u))p.then(function(r){maj(verdict(r.status));},function(e){if(!(e&&e.name==='AbortError'))maj(false);});return p;};}var X=XMLHttpRequest.prototype,op=X.open,se=X.send;X.open=function(m,u){this.__chuUrl=u;return op.apply(this,arguments);};X.send=function(){var x=this;if(suivie(x.__chuUrl)){x.addEventListener('abort',function(){x.__chuAbandon=1;});x.addEventListener('loadend',function(){if(!x.__chuAbandon)maj(verdict(x.status));});}return se.apply(this,arguments);};})();`}
+        </Script>
         {/* Messagerie du CHU : bulle en bas à droite (service-messagerie, via la passerelle). */}
         {process.env.NEXT_PUBLIC_GATEWAY_URL ? (
           // Chargée par un petit script qui réessaie : si la passerelle refuse le
