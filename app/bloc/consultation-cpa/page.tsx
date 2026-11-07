@@ -918,20 +918,36 @@ function ConsultationCpaPageContent() {
     try { localStorage.setItem('cpa-destinataire-partage', JSON.stringify(destinataire)); } catch { /* stockage indisponible : le destinataire sera juste redemandé la prochaine fois */ }
   };
 
-  const executerPartageWhatsApp = async (telephone: string) => {
-    const nomComplet = formaterNomPatient(patient) || patientNom;
-    await handleTelechargerPdf();
-    const texte = encodeURIComponent(`Fiche CPA — ${nomComplet}${decision ? ` — Décision : ${decision}` : ''} (PDF téléchargé à joindre manuellement)`);
-    const numero = telephone.replace(/[^\d+]/g, '');
-    window.open(`https://wa.me/${numero}?text=${texte}`, '_blank');
+  // Récapitulatif de la fiche en texte, envoyé directement dans le message : plus de
+  // PDF téléchargé d'office (le bouton « PDF » reste là pour l'obtenir).
+  const recapitulatifCpa = () =>
+    construireSectionsCpa()
+      .map((s) => {
+        const lignes = s.champs.filter((c) => c.valeur?.trim()).map((c) => `• ${c.label} : ${c.valeur}`);
+        return lignes.length ? `${s.titre.toUpperCase()}\n${lignes.join('\n')}` : '';
+      })
+      .filter(Boolean)
+      .join('\n\n');
+
+  // wa.me exige le numéro international sans « + » ni 0 initial (034… → 26134…).
+  const numeroWhatsApp = (telephone: string) => {
+    const chiffres = telephone.replace(/\D/g, '');
+    return chiffres.startsWith('0') ? `261${chiffres.slice(1)}` : chiffres;
   };
 
-  const executerPartageEmail = async (email: string) => {
+  // Ouverture SYNCHRONE dans le clic : après une attente (génération du PDF), le
+  // navigateur bloquait la fenêtre WhatsApp / la messagerie.
+  const executerPartageWhatsApp = (telephone: string) => {
     const nomComplet = formaterNomPatient(patient) || patientNom;
-    await handleTelechargerPdf();
+    const texte = encodeURIComponent(`Fiche CPA — ${nomComplet}\n\n${recapitulatifCpa()}`);
+    window.open(`https://wa.me/${numeroWhatsApp(telephone)}?text=${texte}`, '_blank');
+  };
+
+  const executerPartageEmail = (email: string) => {
+    const nomComplet = formaterNomPatient(patient) || patientNom;
     const sujet = encodeURIComponent(`Fiche CPA — ${nomComplet}`);
-    const corps = encodeURIComponent(`Bonjour,\n\nVeuillez trouver ci-joint la fiche CPA de ${nomComplet}${decision ? ` (décision : ${decision})` : ''}.\nLe PDF a été téléchargé sur cet ordinateur — pensez à le joindre à cet email avant l'envoi.\n\nCordialement.`);
-    window.open(`mailto:${email}?subject=${sujet}&body=${corps}`, '_blank');
+    const corps = encodeURIComponent(`Bonjour,\n\nVoici la fiche CPA de ${nomComplet}.\n\n${recapitulatifCpa()}\n\nCordialement.`);
+    window.location.href = `mailto:${email}?subject=${sujet}&body=${corps}`;
   };
 
   // Le destinataire (professeur responsable CPA) n'est demandé qu'une seule fois — voir
@@ -942,7 +958,7 @@ function ConsultationCpaPageContent() {
       setShowDestinataireModal(true);
       return;
     }
-    await executerPartageWhatsApp(destinataireCpa.telephone);
+    executerPartageWhatsApp(destinataireCpa.telephone);
   };
 
   const handlePartagerEmail = async () => {
@@ -951,15 +967,15 @@ function ConsultationCpaPageContent() {
       setShowDestinataireModal(true);
       return;
     }
-    await executerPartageEmail(destinataireCpa.email);
+    executerPartageEmail(destinataireCpa.email);
   };
 
   const handleConfirmerDestinataire = async () => {
     const destinataire = { email: destinataireEmailSaisi.trim(), telephone: destinataireTelephoneSaisi.trim() };
     enregistrerDestinataire(destinataire);
     setShowDestinataireModal(false);
-    if (destinataireActionEnAttente === 'whatsapp' && destinataire.telephone) await executerPartageWhatsApp(destinataire.telephone);
-    else if (destinataireActionEnAttente === 'email' && destinataire.email) await executerPartageEmail(destinataire.email);
+    if (destinataireActionEnAttente === 'whatsapp' && destinataire.telephone) executerPartageWhatsApp(destinataire.telephone);
+    else if (destinataireActionEnAttente === 'email' && destinataire.email) executerPartageEmail(destinataire.email);
     setDestinataireActionEnAttente(null);
   };
 
@@ -1291,12 +1307,16 @@ function ConsultationCpaPageContent() {
                 (quelques unités), donc volontairement étroits plutôt qu'une pleine colonne. */}
             <div className="border-t border-outline-variant/20 pt-3 space-y-2">
               <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">ATCD Obstétricaux</label>
+              <p className="text-[11px] text-on-surface-variant">
+                G = nombre de grossesses, P = nombre d&apos;accouchements, A = avortements (fausses couches / IVG),
+                DDR = date des dernières règles. Exemple : G3 P2 A1. Laisser vide si sans objet.
+              </p>
               <div className="flex flex-wrap items-end gap-2">
-                <div className="w-16"><label className="text-[10px] font-bold block mb-1">G</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
-                <div className="w-16"><label className="text-[10px] font-bold block mb-1">P</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
-                <div className="w-16"><label className="text-[10px] font-bold block mb-1">A</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-28" title="Gestité : nombre total de grossesses"><label className="text-[10px] font-bold block mb-1">G (gestité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} placeholder="ex. 3" title="Gestité : nombre total de grossesses" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-28" title="Parité : nombre d'accouchements"><label className="text-[10px] font-bold block mb-1">P (parité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} placeholder="ex. 2" title="Parité : nombre d'accouchements" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-28" title="Avortements : fausses couches / IVG"><label className="text-[10px] font-bold block mb-1">A (avortements)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} placeholder="ex. 1" title="Avortements : fausses couches / IVG" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
                 <div className="flex-1 min-w-[140px]"><label className="text-[10px] font-bold block mb-1">DDR</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxDdr} onChange={setField('atcdObstetricauxDdr')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" type="date" /></div>
-                <div className="flex-1 min-w-[160px]"><label className="text-[10px] font-bold block mb-1">Contraception</label><input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
+                <div className="flex-1 min-w-[160px]"><label className="text-[10px] font-bold block mb-1">Contraception</label><input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} placeholder="ex. pilule, DIU, aucune" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
               </div>
             </div>
 
