@@ -12,6 +12,7 @@ import { RoleClinique } from '@/lib/auth/role-clinique'
 import BackButton from '@/components/bloc/layout/BackButton'
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 const LIBELLE_STATUT: Record<string, string> = {
   EN_ATTENTE: 'En attente de planification',
@@ -80,7 +81,7 @@ function DemandeCpaExternePageContent() {
         salle: formData.lieuRDV,
       })
 
-      alert('✅ Rendez-vous CPA planifié avec succès ! Le service demandeur a été notifié.')
+      succes('Rendez-vous CPA planifié avec succès ! Le service demandeur a été notifié.')
       setShowPlanifier(false)
       charger()
     } catch (err: any) {

@@ -17,6 +17,7 @@ import ConfirmationRecapModal, { RecapSection } from '@/components/ui/Confirmati
 import Radio from '@/components/ui/Radio'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 export default function VerificationPostOpPage() {
   return (
@@ -108,7 +109,7 @@ function VerificationPostOpPageContent() {
       await apiClient.post('/checklists-pendant-op', { patientId, ...form })
       setShowRecap(false)
       if (brouillonKey) effacerBrouillon(brouillonKey)
-      alert('✅ Checklist avant incision enregistrée !')
+      succes('Checklist avant incision enregistrée !')
       router.push(`/bloc/activite-pendant-operation?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`)
     }
     catch (err: any) {

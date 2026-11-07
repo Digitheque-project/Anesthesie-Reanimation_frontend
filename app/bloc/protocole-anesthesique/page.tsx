@@ -19,6 +19,7 @@ import InstructionsPostOpForm, { DEFAULT_INSTRUCTIONS_POST_OP, InstructionsPostO
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 // Page du protocole anesthésique : compte-rendu libre de l'anesthésiste + Instructions
 // Post-Opératoires (surveillance, drainages, prescriptions). Ouverte juste après validation de la
@@ -134,7 +135,7 @@ function ProtocoleAnesthesiquePageContent() {
       if (aSaPropreSalleDeReveil(patient?.serviceOrigine)) {
         try {
           await patientService.retourServiceOrigine(patientId)
-          alert('✅ Protocole anesthésique enregistré ! Patient renvoyé à son service d\'origine et dossier archivé.')
+          succes('Protocole anesthésique enregistré ! Patient renvoyé à son service d\'origine et dossier archivé.')
           router.push('/bloc/archives')
         } catch (err: any) {
           // Le protocole EST enregistré (la requête précédente a réussi) mais le patient n'est
@@ -145,7 +146,7 @@ function ProtocoleAnesthesiquePageContent() {
           router.push(`/bloc/salle-de-reveil?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}`)
         }
       } else {
-        alert('✅ Protocole anesthésique enregistré ! Redirection vers la salle de réveil.')
+        succes('Protocole anesthésique enregistré ! Redirection vers la salle de réveil.')
         router.push(`/bloc/salle-de-reveil?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}`)
       }
     } catch (err: any) {

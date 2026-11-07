@@ -24,6 +24,7 @@ import SommaireCpa from '@/components/bloc/consultation-cpa/SommaireCpa';
 import ConfirmationRecapModal from '@/components/ui/ConfirmationRecapModal';
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave';
 import { Icone } from '@/components/ui/Icone';
+import { succes } from '@/lib/succes';
 
 export default function ConsultationCpaPage() {
   return (
@@ -455,7 +456,7 @@ function ConsultationCpaPageContent() {
     try {
       const updated = await patientService.modifierDateIntervention(patientIdFinal, new Date(dateInterventionInput).toISOString());
       setPatient((p: any) => ({ ...p, dateIntervention: updated?.dateIntervention ?? p?.dateIntervention }));
-      alert('✅ Date et heure de l\'opération mises à jour');
+      succes('Date et heure de l\'opération mises à jour');
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Erreur inconnue';
       alert('❌ Erreur: ' + JSON.stringify(message));
@@ -471,7 +472,7 @@ function ConsultationCpaPageContent() {
     try {
       const updated = await patientService.modifierSalleOperation(patientIdFinal, salleOperationInput.trim());
       setPatient((p: any) => ({ ...p, salleOperation: updated?.salleOperation ?? p?.salleOperation }));
-      alert('✅ Salle de bloc mise à jour');
+      succes('Salle de bloc mise à jour');
     } catch (err: any) {
       const message = err.response?.data?.message || err.message || 'Erreur inconnue';
       alert('❌ Erreur: ' + JSON.stringify(message));
@@ -709,9 +710,9 @@ function ConsultationCpaPageContent() {
           // non-chirurgical", les autres dans le "Programme opératoire" (même distinction par
           // serviceOrigine que les listes elles-mêmes).
           const proposerRaccourci = decision === 'APTE' && estAnesthesisteConnecte;
-          const allerDirectement = proposerRaccourci && confirm(
-            '✅ VPA validée — patient prêt à opérer.\n\nContinuer directement vers sa prise en charge (arrivée au bloc) ?'
-          );
+          // Déjà confirmé dans la fenêtre de récapitulatif : pas de seconde confirmation.
+          const allerDirectement = proposerRaccourci;
+          if (allerDirectement) succes('VPA validée — patient prêt à opérer : prise en charge (arrivée au bloc).');
           if (allerDirectement) {
             router.push(`/bloc/arrivee-bloc?patientId=${patientIdFinal}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`);
           } else {
@@ -726,7 +727,7 @@ function ConsultationCpaPageContent() {
               alert('🕓 CPA reportée — le patient reste en attente de CPA, à refaire.');
               router.push('/bloc/rendez-vous');
             } else {
-              if (!proposerRaccourci) alert('✅ VPA validée avec succès !');
+              if (!proposerRaccourci) succes('VPA validée avec succès !');
               router.push(nonOperatoire ? '/bloc/programme-non-operatoire' : '/bloc/patient-du-jour');
             }
           }
@@ -743,7 +744,7 @@ function ConsultationCpaPageContent() {
           if (retourneServiceOrigine) {
             setTermine(true);
           } else {
-            alert('✅ CPA validée avec succès !');
+            succes('CPA validée avec succès !');
             router.push('/bloc/rendez-vous');
           }
         }
@@ -769,7 +770,7 @@ function ConsultationCpaPageContent() {
         // Cette étape (médicaments + vérification veille) ne clôt jamais un parcours : le patient
         // bascule dans la liste Vérification veille du Fil de travail (voir CPAService.update),
         // patient externe ou non — direction unique vers le rendez-vous.
-        alert('✅ Médicaments et vérification veille enregistrés !');
+        succes('Médicaments et vérification veille enregistrés !');
         router.push('/bloc/rendez-vous');
       }
     } catch (err: any) {

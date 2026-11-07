@@ -14,6 +14,7 @@ import { libelleStatutPatient, styleStatutPatient } from '@/lib/statut'
 import { formaterNomPatient } from '@/lib/patient'
 import BackButton from '@/components/bloc/layout/BackButton'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 // Durée prévue de l'intervention, stockée en minutes par le service prescripteur — affichée en
 // heures/minutes, plus lisible pour réserver un créneau de salle ("1 h 30" plutôt que "90 min").
@@ -153,7 +154,7 @@ function DossierPatientPageContent() {
         await notificationService.planifierRDV(notifId)
       }
 
-      alert('✅ Rendez-vous CPA planifié avec succès ! Le service d\'origine a été notifié.')
+      succes('Rendez-vous CPA planifié avec succès ! Le service d\'origine a été notifié.')
       setShowPlanifier(false)
       router.push('/bloc/notification-cpa')
     } catch (err: any) {
@@ -168,7 +169,7 @@ function DossierPatientPageContent() {
     setReprisEnCours(true)
     try {
       await patientService.marquerApteCpa(patientId)
-      alert('✅ Patient remis en attente de CPA.')
+      succes('Patient remis en attente de CPA.')
       await charger()
     } catch (err: any) {
       alert('❌ Erreur : ' + (err.response?.data?.message || err.message || 'Erreur inconnue'))

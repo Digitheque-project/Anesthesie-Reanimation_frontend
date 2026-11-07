@@ -267,6 +267,39 @@ export default function RendezVousPage() {
           </div>
         </div>
 
+        {/* Opérations en retard : comptées dans la pastille du menu, mais ces patients ne sont
+            dans aucun onglet de ce fil (ils attendent au Programme opératoire) — sans ce bandeau,
+            le fil semblait vide malgré la pastille. */}
+        {retards.operationRetard.length > 0 && (
+          <div className="px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-[13px] text-red-800 space-y-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <Icone nom="error" className="text-[17px] text-red-600" />
+              <span className="flex-1 min-w-[220px] font-semibold">
+                {retards.operationRetard.length} opération{retards.operationRetard.length > 1 ? 's' : ''} en retard — la date d&apos;intervention est dépassée et le patient n&apos;est pas encore passé en salle.
+              </span>
+            </div>
+            <ul className="pl-7 space-y-1">
+              {retards.operationRetard.map((p: any) => (
+                <li key={p.patientId} className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold">{formaterNomPatient(p)}</span>
+                  {p.dateIntervention && (
+                    <span>— prévue le {new Date(p.dateIntervention).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</span>
+                  )}
+                  <span className="text-red-700/80">
+                    ({p.statut === 'PRET_POUR_BLOC'
+                      ? 'prêt pour le bloc : à prendre au Programme opératoire, à sa date'
+                      : p.statut === 'EN_ATTENTE_VERIFICATION_VEILLE' || p.statut === 'CPA_REALISE'
+                        ? 'vérification veille à faire (onglet « Vérification veille »)'
+                        : p.statut === 'EN_ATTENTE_CPA'
+                          ? 'CPA à faire'
+                          : 'à reprogrammer'})
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Alertes : retards (rouge — rendez-vous manqué) puis rappels à venir (ambre). Les
             lignes concernées sont déjà dans le tableau (voir creneauxAvecRetards). */}
         {onglet === 'CPA' && retards.cpaRetard.length > 0 && (

@@ -17,6 +17,7 @@ import ConfirmationRecapModal, { RecapSection } from '@/components/ui/Confirmati
 import { libelleAnesthesie } from '@/lib/export/dossier-patient'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 export default function VerificationVeillePage() {
   return (
@@ -176,7 +177,7 @@ function VerificationVeillePageContent() {
       })
       setShowRecap(false)
       if (brouillonKey) effacerBrouillon(brouillonKey)
-      alert('✅ Vérification veille validée avec succès ! Le patient est basculé dans la liste des patients à opérer.')
+      succes('Vérification veille validée avec succès ! Le patient est basculé dans la liste des patients à opérer.')
       router.push('/bloc/rendez-vous')
     } catch (err: any) {
       console.error(err);

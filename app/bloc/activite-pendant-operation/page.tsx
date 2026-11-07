@@ -18,6 +18,7 @@ import ConfirmationRecapModal, { RecapSection } from '@/components/ui/Confirmati
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { useRole } from '@/lib/hooks/useRole'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 export default function ActivitePendantOperationPage() {
   return (
@@ -131,7 +132,7 @@ function ActivitePendantOperationPageContent() {
       setShowRecap(false)
       if (brouillonKey) effacerBrouillon(brouillonKey)
 
-      alert('✅ Activité enregistrée ! Passage à la check-list après intervention.')
+      succes('Activité enregistrée ! Passage à la check-list après intervention.')
       router.push(`/bloc/apres-operation?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`)
     } catch (err: any) {
       console.error(err)

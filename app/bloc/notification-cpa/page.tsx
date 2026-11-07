@@ -21,6 +21,7 @@ import { useRefetchOnRealtimeUpdate } from '@/lib/hooks/useRefetchOnRealtimeUpda
 import { estPatientTraite } from '@/lib/notifications/patient-traite'
 import { patientsUrgentsEnAttenteCpa, sansUrgentsDuFil } from '@/lib/notifications/urgents-cpa'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 export default function NotificationCPAPage() {
   const [notifications, setNotifications] = useState<any[]>([])
@@ -177,7 +178,7 @@ export default function NotificationCPAPage() {
         }
       }
 
-      alert('✅ Rendez-vous CPA planifié avec succès !')
+      succes('Rendez-vous CPA planifié avec succès !')
       setShowModal(false)
       setSelectedNotif(null)
       charger()

@@ -18,6 +18,7 @@ import Radio from '@/components/ui/Radio'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { Icone } from '@/components/ui/Icone'
+import { succes } from '@/lib/succes';
 
 export default function ApresOperationPage() {
   return (
@@ -108,7 +109,7 @@ function ApresOperationPageContent() {
       await apiClient.post('/checklists-apres-op', { patientId, ...form, transfertSalleReveil: true })
       setShowRecap(false)
       if (brouillonKey) effacerBrouillon(brouillonKey)
-      alert('✅ Check-list après intervention enregistrée ! Complétez maintenant le protocole anesthésique et les instructions post-opératoires.')
+      succes('Check-list après intervention enregistrée ! Complétez maintenant le protocole anesthésique et les instructions post-opératoires.')
       router.push(`/bloc/protocole-anesthesique?patientId=${patientId}&patientNom=${encodeURIComponent(patientNom)}&intervention=${encodeURIComponent(intervention)}`)
     } catch (err: any) {
       console.error(err)
