@@ -9,6 +9,8 @@ export type ArticlePharmacie = {
   stock_total: number
   stock_minimum: number
   stock_safety: number
+  /** Ligne de lots de don (gratuits) : jamais utilisée pour le prix. */
+  is_don?: boolean
 }
 
 export const pharmacieService = {

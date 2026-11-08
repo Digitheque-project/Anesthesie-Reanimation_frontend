@@ -54,7 +54,8 @@ export default function MedicamentsAnesthesieModal({
   useEffect(() => {
     if (open && !catalogueCharge) {
       pharmacieService.getPrix()
-        .then(setArticlesPharmacie)
+        // Lignes payantes seulement : une ligne « don » (gratuite) affichait 0 Ar.
+        .then((articles) => setArticlesPharmacie(articles.filter((a) => !a.is_don)))
         .catch(() => setArticlesPharmacie([]))
         .finally(() => setCatalogueCharge(true));
     }
@@ -82,6 +83,15 @@ export default function MedicamentsAnesthesieModal({
     for (const row of rows) {
       const article = trouverArticlePharmacie(row.label, articlesPharmacie);
       table[row.id] = article ? article.sale_price : null;
+    }
+    return table;
+  }, [rows, articlesPharmacie]);
+
+  const epuiseParId = useMemo(() => {
+    const table: Record<string, boolean> = {};
+    for (const row of rows) {
+      const article = trouverArticlePharmacie(row.label, articlesPharmacie);
+      table[row.id] = !!article && !(article.stock_total > 0);
     }
     return table;
   }, [rows, articlesPharmacie]);
@@ -144,6 +154,7 @@ export default function MedicamentsAnesthesieModal({
                 rows={sousLignes}
                 onRowsChange={(nouvelles) => patchCategorie(categorie, nouvelles)}
                 prixParId={prixParId}
+                epuiseParId={epuiseParId}
                 catalogueCharge={catalogueCharge}
               />
             );

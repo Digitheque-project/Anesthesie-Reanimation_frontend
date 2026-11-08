@@ -95,6 +95,8 @@ type MedicamentTableProps = {
   /** Prix unitaire (Ar) par id de ligne, trouvé dans le catalogue Pharmacie par rapprochement de
    * nom — null si aucun article correspondant, absent si le catalogue n'a pas encore chargé. */
   prixParId?: Record<string, number | null>;
+  /** Article connu de la Pharmacie mais sans stock : son prix reste affiché. */
+  epuiseParId?: Record<string, boolean>;
   /** true une fois que le fetch du catalogue Pharmacie s'est terminé (avec ou sans résultat) —
    * distingue "en cours de chargement" de "chargé mais aucun article trouvé", sans quoi les deux
    * cas laissent le statut et le prix total silencieusement vides. */
@@ -108,8 +110,20 @@ export default function MedicamentTable({
   rows,
   onRowsChange,
   prixParId,
+  epuiseParId,
   catalogueCharge,
 }: MedicamentTableProps) {
+  // Écrire un dosage ou un nombre coche la ligne ; tout effacer la décoche.
+  const saisirValeur = (id: string, field: "dosage" | "nombre", value: string) => {
+    onRowsChange(
+      rows.map((row) => {
+        if (row.id !== id) return row;
+        const suivante = { ...row, [field]: value };
+        return { ...suivante, selected: suivante.dosage.trim() !== "" || String(suivante.nombre).trim() !== "" };
+      })
+    );
+  };
+
   const patchRow = (
     id: string,
     field: keyof MedicamentRow,
@@ -209,7 +223,13 @@ export default function MedicamentTable({
                         <Icone nom="check_circle" className="align-text-bottom text-sm text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }} />
                       )}
                       <span>{row.label}</span>
-                      {statutPharmacie === "disponible" && (
+                      {statutPharmacie === "disponible" && epuiseParId?.[row.id] && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-amber-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                          Stock épuisé
+                        </span>
+                      )}
+                      {statutPharmacie === "disponible" && !epuiseParId?.[row.id] && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-emerald-700">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                           Disponible pharmacie
@@ -233,7 +253,7 @@ export default function MedicamentTable({
                     <input
                       type="text"
                       value={row.dosage}
-                      onChange={(e) => patchRow(row.id, "dosage", e.target.value)}
+                      onChange={(e) => saisirValeur(row.id, "dosage", e.target.value)}
                       placeholder={dosagePlaceholder}
                       className={dosageInputClassName}
                     />
@@ -245,7 +265,7 @@ export default function MedicamentTable({
                           <button
                             key={variante}
                             type="button"
-                            onClick={() => patchRow(row.id, "dosage", variante)}
+                            onClick={() => saisirValeur(row.id, "dosage", variante)}
                             className={`rounded-full border px-2.5 py-1 text-[10px] font-bold transition-colors ${
                               row.dosage === variante
                                 ? "border-primary bg-primary text-white"
@@ -264,7 +284,7 @@ export default function MedicamentTable({
                       min={0}
                       step={1}
                       value={row.nombre}
-                      onChange={(e) => patchRow(row.id, "nombre", e.target.value)}
+                      onChange={(e) => saisirValeur(row.id, "nombre", e.target.value)}
                       placeholder="0"
                       className={nombreInputClassName}
                     />

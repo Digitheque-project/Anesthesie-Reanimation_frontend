@@ -35,6 +35,14 @@ function nomsARapprocher(label: string): string[] {
 export function trouverArticlePharmacie(label: string, catalogue: ArticlePharmacie[]): ArticlePharmacie | null {
   const cibles = nomsARapprocher(label).filter(Boolean)
   if (!cibles.length) return null
+  // Même nom exact d'abord : sinon « Bupivacaïne ... avec adrénaline » tombait sur l'article
+  // « Adrénaline », « Lunettes nasales enfant » sur « Lunettes nasales », etc.
+  const nomComplet = normaliser(label)
+  const exact = catalogue.find((a) => {
+    const dci = normaliser(a.dci)
+    return dci === nomComplet || cibles.includes(dci)
+  })
+  if (exact) return exact
   return (
     catalogue.find((a) => {
       const dci = normaliser(a.dci)
