@@ -18,6 +18,11 @@ const ONGLETS: { type: Onglet; label: string; icone: string; actionLabel: string
   { type: 'VERIFICATION_VEILLE', label: 'Vérification veille', icone: 'fact_check', actionLabel: 'Réaliser la vérification', cible: '/bloc/verification-veille' },
 ];
 
+// Derniers retards reçus, conservés en mémoire le temps de la session de navigation : une
+// réponse lente ou en échec à la réouverture de la page ne fait plus disparaître le bandeau.
+type Retards = { cpaRetard: any[]; verificationVeilleRetard: any[]; operationRetard: any[] };
+let derniersRetards: Retards | null = null;
+
 export default function RendezVousPage() {
   const router = useRouter();
   const [onglet, setOnglet] = useState<Onglet>('CPA');
@@ -27,7 +32,7 @@ export default function RendezVousPage() {
   // l'étape correspondante soit faite (voir PlanningService.getRetards) — fusionnés dans la
   // liste affichée (le fetch normal de l'onglet CPA exclut au contraire tout ce qui est déjà
   // passé) et marqués en rouge, pour qu'un rendez-vous manqué ne disparaisse jamais silencieusement.
-  const [retards, setRetards] = useState<{ cpaRetard: any[]; verificationVeilleRetard: any[]; operationRetard: any[] }>({ cpaRetard: [], verificationVeilleRetard: [], operationRetard: [] });
+  const [retards, setRetards] = useState<Retards>(() => derniersRetards ?? { cpaRetard: [], verificationVeilleRetard: [], operationRetard: [] });
   const [loading, setLoading] = useState(false);
   const [recherche, setRecherche] = useState('');
   // Filtre optionnel par date d'intervention prévue, pour l'onglet Vérification veille
@@ -67,14 +72,20 @@ export default function RendezVousPage() {
 
   useEffect(() => { charger(); }, [selectedDate, onglet, voirTousCpa]);
 
-  const chargerRetards = () => {
+  const chargerRetards = (essai = 0) => {
     planningService.getRetards()
-      .then((d: any) => setRetards({ cpaRetard: d?.cpaRetard || [], verificationVeilleRetard: d?.verificationVeilleRetard || [], operationRetard: d?.operationRetard || [] }))
-      .catch(console.error);
+      .then((d: any) => {
+        derniersRetards = { cpaRetard: d?.cpaRetard || [], verificationVeilleRetard: d?.verificationVeilleRetard || [], operationRetard: d?.operationRetard || [] };
+        setRetards(derniersRetards);
+      })
+      .catch((e: unknown) => {
+        console.error(e);
+        if (essai < 2) setTimeout(() => chargerRetards(essai + 1), 5000);
+      });
   };
   useEffect(() => { chargerRetards(); }, []);
-  useRefetchOnFocus(chargerRetards);
-  useRefetchOnRealtimeUpdate(chargerRetards);
+  useRefetchOnFocus(() => chargerRetards());
+  useRefetchOnRealtimeUpdate(() => chargerRetards());
 
   const charger = async () => {
     if (!aDejaCharge.current) setLoading(true);
@@ -237,13 +248,20 @@ export default function RendezVousPage() {
           <div>
             <h1 className="text-[22px] font-extrabold text-gray-900 leading-tight">Fil de travail</h1>
             <p className="text-[13px] text-slate-500 mt-0.5 capitalize">
-              {onglet === 'VERIFICATION_VEILLE' ? 'Tous les patients CPA validée, en attente de vérification' : voirTousCpa ? 'Tous les rendez-vous CPA à venir' : formaterDate(selectedDate)}
+              {onglet === 'VERIFICATION_VEILLE' ? 'Tous les patients CPA validée, en attente de vérification' : voirTousCpa ? 'Toutes les CPA : en retard, aujourd\'hui et à venir' : formaterDate(selectedDate)}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {onglet === 'CPA' ? (
-              <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
-                className={champDate} />
+              <>
+                <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
+                  className={champDate} />
+                {/* Retards (toujours fusionnés, voir creneauxAvecRetards), aujourd'hui et à venir. */}
+                <button type="button" onClick={() => setVoirTousCpa(v => !v)} aria-pressed={voirTousCpa}
+                  className={`px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors ${voirTousCpa ? 'bg-[#CFE9EF] text-[#005b82] hover:bg-[#bfe0e8]' : 'bg-white text-[#005b82] border border-slate-200 hover:bg-slate-50'}`}>
+                  {voirTousCpa ? 'Revenir à la date' : 'Voir tout'}
+                </button>
+              </>
             ) : (
               <div className="flex items-center gap-2">
                 <label className="text-[12px] font-bold text-slate-500 flex items-center gap-1.5">

@@ -1,5 +1,6 @@
 "use client";
 
+import { ActionsCompte } from "@/components/ActionsCompte";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -87,6 +88,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="space-y-5 px-5 py-6">
+        <ActionsCompte className="flex w-full items-center gap-3 px-4 text-slate-500 transition-colors hover:text-slate-900" classeLibelle="text-[13px] font-bold" />
         <button
           type="button"
           className="flex w-full items-center gap-3 px-4 text-[#E11D48] transition-colors hover:text-red-700"

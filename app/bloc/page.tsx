@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import { rapportsService, notificationService, patientService } from '@/lib/api'
 import AlerteBandeau, { type PatientTresUrgent } from '@/components/bloc/dashboard/AlerteBandeau'
-import BoutonChangerService from '@/components/bloc/dashboard/BoutonChangerService'
 import type { LignePlanning } from '@/components/bloc/dashboard/GroupePlanningTable'
 import { navItems } from '@/components/bloc/layout/Sidebar'
 import { obtenirSessionValide } from '@/lib/auth/central-session'
@@ -214,7 +213,6 @@ export default function DashboardPage() {
               {[nomAgent, session?.acces.roleName, aujourdhui].filter(Boolean).join(' · ')}
             </p>
           </div>
-          <BoutonChangerService />
         </div>
 
         {!loading && <AlerteBandeau patients={patientsTresUrgents} />}

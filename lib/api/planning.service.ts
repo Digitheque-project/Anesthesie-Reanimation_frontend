@@ -37,7 +37,7 @@ export const planningService = {
   },
 
   getRetards: async () => {
-    const { data } = await apiClient.get('/planning/retards')
+    const { data } = await apiClient.get('/planning/retards', { timeout: 30000 })
     return data
   },
 
