@@ -1,5 +1,6 @@
 'use client';
 
+import { PastilleAutresServices } from "@/components/ActionsCompte";
 import { useState, useEffect, useRef } from 'react';
 import { notificationService } from '@/lib/api/notification.service';
 import Image from 'next/image';
@@ -205,6 +206,7 @@ export default function TopBar() {
         {/* Wrapper `relative` : ancre la pop-up de notifications juste sous la cloche
             (NotificationModal se positionne en `absolute right-0 top-full`), au lieu d'un
             tiroir plein écran indépendant du bouton qui l'ouvre. */}
+        <PastilleAutresServices />
         <div className="relative">
           <button
             onClick={handleClocheClick}

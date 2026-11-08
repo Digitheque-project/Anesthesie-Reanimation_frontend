@@ -222,3 +222,38 @@ export function ActionsCompte({
     </>
   );
 }
+
+/** À côté de la cloche du service : non lues des autres services, ouvre le centre commun. */
+export function PastilleAutresServices() {
+  const [nombre, setNombre] = useState(0);
+
+  useEffect(() => {
+    const lire = () => setNombre((window as unknown as { __chuNotifAutres?: number }).__chuNotifAutres ?? 0);
+    lire();
+    window.addEventListener("chu-notifications-autres", lire);
+    return () => window.removeEventListener("chu-notifications-autres", lire);
+  }, []);
+
+  if (nombre === 0) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => window.dispatchEvent(new Event("chu-notifications-ouvrir"))}
+      title="Voir les notifications de mes autres services"
+      style={{
+        whiteSpace: "nowrap",
+        border: 0,
+        borderRadius: 999,
+        padding: "4px 10px",
+        fontSize: 11,
+        fontWeight: 700,
+        fontFamily: "inherit",
+        color: "#fff",
+        background: "#dc2626",
+        cursor: "pointer",
+      }}
+    >
+      {nombre > 99 ? "99+" : nombre} autre{nombre > 1 ? "s" : ""} service{nombre > 1 ? "s" : ""}
+    </button>
+  );
+}
