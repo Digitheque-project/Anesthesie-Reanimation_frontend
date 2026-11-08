@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { libelleUrgence, niveauUrgenceNotification } from '@/lib/urgence';
 import { formaterNomPatient } from '@/lib/patient';
@@ -13,6 +13,8 @@ interface NotificationModalProps {
   notifications: any[];
   onMarkAsRead?: (notification: any) => void; // ← Appelé quand une notif est lue
   onNotificationRead?: (notificationId: string) => void; // ← NOUVEAU
+  /** Alertes affichées avant la liste (surveillances à faire). */
+  enTete?: ReactNode;
 }
 
 type NiveauUrgence = 'NORMAL' | 'URGENT' | 'TRES_URGENT';
@@ -57,7 +59,8 @@ export default function NotificationModal({
   onClose,
   notifications,
   onMarkAsRead,
-  onNotificationRead // ← NOUVEAU
+  onNotificationRead, // ← NOUVEAU
+  enTete,
 }: NotificationModalProps) {
   const router = useRouter();
   const [readNotifications, setReadNotifications] = useState<Set<string>>(new Set());
@@ -180,6 +183,7 @@ export default function NotificationModal({
 
         {/* Liste des notifications — hauteur bornée façon pop-up, jamais plein écran */}
         <div className="max-h-[70vh] overflow-y-auto">
+          {enTete}
           {aucuneNotification ? (
             <div className="px-6 py-10 text-center">
               <Icone nom="notifications_off" className="text-gray-300 text-4xl" />

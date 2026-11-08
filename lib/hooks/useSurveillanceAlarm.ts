@@ -1,46 +1,28 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { demarrerAlarmeRepetee } from '@/lib/notifications/sound'
+import { useCallback } from 'react'
+import { estEchue, modifierSurveillance, rafraichirSurveillances, useSurveillances } from '@/lib/surveillance/etat'
 
-// Alarme de surveillance locale au poste (pas synchronisée réseau — chaque professionnel gère
-// sa propre surveillance). Intervalle configurable (défaut 5 min), calculé par un setTimeout
-// recalculé depuis le dernier acquittement plutôt qu'un compteur qui dérive.
-export function useSurveillanceAlarm(intervalMinDefaut = 5) {
-  const [intervalMin, setIntervalMin] = useState(intervalMinDefaut)
-  const [actif, setActif] = useState(true)
-  const [sonne, setSonne] = useState(false)
-  const [dernierAckAt, setDernierAckAt] = useState<number>(() => Date.now())
-  const arreterSonnerie = useRef<() => void>(() => {})
+// Réglages et état d'UNE surveillance, partagés par tous les postes (enregistrés au serveur).
+// La sonnerie elle-même est jouée sur toutes les pages par AlarmeSurveillance.
+export function useSurveillanceAlarm(activiteId: string | null) {
+  const s = useSurveillances().find((x) => x.activiteId === activiteId)
 
-  useEffect(() => {
-    if (!actif) return
-    const delai = Math.max(dernierAckAt + intervalMin * 60_000 - Date.now(), 0)
-    const timeout = setTimeout(() => {
-      setSonne(true)
-      arreterSonnerie.current = demarrerAlarmeRepetee()
-    }, delai)
-    return () => clearTimeout(timeout)
-  }, [actif, intervalMin, dernierAckAt])
+  const modifier = useCallback(
+    (modif: Parameters<typeof modifierSurveillance>[1]) => {
+      if (activiteId) modifierSurveillance(activiteId, modif).catch(console.error)
+    },
+    [activiteId],
+  )
 
-  useEffect(() => () => arreterSonnerie.current(), [])
-
-  const acquitter = () => {
-    arreterSonnerie.current()
-    setSonne(false)
-    setDernierAckAt(Date.now())
+  return {
+    intervalMin: s?.intervalleMin ?? 5,
+    setIntervalMin: (intervalleMin: number) => modifier({ intervalleMin }),
+    actif: s?.active ?? true,
+    sonne: !!s && estEchue(s),
+    acquitter: () => modifier({ acquitter: true }),
+    demarrer: () => modifier({ active: true }),
+    arreter: () => modifier({ active: false }),
+    rafraichir: () => void rafraichirSurveillances(),
   }
-
-  const demarrer = () => {
-    setActif(true)
-    setDernierAckAt(Date.now())
-  }
-
-  const arreter = () => {
-    arreterSonnerie.current()
-    setSonne(false)
-    setActif(false)
-  }
-
-  return { intervalMin, setIntervalMin, actif, sonne, acquitter, demarrer, arreter }
 }

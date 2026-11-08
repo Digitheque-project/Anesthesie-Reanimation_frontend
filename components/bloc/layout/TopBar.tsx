@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { notificationService } from '@/lib/api/notification.service';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import NotificationModal from '@/components/bloc/notification-cpa/NotificationModal';
 import { connecterNotificationsTempsReel, NotificationTempsReel } from '@/lib/notifications/socket';
 import { jouerSonPrescription, jouerSonPrescriptionUrgente } from '@/lib/notifications/sound';
@@ -16,13 +16,18 @@ import { estEchelleUrgente } from '@/lib/urgence';
 import Clock from '@/components/bloc/layout/Clock';
 import { Icone } from '@/components/ui/Icone';
 import PointServeur from "@/components/PointServeur";
+import { lienSurveillance, lieuSurveillance, useSurveillancesEchues } from '@/components/bloc/surveillance/AlarmeSurveillance';
+import { formaterNomPatient } from '@/lib/patient';
 
 export default function TopBar() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [session, setSession] = useState<ReturnType<typeof obtenirSessionValide>>(null);
+  const surveillancesEchues = useSurveillancesEchues();
+  const totalCloche = unreadCount + surveillancesEchues.length;
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => { setSession(obtenirSessionValide()); }, []);
 
@@ -206,10 +211,10 @@ export default function TopBar() {
             className="relative block cursor-pointer"
             aria-label="Voir les notifications"
           >
-            <Icone nom="notifications" className={`text-[24px] text-gray-700 ${unreadCount > 0 ? 'animate-pulse' : ''}`} />
-            {unreadCount > 0 && (
+            <Icone nom="notifications" className={`text-[24px] text-gray-700 ${totalCloche > 0 ? 'animate-pulse' : ''}`} />
+            {totalCloche > 0 && (
               <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-white bg-[#E11D48] px-1 text-[10px] font-bold text-white">
-                {unreadCount > 99 ? '99+' : unreadCount}
+                {totalCloche > 99 ? '99+' : totalCloche}
               </span>
             )}
           </button>
@@ -220,6 +225,21 @@ export default function TopBar() {
             notifications={notifications}
             onMarkAsRead={handleMarkAsRead}
             onNotificationRead={handleNotificationRead}
+            enTete={surveillancesEchues.length > 0 && (
+              <div className="space-y-2 p-3 pb-0">
+                {surveillancesEchues.map((s) => (
+                  <button
+                    key={s.activiteId}
+                    type="button"
+                    onClick={() => { setIsModalOpen(false); router.push(lienSurveillance(s)); }}
+                    className="block w-full rounded-xl border border-red-300 bg-red-50 p-3 text-left hover:bg-red-100"
+                  >
+                    <span className="block text-[13px] font-bold text-red-800">Surveillance à faire — {formaterNomPatient(s)}</span>
+                    <span className="block text-[12px] text-red-700">{lieuSurveillance(s)} : nouvelle mesure de constantes attendue</span>
+                  </button>
+                ))}
+              </div>
+            )}
           />
         </div>
 

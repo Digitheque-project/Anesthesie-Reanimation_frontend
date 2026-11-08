@@ -32,14 +32,13 @@ const PRESETS_MIN = [1, 2, 3, 5, 10, 15, 30]
 const formatHeure = (c: Constante) =>
   c.horodatage ? new Date(c.horodatage).toLocaleTimeString('fr-FR', { hour12: false }) : c.heure
 
-// Surveillance périodique pendant l'opération : alarme locale au poste, configurable (défaut
-// 5 min), démarrable/arrêtable — distincte des constantes elles-mêmes, qui sont, elles,
-// synchronisées en temps réel à tous les postes connectés sur ce patient via le gateway.
+// Surveillance périodique : intervalle, arrêt et échéance sont communs à tous les postes
+// (enregistrés au serveur) ; la sonnerie est jouée sur toutes les pages par AlarmeSurveillance.
 export default function SurveillancePanel({ patientId, activiteId }: { patientId: string; activiteId: string | null }) {
   const [constantes, setConstantes] = useState<Constante[]>([])
   const [champs, setChamps] = useState({ fc: '', ta: '', spo2: '', capnie: '', score: '', temperature: '' })
   const [envoiEnCours, setEnvoiEnCours] = useState(false)
-  const alarme = useSurveillanceAlarm(5)
+  const alarme = useSurveillanceAlarm(activiteId)
   const { on } = useOperationRealtime(patientId)
 
   // Sans ce chargement initial, l'historique paraissait vide à chaque rechargement de page ou en
@@ -74,7 +73,7 @@ export default function SurveillancePanel({ patientId, activiteId }: { patientId
       })
       setConstantes(prev => (prev.some(c => c.id === data.id) ? prev : [...prev, data]))
       setChamps({ fc: '', ta: '', spo2: '', capnie: '', score: '', temperature: '' })
-      alarme.acquitter()
+      alarme.rafraichir()
     } catch (err) {
       console.error(err)
     } finally {
