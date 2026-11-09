@@ -176,7 +176,9 @@ function SalleDeReveilPageContent() {
     if (envoiEnCours) return
     setEnvoiEnCours(true)
     try {
-      const scoreId = scoreSCCREId ?? await enregistrerScore()
+      // Toujours le score affiché : réutiliser le premier enregistré ignorait toute correction
+      // faite après un refus, et la sortie restait bloquée.
+      const scoreId = await enregistrerScore()
       if (!scoreId) return
       await apiClient.post('/sorties-reveil', {
         patientId, scoreSCCREId: scoreId,

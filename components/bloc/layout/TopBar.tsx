@@ -19,6 +19,7 @@ import { Icone } from '@/components/ui/Icone';
 import PointServeur from "@/components/PointServeur";
 import { lienSurveillance, lieuSurveillance, useSurveillancesEchues } from '@/components/bloc/surveillance/AlarmeSurveillance';
 import { formaterNomPatient } from '@/lib/patient';
+import { useRole } from '@/lib/hooks/useRole';
 
 export default function TopBar() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -26,7 +27,12 @@ export default function TopBar() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [session, setSession] = useState<ReturnType<typeof obtenirSessionValide>>(null);
   const surveillancesEchues = useSurveillancesEchues();
-  const totalCloche = unreadCount + surveillancesEchues.length;
+  // IBODE : anesthésie démarrée (reste aussi dans le centre de notifications).
+  const { estIbode } = useRole();
+  const estIbodeRef = useRef(estIbode);
+  estIbodeRef.current = estIbode;
+  const [alertesAnesthesie, setAlertesAnesthesie] = useState<NotificationTempsReel[]>([]);
+  const totalCloche = unreadCount + surveillancesEchues.length + alertesAnesthesie.length;
   const pathname = usePathname();
   const router = useRouter();
 
@@ -109,6 +115,13 @@ export default function TopBar() {
     let dernierTraitement = 0;
 
     const onNotification = async (notif: NotificationTempsReel) => {
+      if (notif.type === 'anesthesie_demarree') {
+        if (estIbodeRef.current) {
+          jouerSonPrescription();
+          setAlertesAnesthesie((l) => [notif, ...l]);
+        }
+        return;
+      }
       if (notif.type !== 'new_prescription' && notif.type !== 'new_demande_cpa_externe') return;
       const id = notif.id || (notif.data?.notificationId as string | undefined);
       if (id) {
@@ -227,8 +240,24 @@ export default function TopBar() {
             notifications={notifications}
             onMarkAsRead={handleMarkAsRead}
             onNotificationRead={handleNotificationRead}
-            enTete={surveillancesEchues.length > 0 && (
+            enTete={(surveillancesEchues.length > 0 || alertesAnesthesie.length > 0) && (
               <div className="space-y-2 p-3 pb-0">
+                {alertesAnesthesie.map((a, i) => (
+                  <button
+                    key={a.id || i}
+                    type="button"
+                    onClick={() => {
+                      setAlertesAnesthesie((l) => l.filter((x) => x !== a));
+                      setIsModalOpen(false);
+                      const patientId = a.data?.patientId;
+                      if (patientId) router.push(`/bloc/activite-pendant-operation?patientId=${encodeURIComponent(String(patientId))}`);
+                    }}
+                    className="block w-full rounded-xl border border-blue-300 bg-blue-50 p-3 text-left hover:bg-blue-100"
+                  >
+                    <span className="block text-[13px] font-bold text-blue-900">{a.title}</span>
+                    <span className="block text-[12px] text-blue-800">{a.message}</span>
+                  </button>
+                ))}
                 {surveillancesEchues.map((s) => (
                   <button
                     key={s.activiteId}

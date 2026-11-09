@@ -3,6 +3,11 @@
 /* Palette et police de la consultation externe (unification des interfaces du CHU) : fond
    gris très clair, cartes blanches, textes ardoise, bordures gris clair, bleu #005b82,
    Manrope partout. Les pages utilisent ces jetons : les changer ici les repeint toutes. */
+/* Fond des fenêtres de la prescription (var(--card)) : sans lui, elles étaient transparentes. */
+:root {
+  --card: #ffffff;
+}
+
 @theme {
   --font-headline: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
