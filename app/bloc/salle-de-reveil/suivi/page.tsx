@@ -384,12 +384,14 @@ function SalleDeReveilPageContent() {
           {orientation === 'origine' && <p className="mt-2 text-sm font-bold text-emerald-700">Service d'origine</p>}
           {!orientation && <p className="mt-2 text-sm font-bold text-amber-700">Aucune destination choisie pour l'instant</p>}
 
+          {estAnesthesiste && (
           <button onClick={handleOuvrirVerification} disabled={!estAnesthesiste}
             className={`mt-4 w-full py-3 font-bold rounded-xl transition-all ${
               estAnesthesiste ? 'bg-emerald-600 text-white shadow-lg hover:bg-emerald-700' : 'bg-surface-container text-on-surface-variant cursor-not-allowed'
             }`}>
             {estAnesthesiste ? 'Autoriser la sortie' : `Réservé à l'anesthésiste${roleName ? ` (rôle actuel : ${roleName})` : ''}`}
           </button>
+          )}
         </div>
       </section>
 

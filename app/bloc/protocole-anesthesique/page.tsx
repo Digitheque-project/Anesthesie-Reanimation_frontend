@@ -250,12 +250,14 @@ function ProtocoleAnesthesiquePageContent() {
           </h2>
           <InstructionsPostOpForm value={instructions} onChange={setInstructions} />
           <div className="mt-5 pt-4 border-t border-amber-200/70 flex justify-end">
+            {estAnesthesiste && (
             <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
               title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
               className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center space-x-3 shadow-lg shadow-primary/20 hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
               <Icone nom="save" />
               <span>{loading ? 'Enregistrement...' : 'Valider et enregistrer'}</span>
             </button>
+            )}
           </div>
         </section>
       </div>

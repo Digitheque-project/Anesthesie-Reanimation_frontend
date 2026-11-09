@@ -183,12 +183,14 @@ function VerificationPostOpPageContent() {
 
       {/* Footer Actions */}
       <div className="mt-12 flex justify-end items-center max-w-3xl">
+        {estAnesthesiste && (
         <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
           title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
           className="flex items-center space-x-2 px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed">
           <Icone nom="check_circle" className="text-[24px]" />
           <span>{loading ? 'Validation...' : !estAnesthesiste ? 'Accès non autorisé' : 'Valider la check-list'}</span>
         </button>
+        )}
       </div>
 
       <ConfirmationRecapModal

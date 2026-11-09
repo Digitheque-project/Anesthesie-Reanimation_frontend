@@ -1683,6 +1683,7 @@ function ConsultationCpaPageContent() {
                       Réservé à l'anesthésiste{roleName ? ` (votre rôle : ${roleName})` : ''}.
                     </div>
                   )}
+                  {peutEditerMedicamentsEtVpa && (
                   <button type="button" onClick={() => peutEditerMedicamentsEtVpa && setShowCatalogueModal(true)} disabled={!peutEditerMedicamentsEtVpa}
                     className="mt-auto w-full flex items-center justify-between gap-3 p-5 bg-indigo-600 text-white rounded-xl font-extrabold shadow-md shadow-indigo-500/30 hover:shadow-lg hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
                     <span className="flex items-center gap-2 text-base">
@@ -1691,6 +1692,7 @@ function ConsultationCpaPageContent() {
                     </span>
                     <span className="text-xs font-bold underline underline-offset-2 shrink-0">{peutEditerMedicamentsEtVpa ? 'Ouvrir la liste complète' : 'Voir la liste'}</span>
                   </button>
+                  )}
                 </div>
 
                 <MedicamentsAnesthesieModal
@@ -1931,15 +1933,14 @@ function ConsultationCpaPageContent() {
           <div className="mt-4 pt-4 border-t border-surface-container flex justify-end">
             {(() => {
               const peutSoumettre = cpaDejaRemplie ? peutEditerMedicamentsEtVpa : peutEditerExamenEtDecision;
+              if (!peutSoumettre) return null;
               const libelle = loading
                 ? (cpaDejaRemplie ? 'Enregistrement...' : 'Validation...')
-                : !peutSoumettre
-                  ? 'Accès non autorisé'
-                  : cpaDejaRemplie
+                : cpaDejaRemplie
                     ? 'Enregistrer les médicaments et la vérification veille'
                     : 'Valider la CPA';
               return (
-                <button onClick={handleOuvrirRecap} disabled={loading || chargementCpa || !peutSoumettre}
+                <button onClick={handleOuvrirRecap} disabled={loading || chargementCpa}
                   className="px-8 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50">
                   {libelle}
                 </button>
