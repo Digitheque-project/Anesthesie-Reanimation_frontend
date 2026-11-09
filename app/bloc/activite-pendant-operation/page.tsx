@@ -269,14 +269,14 @@ function ActivitePendantOperationPageContent() {
             ].map(item => {
               const actif = form[item.key as keyof typeof form] as boolean
               return (
-                <label key={item.key} className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                <label key={item.key} className={`relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
                   actif ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-background border-surface-container-highest hover:border-outline-variant'
                 }`}>
                   <input
                     className="sr-only"
                     type="checkbox"
                     checked={actif}
-                    onChange={e => setForm({...form, [item.key]: e.target.checked})}
+                    onChange={e => { const coche = e.target.checked; setForm(f => ({...f, [item.key]: coche})) }}
                   />
                   <Icone nom={actif ? 'check_circle' : item.icone} className={`text-2xl ${actif ? 'text-blue-600' : 'text-on-surface-variant/50'}`} style={actif ? { fontVariationSettings: "'FILL' 1" } : undefined} />
                   <span className={`text-xs font-bold uppercase ${actif ? 'text-blue-900' : 'text-on-surface'}`}>{item.label}</span>
@@ -305,7 +305,7 @@ function ActivitePendantOperationPageContent() {
                 <div key={item.key} className="flex flex-col gap-2">
                   <button
                     type="button"
-                    onClick={() => setForm({...form, [item.onKey]: !actif})}
+                    onClick={() => setForm(f => ({...f, [item.onKey]: !actif}))}
                     className={`flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       actif ? 'bg-blue-50 border-blue-400 shadow-sm' : 'bg-background border-surface-container-highest hover:border-outline-variant'
                     }`}

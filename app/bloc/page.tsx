@@ -199,7 +199,6 @@ export default function DashboardPage() {
     setAujourdhui(new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
   }, [])
   const nomAgent = session ? `${session.payload.firstname} ${session.payload.name}`.trim() : ''
-  const raccourcis = navItems.filter((i) => i.href !== '/bloc' && (!role || !i.rolesExclus?.includes(role)))
 
   return (
     <div className="min-h-full bg-slate-50">
@@ -236,7 +235,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 
           {/* Patients du jour */}
-          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0px_4px_16px_rgba(17,17,26,0.05)] xl:col-span-2">
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0px_4px_16px_rgba(17,17,26,0.05)] xl:col-span-3">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
               <div>
                 <h2 className="text-[14px] font-extrabold text-slate-800">Patients du jour</h2>
@@ -272,29 +271,6 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Navigation rapide */}
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0px_4px_16px_rgba(17,17,26,0.05)]">
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#005b82]">Navigation rapide</h3>
-              <div className="space-y-2">
-                {raccourcis.map((r, i) => {
-                  const Icone = ICONES_MENU[r.href] ?? ClipboardList
-                  const principal = i === 0
-                  return (
-                    <Link
-                      key={r.href}
-                      href={r.href}
-                      className={`group flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${principal ? 'bg-[#CFE9EF] hover:bg-[#daeaf5]' : 'bg-slate-50 hover:bg-slate-100'}`}
-                    >
-                      <Icone className={`h-4 w-4 ${principal ? 'text-[#005b82]' : 'text-slate-500'}`} />
-                      <span className={`text-[13px] font-bold ${principal ? 'text-[#005b82]' : 'text-slate-700'}`}>{r.label}</span>
-                      <ArrowRight className={`ml-auto h-3.5 w-3.5 opacity-60 group-hover:opacity-100 ${principal ? 'text-[#005b82]' : 'text-slate-400'}`} />
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
