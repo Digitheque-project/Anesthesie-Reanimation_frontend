@@ -305,6 +305,8 @@ function SalleDeReveilPageContent() {
       </div>
 
       {/* Score SCCRE */}
+      {/* Score et checklist de sortie : réservés à l'anesthésiste, en lecture pour les autres. */}
+      <fieldset disabled={!estAnesthesiste} className="contents">
       <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -365,6 +367,7 @@ function SalleDeReveilPageContent() {
           ))}
         </div>
       </section>
+      </fieldset>
 
       {/* Décision de sortie + Option de sortie */}
       <section className="bg-white rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
