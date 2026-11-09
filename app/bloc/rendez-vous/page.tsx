@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { estServiceNonOperatoire } from '@/lib/programme-non-operatoire';
 import { planningService, patientService } from '@/lib/api';
 import { formaterNomPatient } from '@/lib/patient';
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton';
@@ -71,6 +72,19 @@ export default function RendezVousPage() {
   }, [onglet]);
 
   useEffect(() => { charger(); }, [selectedDate, onglet, voirTousCpa]);
+
+  // Bouton « Traiter » de la bande rouge : ouvre l'endroit où ce patient se prend en charge.
+  const traiterRetard = (p: any) => {
+    if (p.statut === 'EN_ATTENTE_VERIFICATION_VEILLE' || p.statut === 'CPA_REALISE') {
+      setVoirTousVerif(true);
+      setOnglet('VERIFICATION_VEILLE');
+    } else if (p.statut === 'EN_ATTENTE_CPA') {
+      setVoirTousCpa(true);
+      setOnglet('CPA');
+    } else {
+      router.push(estServiceNonOperatoire(p.serviceOrigine) ? '/bloc/programme-non-operatoire' : '/bloc/patient-du-jour');
+    }
+  };
 
   const chargerRetards = (essai = 0) => {
     planningService.getRetards()
@@ -312,6 +326,13 @@ export default function RendezVousPage() {
                           ? 'CPA à faire'
                           : 'à reprogrammer'})
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => traiterRetard(p)}
+                    className="ml-auto rounded-lg bg-red-600 px-3 py-1 text-[12px] font-bold text-white hover:bg-red-700"
+                  >
+                    Traiter
+                  </button>
                 </li>
               ))}
             </ul>

@@ -36,7 +36,10 @@ export default function PatientDuJourPage() {
         notificationService.getAll(1, 100),
       ])
       const notifsData = notifsRes.data || []
-      const estDateSelectionnee = (p: any) => !p.dateIntervention || new Date(p.dateIntervention).toISOString().split('T')[0] === selectedDate
+      // Date dépassée et patient toujours pas opéré : visible quel que soit le jour affiché.
+      const aujourdhui = new Date().toISOString().split('T')[0]
+      const estEnRetard = (p: any) => !!p.dateIntervention && new Date(p.dateIntervention).toISOString().split('T')[0] < aujourdhui
+      const estDateSelectionnee = (p: any) => !p.dateIntervention || estEnRetard(p) || new Date(p.dateIntervention).toISOString().split('T')[0] === selectedDate
       // Les patients venus par une demande de CPA externe d'un service qui n'opère pas au Bloc
       // (Imagerie, Endoscopie, Urgence...) ne font pas partie du programme opératoire du Bloc —
       // ils vivent dans une liste séparée, "Programme non-chirurgical" (voir

@@ -39,7 +39,10 @@ export default function ProgrammeNonOperatoirePage() {
         notificationService.getAll(1, 100),
       ])
       const notifsData = notifsRes.data || []
-      const estDateSelectionnee = (p: any) => !p.dateIntervention || new Date(p.dateIntervention).toISOString().split('T')[0] === selectedDate
+      // Date dépassée et patient toujours pas opéré : visible quel que soit le jour affiché.
+      const aujourdhui = new Date().toISOString().split('T')[0]
+      const estEnRetard = (p: any) => !!p.dateIntervention && new Date(p.dateIntervention).toISOString().split('T')[0] < aujourdhui
+      const estDateSelectionnee = (p: any) => !p.dateIntervention || estEnRetard(p) || new Date(p.dateIntervention).toISOString().split('T')[0] === selectedDate
       const data = [...(pretRes.data || []), ...(encoursRes.data || [])]
         .filter(estDateSelectionnee)
         .filter((p: any) => estServiceNonOperatoire(p.serviceOrigine))
