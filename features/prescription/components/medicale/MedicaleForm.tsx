@@ -101,7 +101,7 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
       + cocktails.filter(c => c.premierSoin).reduce((s, c) => s + (c.composants || []).reduce((cs, comp) => cs + (comp.quantite * (comp.prixUnitaire || 0)), 0), 0)
     : 0;
 
-  function showToast(msg: string) { setToast(msg); scrollPrescriptionContentToTop(); setTimeout(() => setToast(''), 2800); }
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2800); }
 
   const eligibilityGenerationRef = useRef(0);
 

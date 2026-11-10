@@ -11,6 +11,7 @@ import { parseObservationToSections, toFakeMedecinUuid } from '@/lib/clinical/ob
 import type { Observation } from '@/types/observation.types';
 import { ObservationReadOnlyView } from '@/components/clinical/dossier-patient/ObservationReadOnlyView';
 import { useCurrentMedecin } from '@/lib/clinical-auth/use-current-medecin';
+import { getDirectoryUser, formatDirectoryUserName, type DirectoryUser } from '@/lib/clinical/user-directory-api';
 ​
 interface Props {
   readonly patientId: string;
@@ -24,12 +25,20 @@ type CurrentMedecin = { id: number | string; nom: string; prenom: string } | nul
 // on ne peut afficher un nom que pour le medecin actuellement connecte.
 // createdBy est un faux UUID derive de l'id entier (cf. toFakeMedecinUuid,
 // temporaire en attendant le vrai service d'authentification).
-function authorLabelOf(obs: Observation, currentMedecin: CurrentMedecin): string {
+function authorLabelOf(
+  obs: Observation,
+  currentMedecin: CurrentMedecin,
+  authors: Record<string, DirectoryUser | null> = {},
+): string {
   if (!obs.createdBy) return 'Auteur non disponible';
   if (currentMedecin && obs.createdBy === toFakeMedecinUuid(currentMedecin.id)) {
     return `Vous (Dr. ${currentMedecin.prenom} ${currentMedecin.nom})`.trim();
   }
-  return `Médecin #${obs.createdBy}`;
+  // Jamais d'identifiant à l'écran : nom de l'annuaire, sinon libellé neutre.
+  const author = authors[obs.createdBy];
+  const name = formatDirectoryUserName(author);
+  if (author && name) return author.job ? `${name} — ${author.job}` : name;
+  return 'Médecin du CHU';
 }
 ​
 function isOwnObservation(obs: Observation, currentMedecin: CurrentMedecin): boolean {
@@ -64,6 +73,27 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Observation | null>(null);
+  const [authors, setAuthors] = useState<Record<string, DirectoryUser | null>>({});
+
+  // Nom et poste des auteurs, depuis l'annuaire des utilisateurs.
+  useEffect(() => {
+    const ids = Array.from(
+      new Set(observations.map((obs) => obs.createdBy).filter((id): id is string => Boolean(id))),
+    ).filter((id) => !(id in authors));
+    if (ids.length === 0) return;
+    let cancelled = false;
+    void Promise.all(ids.map(async (id) => [id, await getDirectoryUser(id)] as const)).then((entries) => {
+      if (cancelled) return;
+      setAuthors((prev) => {
+        const next = { ...prev };
+        for (const [id, author] of entries) next[id] = author;
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [observations, authors]);
 ​
   useEffect(() => {
     if (!patientId || !chuId || !isDossierPatientApiConfigured()) {
@@ -116,7 +146,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
           sections={parseObservationToSections(selected)}
           patientInfo={null}
           finalizedAt={selected.createdAt ?? null}
-          authorLabel={authorLabelOf(selected, medecin)}
+          authorLabel={authorLabelOf(selected, medecin, authors)}
         />
       </div>
     );
@@ -168,7 +198,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                   <span className="text-[14px] font-bold" style={{ color: ehr.text }}>
-                    {authorLabelOf(obs, medecin)}
+                    {authorLabelOf(obs, medecin, authors)}
                   </span>
                   <span className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
                     <Calendar className="h-3 w-3" strokeWidth={2} />

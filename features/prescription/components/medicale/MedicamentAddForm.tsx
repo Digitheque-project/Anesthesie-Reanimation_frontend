@@ -87,10 +87,11 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd, onUrg
   const kitDropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const isFrequenceRequired = patientType !== 'accueil';
-  const isDureeRequired = isFrequenceRequired && !jno;
+  // Seul le médicament est obligatoire : dose, fréquence et durée sont facultatives.
+  const isFrequenceRequired = false;
+  const isDureeRequired = false;
 
-  const isFormValid = nom.trim() && dose.trim()
+  const isFormValid = nom.trim()
     && (!isFrequenceRequired || (frequenceType && (frequenceType === 'SOS' || frequenceType === 'CONTINU' || frequenceValeur > 0)))
     && (!isDureeRequired || dureeJours > 0);
 
@@ -217,7 +218,6 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd, onUrg
   function validateAddForm(): boolean {
     const newErrors: Record<string, string> = {};
     if (!nom.trim()) newErrors.nom = 'Le médicament est requis';
-    if (!dose.trim()) newErrors.dose = 'La dose est requise';
     if (isFrequenceRequired && !frequenceType) newErrors.frequenceType = 'Le type de fréquence est requis';
     if (isFrequenceRequired && (frequenceType === 'HEURES' || frequenceType === 'MINUTES' || frequenceType === 'PAR_JOUR') && frequenceValeur <= 0) {
       newErrors.frequenceValeur = 'La valeur de fréquence est requise';
@@ -288,7 +288,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd, onUrg
         {/* ── Colonne gauche : prescription ── */}
         <div>
           <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--navy)', marginBottom: 10, borderLeft: '3px solid var(--navy)', paddingLeft: 8 }}>
-            Médicament & posologie
+            Médicament / consommable
           </div>
 
           {/* RECHERCHE MÉDICAMENT */}
@@ -341,7 +341,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd, onUrg
           {/* CHAMPS DU FORMULAIRE */}
           <div className="g2 mb12">
             <div>
-              <label className="lbl">Dose <span className="req">*</span></label>
+              <label className="lbl">Dose</label>
               <input type="text" value={dose} onChange={e => { setDose(e.target.value); if (errors.dose) setErrors({...errors, dose: ''}); }} placeholder="Ex : 1g, 500mg" style={errors.dose ? { borderColor: 'var(--red)' } : {}} />
               {errors.dose && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.dose}</div>}
             </div>
@@ -378,7 +378,7 @@ export default function MedicamentAddForm({ patientType, isAccueil, onAdd, onUrg
             </div>
             {(frequenceType === 'HEURES' || frequenceType === 'MINUTES' || frequenceType === 'PAR_JOUR') && (
               <div>
-                <label className="lbl">Valeur <span className="req">*</span></label>
+                <label className="lbl">Valeur</label>
                 <input type="number" min={1} value={frequenceValeur || ''} onChange={e => { setFrequenceValeur(parseInt(e.target.value) || 0); if (errors.frequenceValeur) setErrors({...errors, frequenceValeur: ''}); }} placeholder={frequenceType === 'HEURES' ? 'Ex : 8h' : frequenceType === 'MINUTES' ? 'Ex : 30' : 'Ex : 3x'} style={errors.frequenceValeur ? { borderColor: 'var(--red)' } : {}} />
                 {errors.frequenceValeur && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 3 }}>{errors.frequenceValeur}</div>}
               </div>
