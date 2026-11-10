@@ -144,7 +144,17 @@ export function selectService(
     return services.find((s) => s.serviceId === requestedServiceId) ?? null;
   }
   // Aucun serviceId demandé : choix implicite si un seul service.
-  return services.length === 1 ? services[0] : null;
+  if (services.length === 1) return services[0];
+  // Compte multi-services : le service dont l'adresse est celle du front ouvert.
+  if (typeof window !== "undefined") {
+    const ici = window.location.origin;
+    const memeFront = services.filter((s) => {
+      const base = (s as { baseUrl?: string | null }).baseUrl;
+      try { return !!base && new URL(base).origin === ici; } catch { return false; }
+    });
+    if (memeFront.length === 1) return memeFront[0];
+  }
+  return null;
 }
 
 export function sessionFromToken(

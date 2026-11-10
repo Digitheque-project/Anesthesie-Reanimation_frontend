@@ -4,6 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /**
+ * Clic, dans le centre de notifications commun, sur une notification qui n'indique pas
+ * de page : on ouvre la liste des demandes de ce service. Enregistré une seule fois,
+ * même si le composant est affiché à plusieurs endroits.
+ */
+const PAGE_DES_NOTIFICATIONS = "/bloc/notification-cpa";
+if (typeof window !== "undefined") {
+  const w = window as unknown as { __chuOuvertureNotif?: boolean };
+  if (!w.__chuOuvertureNotif) {
+    w.__chuOuvertureNotif = true;
+    window.addEventListener("chu-notification-ouverte", () => {
+      if (window.location.pathname !== PAGE_DES_NOTIFICATIONS) window.location.assign(PAGE_DES_NOTIFICATIONS);
+    });
+  }
+}
+
+
+/**
  * « Notifications » et « Changer de service », placés au-dessus de Déconnexion.
  * Même fichier dans chaque front : les services viennent du jeton de l'agent, et le
  * centre de notifications commun est celui de la bulle de messagerie.

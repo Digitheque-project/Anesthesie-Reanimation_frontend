@@ -387,7 +387,7 @@ export function DossierPatientComplet({
   const displayName =
     nom || prenom
       ? `${courtesy ? `${courtesy} ` : ""}${nom} ${prenom}`.trim()
-      : `Patient ${patientId.slice(0, 8)}`;
+      : 'Patient non identifié';
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-[#F8F9FB] px-4 py-2 sm:px-6">

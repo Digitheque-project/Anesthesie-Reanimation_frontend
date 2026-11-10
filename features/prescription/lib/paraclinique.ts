@@ -131,6 +131,35 @@ export function resolveParaFormKey(name: string): ParaFormKey | null {
 }
 
 /**
+ * Service retenu quand plusieurs services du registre ouvrent le meme
+ * formulaire (ex. « Centre de Sommeil » et « Polysomnographie », meme front).
+ * Il s'agit du service vise par defaut par la prescription de ce formulaire.
+ */
+const SERVICE_PREFERE: Partial<Record<ParaFormKey, string>> = {
+  poly: "CENTRE DE SOMMEIL",
+};
+
+/** Un seul bouton par formulaire : les autres services identiques sont ecartes. */
+function dedoublonnerParFormulaire(
+  services: ParacliniqueService[],
+): ParacliniqueService[] {
+  const retenus = new Map<ParaFormKey, ParacliniqueService>();
+  const sansFormulaire: ParacliniqueService[] = [];
+  for (const s of services) {
+    if (!s.formKey) {
+      sansFormulaire.push(s);
+      continue;
+    }
+    const deja = retenus.get(s.formKey);
+    const prefere = SERVICE_PREFERE[s.formKey];
+    if (!deja || (prefere && normalize(s.name) === prefere && normalize(deja.name) !== prefere)) {
+      retenus.set(s.formKey, s);
+    }
+  }
+  return [...retenus.values(), ...sansFormulaire];
+}
+
+/**
  * Recupere (GET) les services para-cliniques actifs du CHU courant.
  * Ne jette pas pour un tableau vide ; renvoie [] si la base n'est pas definie.
  */
@@ -152,7 +181,7 @@ export async function fetchParacliniqueServices(
 
   const list = Array.isArray(response.data) ? response.data : [];
 
-  return list
+  const services = list
     .filter(
       (s) =>
         normalize(String(s.type ?? "")) === "PARACLINIQUE" &&
@@ -162,8 +191,9 @@ export async function fetchParacliniqueServices(
       serviceId: s.id,
       name: s.name,
       formKey: resolveParaFormKey(s.name),
-    }))
-    .sort((a, b) => {
+    }));
+
+  return dedoublonnerParFormulaire(services).sort((a, b) => {
       if (a.formKey === b.formKey) return 0;
       if (a.formKey === null) return 1;
       if (b.formKey === null) return -1;
