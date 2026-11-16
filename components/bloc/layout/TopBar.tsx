@@ -7,7 +7,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import NotificationModal from '@/components/bloc/notification-cpa/NotificationModal';
 import { connecterNotificationsTempsReel, NotificationTempsReel } from '@/lib/notifications/socket';
 import { jouerSonPrescription, jouerSonPrescriptionUrgente } from '@/lib/notifications/sound';
-import { obtenirSessionValide } from '@/lib/auth/central-session';
+import { lireTokenStocke, obtenirSessionValide } from '@/lib/auth/central-session';
+import { useLogoAuthentifie } from '@/lib/use-logo-authentifie';
 import { dedupeParPatient } from '@/lib/notifications/dedupe';
 import { normaliserDemandeExterne } from '@/lib/notifications/normaliser-demande-externe';
 import { apiClient } from '@/lib/api/client';
@@ -35,7 +36,9 @@ export default function TopBar({ onMenuClick }: { onMenuClick?: () => void } = {
   const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => { setSession(obtenirSessionValide()); }, []);
+  const [jetonLogo, setJetonLogo] = useState<string | null>(null);
+  useEffect(() => { setSession(obtenirSessionValide()); setJetonLogo(lireTokenStocke()); }, []);
+  const logoChu = useLogoAuthentifie(session?.acces.chu?.logoUrl, jetonLogo);
 
   // Une notification est "actionnable" si elle est non lue, non traitée (estPatientTraite) et
   // encore à l'état ouvert — EN_ATTENTE (interne ou demande externe normalisée) ou webhook non
@@ -210,9 +213,9 @@ export default function TopBar({ onMenuClick }: { onMenuClick?: () => void } = {
           <Icone nom="list" className="text-[20px]" />
         </button>
         {/* Logo du CHU : vient du jeton (fiche CHU du registre central), jamais figé en dur. */}
-        {session?.acces.chu?.logoUrl ? (
+        {logoChu ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={session.acces.chu.logoUrl} alt="Logo CHU" className="h-8 w-8 shrink-0 rounded-full border border-[#CFE9EF] object-cover sm:h-9 sm:w-9" />
+          <img src={logoChu} alt="Logo CHU" className="h-8 w-8 shrink-0 rounded-full border border-[#CFE9EF] object-cover sm:h-9 sm:w-9" />
         ) : null}
         <div className="truncate text-[16px] font-black tracking-tight text-[#004A66] sm:text-[18px] lg:text-[20px]">
           Anesthésie - Réanimation
