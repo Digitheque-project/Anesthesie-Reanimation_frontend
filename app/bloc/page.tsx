@@ -201,14 +201,14 @@ export default function DashboardPage() {
   const nomAgent = session ? `${session.payload.firstname} ${session.payload.name}`.trim() : ''
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full bg-[#F8F9FB]">
       <div className="mx-auto max-w-[1400px] space-y-6 p-4 sm:p-6 lg:p-8">
 
         {/* En-tête */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-[22px] font-extrabold leading-tight text-gray-900">Tableau de bord</h1>
-            <p className="mt-0.5 text-[13px] capitalize text-slate-500">
+            <h1 className="text-[22px] font-extrabold leading-tight text-[#0F172A]">Tableau de bord</h1>
+            <p className="mt-0.5 text-[13px] capitalize text-[#64748B]">
               {[nomAgent, session?.acces.roleName, aujourdhui].filter(Boolean).join(' · ')}
             </p>
           </div>
@@ -235,11 +235,11 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 
           {/* Patients du jour */}
-          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0px_4px_16px_rgba(17,17,26,0.05)] xl:col-span-3">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+          <div className="overflow-hidden rounded-2xl border border-[#F1F5F9] bg-white shadow-[0px_4px_16px_rgba(17,17,26,0.05)] xl:col-span-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F1F5F9] px-5 py-4">
               <div>
                 <h2 className="text-[14px] font-extrabold text-slate-800">Patients du jour</h2>
-                <p className="mt-0.5 text-[11px] font-semibold text-[#005b82]">
+                <p className="mt-0.5 text-[11px] font-semibold text-[#006A8C]">
                   {lignes.length} patient{lignes.length > 1 ? 's' : ''}{filtre !== 'tous' ? ` · ${ETAPES[filtre].badge}` : ''}
                 </p>
               </div>
@@ -249,7 +249,7 @@ export default function DashboardPage() {
                     key={c}
                     type="button"
                     onClick={() => setFiltre(c)}
-                    className={`rounded-full px-3 py-1 text-[11px] font-bold transition-colors ${filtre === c ? 'bg-[#CFE9EF] text-[#005b82]' : 'text-slate-500 hover:bg-slate-100'}`}
+                    className={`rounded-full px-3 py-1 text-[11px] font-bold transition-colors ${filtre === c ? 'bg-[#F0F7FF] text-[#006A8C]' : 'text-[#64748B] hover:bg-slate-100'}`}
                   >
                     {c === 'tous' ? 'Tous' : ETAPES[c].badge}
                   </button>
@@ -315,7 +315,7 @@ function CarteChiffre({ icone: Icone, libelle, valeur, detail, couleur, actif, o
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-4 rounded-2xl border bg-white p-5 text-left shadow-[0px_4px_16px_rgba(17,17,26,0.05)] transition-colors ${actif ? 'border-[#005b82]/40 ring-2 ring-[#005b82]/10' : 'border-gray-100 hover:border-gray-200'}`}
+      className={`flex items-center gap-4 rounded-2xl border bg-white p-5 text-left shadow-[0px_4px_16px_rgba(17,17,26,0.05)] transition-colors ${actif ? 'border-[#006A8C]/40 ring-2 ring-[#006A8C]/10' : 'border-[#F1F5F9] hover:border-gray-200'}`}
     >
       <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${couleur}`}>
         <Icone className="h-5 w-5" />
@@ -341,7 +341,7 @@ function LignePatient({ ligne }: { ligne: LignePlanning & { etape: EtapeAffichee
       className="flex cursor-pointer items-center gap-4 rounded-xl border-l-[6px] border-transparent px-3 py-3 transition-colors hover:bg-slate-50"
     >
       <div className="flex min-w-[52px] flex-col items-center">
-        <span className="text-[11px] font-bold uppercase text-[#005b82]">Auj.</span>
+        <span className="text-[11px] font-bold uppercase text-[#006A8C]">Auj.</span>
         <span className={`text-[14px] font-bold ${urgent ? 'text-red-600' : 'text-slate-700'}`}>{ligne.heure || '—'}</span>
       </div>
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50">
@@ -363,7 +363,7 @@ function LignePatient({ ligne }: { ligne: LignePlanning & { etape: EtapeAffichee
             {ligne.priorite === 'TRES_URGENT' ? 'Très urgent' : 'Urgent'}
           </span>
         )}
-        <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+        <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#475569]">
           {ligne.actionLabel} <ArrowRight className="h-3 w-3" />
         </span>
       </div>

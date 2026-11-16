@@ -43,7 +43,7 @@ export function ObservationConfirmModal({ open, saving, error, onCancel, onConfi
           <h2 className="text-[18px] font-extrabold" style={{ color: ehr.text }}>
             Enregistrer l&apos;observation médicale ?
           </h2>
-          <p className="mt-2.5 text-[13px] leading-relaxed text-slate-500">
+          <p className="mt-2.5 text-[13px] leading-relaxed text-[#64748B]">
             Une fois enregistrée, cette observation sera <strong>définitive</strong> : elle ne pourra
             plus être modifiée, ni par vous, ni par un autre médecin. Merci de vérifier que toutes les
             informations saisies dans les différentes sections sont correctes avant de confirmer.
@@ -61,7 +61,7 @@ export function ObservationConfirmModal({ open, saving, error, onCancel, onConfi
             type="button"
             onClick={onCancel}
             disabled={saving}
-            className="px-4 py-2.5 text-[13px] font-bold text-slate-500 transition-colors hover:text-slate-800 disabled:opacity-40"
+            className="px-4 py-2.5 text-[13px] font-bold text-[#64748B] transition-colors hover:text-slate-800 disabled:opacity-40"
           >
             Revenir à la saisie
           </button>

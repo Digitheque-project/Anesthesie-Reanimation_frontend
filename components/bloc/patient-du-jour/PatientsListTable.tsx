@@ -75,13 +75,13 @@ export default function PatientsListTable({ patients }: PatientsListTableProps) 
         <table className="w-full text-left border-collapse">
           <thead className="sticky top-0 z-10 bg-white shadow-sm">
             <tr>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Heure / Date prévue</th>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Nom & Prénom</th>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Type d'intervention</th>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Chirurgien</th>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Salle</th>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Statut</th>
-              <th className="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
+              <th className="px-8 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Heure / Date prévue</th>
+              <th className="px-8 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Nom & Prénom</th>
+              <th className="px-8 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Type d'intervention</th>
+              <th className="px-8 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Chirurgien</th>
+              <th className="px-8 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Salle</th>
+              <th className="px-8 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Statut</th>
+              <th className="px-8 py-4 uppercase text-right text-[11px] font-bold tracking-wider text-[#64748B]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container">
@@ -120,7 +120,7 @@ export default function PatientsListTable({ patients }: PatientsListTableProps) 
                   <td className="px-8 py-5 text-right">
                     <div className="flex justify-end gap-2">
                       <button onClick={() => handleDemarrer(patient)} disabled={isLoading}
-                        className="min-w-[100px] px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm disabled:opacity-70">
+                        className="min-w-[100px] px-4 py-1.5 bg-primary text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all active:scale-95 shadow-sm disabled:opacity-70">
                         {isLoading ? '...' : 'Démarrer'}
                       </button>
                       <VoirDossierButton

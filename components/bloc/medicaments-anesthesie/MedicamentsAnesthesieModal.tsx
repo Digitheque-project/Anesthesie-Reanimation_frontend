@@ -162,7 +162,7 @@ export default function MedicamentsAnesthesieModal({
         </div>
 
         <div className="flex justify-end gap-3 p-6 border-t border-outline-variant/20">
-          <button onClick={onClose} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-md hover:bg-primary/90 hover:shadow-lg transition-all">
+          <button onClick={onClose} className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] transition-all shadow-sm">
             <Icone nom="check" className="text-lg" />
             Fermer
           </button>

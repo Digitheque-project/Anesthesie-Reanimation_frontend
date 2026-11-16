@@ -396,7 +396,7 @@ export function DossierPatientComplet({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+            className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white px-2.5 py-1 text-[11px] font-bold text-[#475569] shadow-sm transition-colors hover:bg-slate-50"
           >
             <ChevronLeft className="h-4 w-4" strokeWidth={2} />
             {backLabel}
@@ -413,22 +413,22 @@ export function DossierPatientComplet({
 
           <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
             <span className="inline-flex items-baseline gap-1 rounded-md bg-slate-100 px-2 py-1">
-              <span className="font-semibold text-slate-500">Groupe :</span>
+              <span className="font-semibold text-[#64748B]">Groupe :</span>
               <span className="font-bold text-slate-800">{groupeSanguin}</span>
             </span>
             <span className="inline-flex items-baseline gap-1 rounded-md bg-slate-100 px-2 py-1">
-              <span className="font-semibold text-slate-500">Âge / Sexe :</span>
+              <span className="font-semibold text-[#64748B]">Âge / Sexe :</span>
               <span className="font-bold text-slate-800">{age != null ? `${age} ans` : "—"} / {sexeLabel}</span>
             </span>
             {chambreLit ? (
               <span className="inline-flex items-baseline gap-1 rounded-md bg-slate-100 px-2 py-1">
-                <span className="font-semibold text-slate-500">Chambre :</span>
+                <span className="font-semibold text-[#64748B]">Chambre :</span>
                 <span className="font-bold text-slate-800">{chambreLit}</span>
               </span>
             ) : null}
             {priseEnChargeLabel && priseEnChargeLabel !== "—" ? (
               <span className="inline-flex items-baseline gap-1 rounded-md bg-slate-100 px-2 py-1">
-                <span className="font-semibold text-slate-500">Prise en charge :</span>
+                <span className="font-semibold text-[#64748B]">Prise en charge :</span>
                 <span className="font-bold text-slate-800">{priseEnChargeLabel}</span>
               </span>
             ) : null}
@@ -460,7 +460,7 @@ export function DossierPatientComplet({
           className="flex flex-1 flex-col min-h-0 overflow-hidden rounded-[14px] border border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(5,102,141,0.06)]"
           style={{ boxShadow: ehr.shadowCard }}
         >
-          <div className="shrink-0 border-b border-slate-200 bg-[#F8FAFC] px-2 py-1.5">
+          <div className="shrink-0 border-b border-[#E2E8F0] bg-[#F8FAFC] px-2 py-1.5">
             <div className="flex flex-wrap items-center gap-1">
               {TABS.map((tab) => {
                 const isActive = activeTab === tab.key;

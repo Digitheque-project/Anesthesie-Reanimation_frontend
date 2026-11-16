@@ -313,9 +313,9 @@ function VerificationVeillePageContent() {
       <ErreurChargementBanner visible={erreurPatient} onRecharger={chargerPatient} />
       <div className="flex justify-end -mt-2 mb-3">
         {cpaId ? (
-          <span className="px-3 py-1 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase tracking-wider">CPA validée</span>
+          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-wider">CPA validée</span>
         ) : (
-          <span className="px-3 py-1 bg-red-100 text-red-700 rounded text-[10px] font-bold uppercase tracking-wider">CPA non réalisée</span>
+          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase tracking-wider">CPA non réalisée</span>
         )}
       </div>
 
@@ -442,7 +442,7 @@ function VerificationVeillePageContent() {
             </div>
             <div className="space-y-4 flex-1">
               <label className="text-sm font-semibold">Jeûne complet à partir de...</label>
-              <input className="w-full bg-surface-container-low border border-outline-variant/30 rounded text-sm px-3 py-2" placeholder="Heure ou instructions..." type="text" value={form.jeune} onChange={e => setForm({...form, jeune: e.target.value})} />
+              <input className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Heure ou instructions..." type="text" value={form.jeune} onChange={e => setForm({...form, jeune: e.target.value})} />
             </div>
             {/* Heure de départ au bloc — en bas à gauche de la section Préparation */}
             <div className="mt-6 pt-4 border-t border-outline-variant/20 flex justify-start">
@@ -454,7 +454,7 @@ function VerificationVeillePageContent() {
                     type="time"
                     value={form.heureDepart}
                     onChange={e => setForm({...form, heureDepart: e.target.value})}
-                    className="bg-surface-container-low border border-primary/30 rounded-lg px-3 py-1.5 text-lg font-black text-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
+                    className="bg-surface-container-low border border-primary/30 rounded-xl px-3 py-1.5 text-lg font-black text-primary focus:ring-2 focus:ring-primary/50 focus:outline-none"
                     style={{ width: '120px' }}
                   />
                 </div>
@@ -556,7 +556,7 @@ function VerificationVeillePageContent() {
             disabled={loading || !cpaId || securiteIncomplete}
             title={securiteIncomplete ? 'Répondez à chaque item de vérification de sécurité avant de valider' : undefined}
             className={`px-10 py-4 rounded-lg font-extrabold text-base shadow-lg transition-all flex items-center justify-center gap-3 active:scale-95 whitespace-nowrap ${
-              cpaId && !securiteIncomplete ? 'bg-primary text-on-primary hover:bg-primary/90' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              cpaId && !securiteIncomplete ? 'bg-primary text-on-primary hover:bg-[#005a76]' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
             }`}
           >
             <Icone nom="check_circle" className="font-bold" />

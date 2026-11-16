@@ -124,19 +124,19 @@ function DemandeCpaExternePageContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
           <div className="p-3 bg-gray-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Service demandeur</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Service demandeur</span>
             <p className="font-bold">{demande.sourceServiceName || demande.sourceServiceId}</p>
           </div>
           <div className="p-3 bg-gray-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Type d'anesthésie envisagé</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Type d'anesthésie envisagé</span>
             <p className="font-bold">{demande.typeAnesthesie || '—'}</p>
           </div>
           <div className="p-3 bg-gray-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Date souhaitée pour l'acte</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Date souhaitée pour l'acte</span>
             <p className="font-bold">{formaterDate(demande.dateExamenSouhaitee) || 'Non communiquée'}</p>
           </div>
           <div className="p-3 bg-gray-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Reçue le</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Reçue le</span>
             <p className="font-bold">{formaterDate(demande.createdAt) || '—'}</p>
           </div>
         </div>
@@ -163,7 +163,7 @@ function DemandeCpaExternePageContent() {
               </div>
             )}
             <button onClick={() => setShowPlanifier(true)} disabled={submitting || !peutPlanifierCpa}
-              className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
+              className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] disabled:opacity-50 flex items-center justify-center gap-2">
               <Icone nom="event_available" className="text-lg" />
               Planifier le rendez-vous CPA
             </button>
@@ -173,7 +173,7 @@ function DemandeCpaExternePageContent() {
         {(demande.statut === 'CPA_PLANIFIEE' || demande.statut === 'VPA_PLANIFIEE') && (
           <button
             onClick={() => router.push(`/bloc/consultation-cpa?patientId=${demande.patientId}&patientNom=${encodeURIComponent(formaterNomPatient(demande))}&intervention=${encodeURIComponent(demande.motif || demande.typeAnesthesie || '')}`)}
-            className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 flex items-center justify-center gap-2">
+            className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] flex items-center justify-center gap-2">
             <Icone nom="clinical_notes" className="text-lg" />
             Aller à la consultation CPA
           </button>

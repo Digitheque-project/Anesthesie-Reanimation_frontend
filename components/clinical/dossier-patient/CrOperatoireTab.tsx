@@ -39,8 +39,8 @@ const SURVEILLANCE: Record<string, string> = { ta: 'Tension artérielle', pouls:
 
 function Bloc({ titre, icone, children }: { titre: string; icone: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-gray-100 bg-white p-5">
-      <h4 className="mb-3 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#005b82]">
+    <section className="rounded-2xl border border-[#F1F5F9] bg-white p-5">
+      <h4 className="mb-3 flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#006A8C]">
         <Icone nom={icone} className="text-[14px]" /> {titre}
       </h4>
       {children}
@@ -82,7 +82,7 @@ export function CrOperatoireTab({ patientId }: { patientId: string }) {
   if (liste.length === 0) {
     return (
       <div className="flex flex-col items-center px-6 py-16 text-center">
-        <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F0F7FF] text-[#005b82]"><Icone nom="content_cut" className="text-[24px]" /></span>
+        <span className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F0F7FF] text-[#006A8C]"><Icone nom="content_cut" className="text-[24px]" /></span>
         <p className="text-[14px] font-bold text-slate-700">Aucun compte-rendu opératoire</p>
         <p className="mt-1 text-[12px] text-slate-400">Le compte-rendu est rédigé au bloc (protocole opératoire), après l&apos;intervention.</p>
       </div>
@@ -105,7 +105,7 @@ export function CrOperatoireTab({ patientId }: { patientId: string }) {
             key={x.id}
             type="button"
             onClick={() => setChoisi(x)}
-            className={`w-full rounded-xl px-4 py-3 text-left transition-colors ${x.id === p.id ? 'bg-[#CFE9EF] text-[#005b82]' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}
+            className={`w-full rounded-xl px-4 py-3 text-left transition-colors ${x.id === p.id ? 'bg-[#F0F7FF] text-[#006A8C]' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}`}
           >
             <p className="text-[13px] font-bold">{dateDe(x)}</p>
             <p className="mt-0.5 truncate text-[11px] opacity-80">{nomDe(x.chirurgien) || 'Chirurgien non renseigné'}</p>
@@ -116,8 +116,8 @@ export function CrOperatoireTab({ patientId }: { patientId: string }) {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-[16px] font-extrabold text-slate-800">Intervention du {dateDe(p)}</h3>
-          {nomDe(p.chirurgien) && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">Chirurgien : {nomDe(p.chirurgien)}</span>}
-          {nomDe(p.anesthesiste) && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-600">Anesthésiste : {nomDe(p.anesthesiste)}</span>}
+          {nomDe(p.chirurgien) && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#475569]">Chirurgien : {nomDe(p.chirurgien)}</span>}
+          {nomDe(p.anesthesiste) && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[#475569]">Anesthésiste : {nomDe(p.anesthesiste)}</span>}
         </div>
         <Bloc titre="Compte-rendu de l'intervention" icone="description"><Texte v={p.compteRenduIntervention} /></Bloc>
         <Bloc titre="Compte-rendu anesthésique" icone="vaccines"><Texte v={p.compteRenduAnesthesique} /></Bloc>

@@ -105,7 +105,7 @@ export default function GroupePlanningTable({ icon, titre, accent, lignes, loadi
                     </button>
                     {l.href2 && (
                       <button onClick={(e) => { e.stopPropagation(); router.push(l.href2!) }}
-                        className="text-on-surface-variant bg-slate-50 hover:bg-slate-100 px-3 py-1 rounded-lg text-[10px] font-bold transition-colors border border-outline-variant/20">
+                        className="text-on-surface-variant bg-slate-50 hover:bg-slate-100 px-3 py-1 rounded-full text-[10px] font-bold transition-colors border border-outline-variant/20">
                         {l.actionLabel2}
                       </button>
                     )}

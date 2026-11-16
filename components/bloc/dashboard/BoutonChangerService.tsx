@@ -30,7 +30,7 @@ export default function BoutonChangerService() {
       <button
         type="button"
         onClick={() => setOuvert((v) => !v)}
-        className="flex items-center gap-2 rounded-xl bg-[#005b82] px-4 py-2.5 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-[#004a6b]"
+        className="flex items-center gap-2 rounded-xl bg-[#006A8C] px-4 py-2.5 text-[13px] font-bold text-white shadow-sm transition-colors hover:bg-[#005a76]"
       >
         <Repeat className="h-4 w-4" />
         Changer de service
@@ -39,13 +39,13 @@ export default function BoutonChangerService() {
       {ouvert && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOuvert(false)} />
-          <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-2xl">
+          <div className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-[#F1F5F9] bg-white shadow-2xl">
             {autres.map((s) => (
               <button
                 key={s.serviceId}
                 type="button"
                 onClick={() => aller(s.baseUrl)}
-                className="w-full border-b border-gray-50 px-4 py-3 text-left text-[13px] font-semibold text-gray-700 transition-colors last:border-0 hover:bg-[#CFE9EF] hover:text-[#005b82]"
+                className="w-full border-b border-gray-50 px-4 py-3 text-left text-[13px] font-semibold text-gray-700 transition-colors last:border-0 hover:bg-[#CFE9EF] hover:text-[#006A8C]"
               >
                 {s.serviceName || 'Service'}
                 {s.roleName && (

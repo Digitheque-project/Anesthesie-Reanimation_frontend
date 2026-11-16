@@ -191,7 +191,7 @@ function ApresOperationPageContent() {
         {peutValiderChecklistApresOp && (
         <button onClick={handleOuvrirRecap} disabled={loading || !peutValiderChecklistApresOp}
           title={!peutValiderChecklistApresOp ? 'Réservé à l\'anesthésiste' : undefined}
-          className="px-8 py-4 bg-primary text-white font-headline font-bold rounded-2xl shadow-xl shadow-primary/20 hover:shadow-2xl transition-all flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+          className="px-8 py-4 bg-primary text-white font-headline font-bold rounded-xl transition-all flex items-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
           <span>{loading ? 'Enregistrement...' : !peutValiderChecklistApresOp ? 'Accès non autorisé' : 'Valider et enregistrer'}</span>
           <Icone nom="save_as" />
         </button>

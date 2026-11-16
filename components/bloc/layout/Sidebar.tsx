@@ -37,7 +37,7 @@ export const navItems: NavItemColore[] = [
   { label: 'Rapport', href: '/bloc/rapport', icon: 'monitoring', couleur: { bg: 'bg-emerald-100', texte: 'text-emerald-600' } },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen = false, onClose }: { isOpen?: boolean; onClose?: () => void } = {}) {
   const pathname = usePathname();
   const { role } = useRole();
   // Tant que le rôle n'est pas encore résolu (session en cours de lecture au montage), on
@@ -57,8 +57,28 @@ export default function Sidebar() {
   }, []);
 
   return (
-    // Même menu que la consultation externe : blanc, collé sous la barre du haut (h-16).
-    <aside className="sticky top-16 mt-2 flex h-[calc(100vh-4.5rem)] w-[260px] shrink-0 flex-col overflow-y-auto rounded-tr-[24px] border-r border-[#F1F5F9] bg-white shadow-[1px_0px_5px_rgba(0,0,0,0.01)]">
+    // Même menu que la consultation externe : blanc, collé sous la barre du haut (h-16) ;
+    // sur téléphone, tiroir ouvert par le bouton menu de l'en-tête.
+    <>
+      {isOpen ? (
+        <div className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] md:hidden" onClick={onClose} aria-hidden />
+      ) : null}
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 flex w-[82vw] max-w-[280px] shrink-0 flex-col overflow-y-auto border-r border-[#F1F5F9] bg-white shadow-[1px_0px_5px_rgba(0,0,0,0.01)] transition-transform duration-200 md:sticky md:top-16 md:z-auto md:mt-2 md:h-[calc(100vh-4.5rem)] md:w-[220px] md:max-w-none md:translate-x-0 md:rounded-tr-[24px] lg:w-[260px] ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
+      <div className="flex items-center justify-between px-4 pb-2 pt-4 md:hidden">
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-gray-400">Navigation</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-900"
+          aria-label="Fermer la navigation"
+        >
+          <Icone nom="close" className="text-[16px]" />
+        </button>
+      </div>
       <nav className="flex-1 space-y-1.5 px-4 py-5">
         {itemsVisibles.map((item) => {
           const isActive =
@@ -68,12 +88,13 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-4 rounded-[12px] px-4 py-3.5 transition-colors duration-200 ${
+              onClick={onClose}
+              className={`flex items-center gap-3 sm:gap-4 rounded-[12px] px-4 py-3.5 transition-colors duration-200 ${
                 isActive ? 'bg-[#F0F7FF] font-bold text-[#006A8C]' : 'font-medium text-[#475569] hover:bg-gray-50'
               }`}
             >
               <Icone nom={item.icon} className={`text-[20px] ${isActive ? 'text-[#006A8C]' : 'text-[#64748B]'}`} />
-              <span className="text-[14px]">{item.label}</span>
+              <span className="text-[13px] sm:text-[14px]">{item.label}</span>
               {item.href === '/bloc/rendez-vous' && retards > 0 && (
                 <span
                   title={`${retards} étape${retards > 1 ? 's' : ''} en retard`}
@@ -87,17 +108,22 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="space-y-5 px-5 py-6">
-        <ActionsCompte className="flex w-full items-center gap-3 px-4 text-slate-500 transition-colors hover:text-slate-900" classeLibelle="text-[13px] font-bold" />
+      <div className="space-y-5 px-4 py-5 sm:px-5 sm:py-6">
+        <button type="button" className="flex w-full items-center gap-3 px-4 text-slate-500 transition-colors hover:text-slate-900">
+          <Icone nom="settings" className="text-[18px]" />
+          <span className="text-[12px] font-bold sm:text-[13px]">Paramètres</span>
+        </button>
+        <ActionsCompte className="flex w-full items-center gap-3 px-4 text-slate-500 transition-colors hover:text-slate-900" classeLibelle="text-[12px] sm:text-[13px] font-bold" />
         <button
           type="button"
           className="flex w-full items-center gap-3 px-4 text-[#E11D48] transition-colors hover:text-red-700"
           onClick={() => { effacerSession(); redirigerVersLogin(); }}
         >
           <Icone nom="logout" className="text-[18px]" />
-          <span className="text-[13px] font-bold">Déconnexion</span>
+          <span className="text-[12px] font-bold sm:text-[13px]">Déconnexion</span>
         </button>
       </div>
     </aside>
+    </>
   );
 }

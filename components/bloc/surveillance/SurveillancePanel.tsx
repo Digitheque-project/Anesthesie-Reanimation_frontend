@@ -93,7 +93,7 @@ export default function SurveillancePanel({ patientId, activiteId }: { patientId
           <select
             value={alarme.intervalMin}
             onChange={(e) => alarme.setIntervalMin(Number(e.target.value))}
-            className="bg-white border border-outline-variant rounded-lg text-xs font-bold px-2 py-1"
+            className="bg-white border border-[#E2E8F0] rounded-xl text-xs font-bold px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
           >
             {PRESETS_MIN.map((m) => (
               <option key={m} value={m}>{m} min</option>
@@ -170,7 +170,7 @@ export default function SurveillancePanel({ patientId, activiteId }: { patientId
             <div key={champ.key} className="space-y-1.5">
               <label className="block text-[10px] font-bold text-on-surface-variant uppercase">{champ.label}</label>
               <input
-                className="w-full h-10 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm font-bold focus:ring-2 focus:ring-primary outline-none"
+                className="w-full h-10 px-3 bg-surface-container-lowest border border-[#E2E8F0] rounded-xl text-sm font-bold focus:ring-2 focus:ring-[#006A8C]/20 outline-none"
                 placeholder="--"
                 type="text"
                 value={champs[champ.key]}

@@ -26,7 +26,7 @@ export default function HeaderNotification({ onActualiser, onToggleFiltres }: He
             Filtrer
           </button>
           <button onClick={onActualiser}
-            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 flex items-center gap-2 hover:bg-primary-container transition-colors">
+            className="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
             <Icone nom="sync" />
             Actualiser
           </button>

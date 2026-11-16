@@ -205,10 +205,10 @@ function DossierPatientPageContent() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
           {numeroChambreReel != null && (
-            <div><span className="text-xs font-bold text-gray-500 uppercase">Chambre</span><p>{numeroChambreReel}</p></div>
+            <div><span className="text-xs font-bold text-[#64748B] uppercase">Chambre</span><p>{numeroChambreReel}</p></div>
           )}
-          <div><span className="text-xs font-bold text-gray-500 uppercase">Urgence</span><p className={`font-bold uppercase ${styleUrgence(p.niveauUrgence).texte}`}>{libelleUrgence(p.niveauUrgence)}</p></div>
-          <div><span className="text-xs font-bold text-gray-500 uppercase">Statut</span><p className={`font-bold ${styleStatutPatient(p.statut).texte}`}>{libelleStatutPatient(p.statut)}</p></div>
+          <div><span className="text-xs font-bold text-[#64748B] uppercase">Urgence</span><p className={`font-bold uppercase ${styleUrgence(p.niveauUrgence).texte}`}>{libelleUrgence(p.niveauUrgence)}</p></div>
+          <div><span className="text-xs font-bold text-[#64748B] uppercase">Statut</span><p className={`font-bold ${styleStatutPatient(p.statut).texte}`}>{libelleStatutPatient(p.statut)}</p></div>
         </div>
       </div>
 
@@ -231,15 +231,15 @@ function DossierPatientPageContent() {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm mb-2">
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Intervention prévue</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Intervention prévue</span>
             <p className="font-bold text-lg">{p.libelle || 'Non spécifiée'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Type de chirurgie</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Type de chirurgie</span>
             <p className="font-bold">{p.typeChirurgie || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Date et heure prévues de l'opération</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Date et heure prévues de l'opération</span>
             <p className="font-bold">
               {(p.dateIntervention || notification?.dateIntervention)
                 ? new Date(p.dateIntervention || notification.dateIntervention).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -247,19 +247,19 @@ function DossierPatientPageContent() {
             </p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Durée prévue</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Durée prévue</span>
             <p className="font-bold">{formaterDuree(p.dureeInterventionMinutes)}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Type d'anesthésie prévu</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Type d'anesthésie prévu</span>
             <p className="font-bold">{p.typeAnesthesie || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Chirurgien</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Chirurgien</span>
             <p className="font-bold">{p.chirurgien_nom || notification?.chirurgienNom || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Service source</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Service source</span>
             {/* p.serviceOrigine et notification.serviceSourceNom sont résolus par le même appel
                 ServiceRegistryClient côté backend au moment de l'ingestion — p.serviceOrigine
                 d'abord car disponible même si la notification exacte n'a pas été retrouvée
@@ -269,7 +269,7 @@ function DossierPatientPageContent() {
             <p className="font-bold">{p.serviceOrigine || notification?.serviceSourceNom || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase">Date de réception</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Date de réception</span>
             <p className="font-bold">
               {notification?.createdAt
                 ? new Date(notification.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
@@ -280,20 +280,20 @@ function DossierPatientPageContent() {
         {/* Renseignement clinique : contexte rédigé par le prescripteur, en pleine largeur car
             c'est un texte libre qui peut être long. */}
         <div className="p-3 bg-blue-50 rounded-lg text-sm mb-2">
-          <span className="text-xs font-bold text-gray-500 uppercase">Renseignement clinique</span>
+          <span className="text-xs font-bold text-[#64748B] uppercase">Renseignement clinique</span>
           <p className="font-bold whitespace-pre-line">{p.renseignementClinique || '—'}</p>
         </div>
 
         {/* Préparation de la salle : ce que l'équipe doit installer avant l'arrivée du patient. */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm mb-2">
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#64748B] uppercase flex items-center gap-1.5">
               <Icone nom="medical_services" className="text-sm" /> Matériel nécessaire
             </span>
             <p className="font-bold whitespace-pre-line mt-1">{p.materielNecessaire || '—'}</p>
           </div>
           <div className="p-3 bg-blue-50 rounded-lg">
-            <span className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
+            <span className="text-xs font-bold text-[#64748B] uppercase flex items-center gap-1.5">
               <Icone nom="airline_seat_flat" className="text-sm" /> Position du patient
             </span>
             <p className="font-bold mt-1">{p.positionPatient || '—'}</p>
@@ -363,7 +363,7 @@ function DossierPatientPageContent() {
               </div>
             )}
             <button onClick={() => setShowPlanifier(true)} disabled={submitting || !peutPlanifierCpa}
-              className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
+              className="w-full sm:w-auto px-4 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] disabled:opacity-50 flex items-center justify-center gap-2">
               <Icone nom="event_available" className="text-lg" />
               Planifier le rendez-vous CPA
             </button>

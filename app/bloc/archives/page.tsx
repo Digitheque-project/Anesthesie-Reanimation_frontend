@@ -322,7 +322,7 @@ export default function ArchivesPage() {
               <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
                 <Icone nom="search" className="text-sm" /> Nom du patient
               </label>
-              <input className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm"
+              <input className="w-full bg-white border rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm border-[#E2E8F0]"
                 placeholder="Rechercher..." type="text" value={recherche}
                 onChange={e => setRecherche(e.target.value)} />
             </div>
@@ -349,7 +349,7 @@ export default function ArchivesPage() {
                       <Icone nom="rule" className="text-sm" /> Décision
                     </label>
                     <select value={filtreStatutDemande} onChange={e => setFiltreStatutDemande(e.target.value)}
-                      className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm">
+                      className="w-full bg-white border rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm border-[#E2E8F0]">
                       <option value="Tous">Toutes</option>
                       {STATUTS_DEMANDE_TERMINES.map(s => (
                         <option key={s} value={s}>{STATUT_DEMANDE_INFO[s]?.label || s}</option>
@@ -362,14 +362,14 @@ export default function ArchivesPage() {
                     <Icone nom="event" className="text-sm" /> Date début
                   </label>
                   <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)}
-                    className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm" />
+                    className="w-full bg-white border rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm border-[#E2E8F0]" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-on-surface-variant uppercase tracking-wider ml-1 flex items-center gap-1">
                     <Icone nom="event" className="text-sm" /> Date fin
                   </label>
                   <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)}
-                    className="w-full bg-white border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm" />
+                    className="w-full bg-white border rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 shadow-sm border-[#E2E8F0]" />
                 </div>
               </>
             )}
@@ -377,7 +377,7 @@ export default function ArchivesPage() {
 
           <div className="mt-6 flex justify-end">
             <button onClick={onglet === 'OPERES' ? chargerPatients : chargerDemandes}
-              className="bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all transform active:scale-95 shadow-lg shadow-primary/20">
+              className="bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all transform active:scale-95 shadow-sm">
               <Icone nom="search_check" className="text-[20px]" />
               Appliquer le filtre
             </button>
@@ -392,13 +392,13 @@ export default function ArchivesPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-dim/30 border-b border-surface-container sticky top-0 z-10">
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Nom &amp; Prénom</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-center">Sexe</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Date d'opération</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Intervention</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Chirurgien</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Statut</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right print:hidden">Actions</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Nom &amp; Prénom</th>
+                  <th className="px-6 py-4 uppercase text-center text-[11px] font-bold tracking-wider text-[#64748B]">Sexe</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Date d'opération</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Intervention</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Chirurgien</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Statut</th>
+                  <th className="px-6 py-4 uppercase text-right print:hidden text-[11px] font-bold tracking-wider text-[#64748B]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-low">
@@ -447,7 +447,7 @@ export default function ArchivesPage() {
                           <Icone nom={exportPdfEnCours === p.id ? 'progress_activity' : 'picture_as_pdf'} className="text-sm" />
                         </button>
                         <button onClick={() => router.push(`/bloc/archives/${p.id}`)}
-                          className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5">
+                          className="px-3 py-1.5 rounded-xl bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5">
                           <Icone nom="visibility" className="text-sm" />
                           Informations
                         </button>
@@ -482,12 +482,12 @@ export default function ArchivesPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface-dim/30 border-b border-surface-container sticky top-0 z-10">
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Nom &amp; Prénom</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Service demandeur</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Motif</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Date</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Décision</th>
-                  <th className="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right print:hidden">Actions</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Nom &amp; Prénom</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Service demandeur</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Motif</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Date</th>
+                  <th className="px-6 py-4 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Décision</th>
+                  <th className="px-6 py-4 uppercase text-right print:hidden text-[11px] font-bold tracking-wider text-[#64748B]">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-container-low">
@@ -528,7 +528,7 @@ export default function ArchivesPage() {
                       </td>
                       <td className="px-6 py-4 text-right print:hidden" onClick={e => e.stopPropagation()}>
                         <button onClick={() => router.push(`/bloc/demande-cpa-externe/${d.id}`)}
-                          className="px-3 py-1.5 rounded-lg bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5 ml-auto">
+                          className="px-3 py-1.5 rounded-xl bg-primary text-on-primary text-[11px] font-bold hover:bg-primary-container transition-colors flex items-center gap-1.5 ml-auto">
                           <Icone nom="visibility" className="text-sm" />
                           Informations
                         </button>

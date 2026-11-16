@@ -125,7 +125,7 @@ function serviceCourant(services: ServiceJeton[]): string | null {
 const STYLE_MENU = `
 .chu-cs-item{display:block;width:100%;text-align:left;padding:12px 16px;font-size:13px;font-weight:600;color:#374151;background:#fff;border:0;border-bottom:1px solid #f9fafb;cursor:pointer;font-family:inherit}
 .chu-cs-item:last-child{border-bottom:0}
-.chu-cs-item:hover{background:#CFE9EF;color:#005b82}
+.chu-cs-item:hover{background:#CFE9EF;color:#006A8C}
 .chu-cs-role{display:block;font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
 `;
 

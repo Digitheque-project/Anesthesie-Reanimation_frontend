@@ -99,7 +99,7 @@ export function ObservationReadOnlyView({ sections, patientInfo, finalizedAt, au
       )}
 
       {visibleSections.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center text-[13px] text-slate-400">
+        <div className="rounded-xl border border-dashed border-[#E2E8F0] bg-slate-50 px-5 py-8 text-center text-[13px] text-slate-400">
           Aucune section renseignée.
         </div>
       ) : (

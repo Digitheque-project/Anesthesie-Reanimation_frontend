@@ -155,7 +155,7 @@ export default function NotificationModal({
       <div
         role="dialog"
         aria-label="Notifications"
-        className="absolute right-0 top-full mt-3 z-50 w-[400px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col overflow-hidden origin-top-right animate-fadeIn"
+        className="absolute right-0 top-full mt-3 z-50 w-[400px] max-w-[calc(100vw-2rem)] bg-white rounded-2xl shadow-2xl border border-[#F1F5F9] flex flex-col overflow-hidden origin-top-right animate-fadeIn"
       >
         {/* En-tête */}
         <div className="bg-gradient-to-r from-primary to-primary-dark px-5 py-3.5 flex justify-between items-center shrink-0">
@@ -187,7 +187,7 @@ export default function NotificationModal({
           {aucuneNotification ? (
             <div className="px-6 py-10 text-center">
               <Icone nom="notifications_off" className="text-gray-300 text-4xl" />
-              <p className="text-sm font-semibold text-gray-500 mt-2">Aucune notification</p>
+              <p className="text-sm font-semibold text-[#64748B] mt-2">Aucune notification</p>
             </div>
           ) : allRead ? (
             <div className="px-6 py-10 text-center">
@@ -225,15 +225,15 @@ export default function NotificationModal({
                     {notification.motif || notification.message || 'Aucun motif'}
                   </p>
 
-                  <div className="grid grid-cols-1 gap-3 bg-gray-50 p-3 rounded-lg border border-gray-100 mb-3">
+                  <div className="grid grid-cols-1 gap-3 bg-gray-50 p-3 rounded-lg border border-[#F1F5F9] mb-3">
                     <div>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Patient</p>
+                      <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Patient</p>
                       <p className="text-sm font-medium text-gray-800">
                         {notification.patientNom || formaterNomPatient(notification.patient)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">Reçue le</p>
+                      <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Reçue le</p>
                       <p className="text-sm font-medium text-gray-800">
                         {(notification.receivedAt || notification.createdAt)
                           ? new Date(notification.receivedAt || notification.createdAt).toLocaleString('fr-FR', {
@@ -289,7 +289,7 @@ export default function NotificationModal({
 
         {/* Pied de page — renvoie vers le fil complet plutôt qu'un simple bouton "Fermer",
             plus utile dans une pop-up compacte qu'un tiroir déjà plein écran. */}
-        <div className="bg-gray-50 px-5 py-2.5 border-t border-gray-100 shrink-0">
+        <div className="bg-gray-50 px-5 py-2.5 border-t border-[#F1F5F9] shrink-0">
           <button
             onClick={() => { router.push('/bloc/notification-cpa'); handleClose(); }}
             className="w-full text-center text-xs font-bold text-primary hover:text-primary/80 transition-colors py-1.5"

@@ -138,7 +138,7 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
               <select
                 value={pageSize}
                 onChange={e => setPageSize(Number(e.target.value))}
-                className="w-20 h-[38px] px-3 text-[13px] font-bold cursor-pointer border border-[#e2e8f0] rounded-[10px] text-[#1e293b] outline-none box-border bg-white transition-all"
+                className="w-20 h-[38px] px-3 text-[13px] font-bold cursor-pointer border border-[#e2e8f0] rounded-[10px] text-[#1e293b] outline-none box-border bg-white transition-all focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -155,7 +155,7 @@ export function SuiviTab({ patientId, chuId, serviceId }: { patientId: string; c
                   type="date"
                   value={filterDate}
                   onChange={e => setFilterDate(e.target.value)}
-                  className="w-[180px] pl-10 pr-[14px] py-[10px] text-[13px] rounded-[10px] text-[#1e293b] outline-none box-border transition-all"
+                  className="w-[180px] pl-10 pr-[14px] py-[10px] text-[13px] rounded-[10px] text-[#1e293b] outline-none box-border transition-all focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
                   style={{
                     backgroundColor: filterDate ? ehr.highlightBlueTint : '#F8FAFC',
                     border: `1px solid ${filterDate ? ehr.primary : ehr.borderSoft}`,

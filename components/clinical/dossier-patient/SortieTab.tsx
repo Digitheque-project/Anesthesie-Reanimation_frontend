@@ -133,12 +133,12 @@ export function SortieTab({ patientId, chuId, serviceId, episodeId }: Readonly<S
   const isCloture = !!dateSortieEffective || form?.isValidated === true;
 
   if (loading) {
-    return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm font-semibold text-slate-500">Chargement...</div>;
+    return <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 text-sm font-semibold text-[#64748B]">Chargement...</div>;
   }
 
   if (!form) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm font-semibold text-slate-500">
+      <div className="rounded-2xl border border-dashed border-[#E2E8F0] bg-white p-10 text-center text-sm font-semibold text-[#64748B]">
         Aucune sortie enregistrée pour ce patient.
       </div>
     );
@@ -148,15 +148,15 @@ export function SortieTab({ patientId, chuId, serviceId, episodeId }: Readonly<S
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EBF5FB] text-[#05668D]">
               {modeMeta?.icon}
             </span>
             <div>
-              <h1 className="text-xl font-black text-slate-900">Sortie du patient</h1>
-              <p className="mt-0.5 text-sm font-bold text-slate-600">{modeMeta?.label || form.modeSortie}</p>
+              <h1 className="text-xl font-black text-[#0F172A]">Sortie du patient</h1>
+              <p className="mt-0.5 text-sm font-bold text-[#475569]">{modeMeta?.label || form.modeSortie}</p>
             </div>
           </div>
           <span className={`rounded-full px-3 py-1.5 text-xs font-extrabold ${isCloture ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
@@ -170,8 +170,8 @@ export function SortieTab({ patientId, chuId, serviceId, episodeId }: Readonly<S
         ) : null}
       </div>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-black text-slate-900">Résumé médical</h2>
+      <section className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+        <h2 className="text-base font-black text-[#0F172A]">Résumé médical</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           <ReadField label="État du patient à la sortie" value={form.etatSortie} />
           <ReadField label="Rendez-vous de contrôle" value={form.rendezVousControle} />
@@ -218,7 +218,7 @@ export function SortieTab({ patientId, chuId, serviceId, episodeId }: Readonly<S
 function ReadField({ label, value, span2 }: Readonly<{ label: string; value?: string; span2?: boolean }>) {
   return (
     <div className={span2 ? "md:col-span-2" : undefined}>
-      <div className="text-xs font-black uppercase tracking-[0.08em] text-slate-500">{label}</div>
+      <div className="text-xs font-black uppercase tracking-[0.08em] text-[#64748B]">{label}</div>
       <div className="mt-2 text-sm font-semibold text-slate-800">{value || "—"}</div>
     </div>
   );

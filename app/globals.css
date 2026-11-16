@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* Palette et police de la consultation externe (unification des interfaces du CHU) : fond
-   gris très clair, cartes blanches, textes ardoise, bordures gris clair, bleu #005b82,
+   gris très clair, cartes blanches, textes ardoise, bordures gris clair, bleu #006A8C,
    Manrope partout. Les pages utilisent ces jetons : les changer ici les repeint toutes. */
 /* Fond des fenêtres de la prescription (var(--card)) : sans lui, elles étaient transparentes. */
 :root {
@@ -13,11 +13,11 @@
   --font-body: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-label: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  --color-primary: #005b82;
+  --color-primary: #006a8c;
   --color-primary-dark: #004a66;
-  --color-navy-blue: #005b82;
+  --color-navy-blue: #006a8c;
   --color-on-primary: #ffffff;
-  --color-primary-container: #006a8c;
+  --color-primary-container: #005a76;
   --color-primary-fixed: #cfe9ef;
   --color-primary-fixed-dim: #a9d4e0;
   --color-secondary: #006a6a;
@@ -30,7 +30,7 @@
   --color-on-error: #ffffff;
   --color-error-container: #ffdad6;
   --color-surface: #f8f9fb;
-  --color-on-surface: #1e293b;
+  --color-on-surface: #0f172a;
   --color-surface-variant: #e2e8f0;
   --color-on-surface-variant: #64748b;
   --color-surface-container: #f1f5f9;

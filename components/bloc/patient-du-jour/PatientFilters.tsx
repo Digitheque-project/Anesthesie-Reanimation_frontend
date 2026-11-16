@@ -93,7 +93,7 @@ export default function PatientFilters({ onFilterChange, date, onDateChange }: P
           <select
             value={filtres.statut}
             onChange={(e) => patch({ statut: e.target.value })}
-            className="w-full px-4 py-2 bg-white rounded-lg border border-outline-variant/20 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer shadow-sm"
+            className="w-full px-4 py-2 bg-white rounded-xl border border-[#E2E8F0] text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer shadow-sm"
           >
             <option value="">Tous les niveaux</option>
             <option value="NORMAL">NORMAL</option>
@@ -110,7 +110,7 @@ export default function PatientFilters({ onFilterChange, date, onDateChange }: P
           <select
             value={filtres.specialite}
             onChange={(e) => patch({ specialite: e.target.value })}
-            className="w-full px-4 py-2 bg-white rounded-lg border border-outline-variant/20 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer shadow-sm"
+            className="w-full px-4 py-2 bg-white rounded-xl border border-[#E2E8F0] text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all cursor-pointer shadow-sm"
           >
             <option value="">Toutes les spécialités</option>
             {SPECIALITES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -142,7 +142,7 @@ export default function PatientFilters({ onFilterChange, date, onDateChange }: P
           value={filtres.recherche}
           onChange={(e) => patch({ recherche: e.target.value })}
           placeholder="Rechercher un patient par nom ou prénom..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white rounded-lg border border-outline-variant/20 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
+          className="w-full pl-10 pr-4 py-2.5 bg-white rounded-xl border border-[#E2E8F0] text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary/20 outline-none transition-all shadow-sm"
         />
       </div>
     </div>

@@ -137,7 +137,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
         <button
           type="button"
           onClick={() => setSelected(null)}
-          className="mb-3 inline-flex items-center gap-1 text-[12px] font-bold text-slate-600 hover:text-slate-800"
+          className="mb-3 inline-flex items-center gap-1 text-[12px] font-bold text-[#475569] hover:text-slate-800"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={2} />
           Retour à l&apos;historique
@@ -153,7 +153,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
   }
 ​
   if (loading) {
-    return <div className="py-8 text-center text-[13px] text-slate-500">Chargement de l&apos;historique…</div>;
+    return <div className="py-8 text-center text-[13px] text-[#64748B]">Chargement de l&apos;historique…</div>;
   }
 ​
   if (error) {
@@ -206,7 +206,7 @@ export function ObservationHistoryList({ patientId, chuId, serviceId }: Props) {
                   </span>
                 </div>
                 {preview ? (
-                  <p className="mt-1.5 truncate text-[13px] italic text-slate-500">&laquo; {preview} &raquo;</p>
+                  <p className="mt-1.5 truncate text-[13px] italic text-[#64748B]">&laquo; {preview} &raquo;</p>
                 ) : (
                   <p className="mt-1.5 text-[12px] text-slate-400">Observation médicale générale</p>
                 )}

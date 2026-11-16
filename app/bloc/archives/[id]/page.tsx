@@ -58,7 +58,7 @@ export default function ArchiveDetailPage() {
   const lignesEquipeExport = equipe.map(m => ({ ...m, etapesTxt: Array.from(m.etapes).join(', ') }))
 
   return (
-    <main className="min-h-screen flex flex-col bg-surface">
+    <main className="min-h-screen flex flex-col bg-[#F8F9FB]">
       <div className="sticky z-30 bg-white border-b border-surface-variant/20 px-8 py-3 flex items-center gap-4 shadow-sm top-0 print:hidden">
         <button onClick={() => router.push('/bloc/archives')} className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-xs font-bold">
           <Icone nom="arrow_back" />

@@ -70,12 +70,12 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-500" style={{ fontFamily: "'Manrope', sans-serif" }}>Chargement de l'historique...</div>;
+    return <div className="text-center py-8 text-[#64748B]" style={{ fontFamily: "'Manrope', sans-serif" }}>Chargement de l'historique...</div>;
   }
 
   if (historique.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500" style={{ fontFamily: "'Manrope', sans-serif" }}>
+      <div className="text-center py-12 text-[#64748B]" style={{ fontFamily: "'Manrope', sans-serif" }}>
         <History size={48} className="mx-auto mb-3 text-gray-300" />
         <p>Aucun historique disponible pour ce patient.</p>
       </div>
@@ -103,7 +103,7 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
                 {med.duree && <span> · Pendant {med.duree}</span>}
                 {med.cible && <span> · Cible : {med.cible}</span>}
                 {med.description && <span> · {med.description}</span>}
-                {med.instructions && <div className="text-[11px] text-gray-500 italic mt-0.5">{med.instructions}</div>}
+                {med.instructions && <div className="text-[11px] text-[#64748B] italic mt-0.5">{med.instructions}</div>}
               </li>
             ))}
           </ul>
@@ -124,7 +124,7 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
     // Affichage récursif plus propre pour d'autres types d'objets (comme Labo et Imagerie)
     if (typeof valeurs === 'object' && valeurs !== null) {
       return (
-        <div className={`grid grid-cols-1 gap-2 ${depth === 0 ? 'mt-2 bg-white p-3 rounded border' : 'mt-1 pl-3 border-l-2 border-gray-200'} text-sm`}>
+        <div className={`grid grid-cols-1 gap-2 ${depth === 0 ? 'mt-2 bg-white p-3 rounded border' : 'mt-1 pl-3 border-l-2 border-[#E2E8F0]'} text-sm`}>
           {Object.entries(valeurs).map(([key, value]) => {
             if (depth === 0 && ['id', 'patientId', 'prescripteurId', 'createdAt', 'updatedAt'].includes(key)) return null;
             if (value === null || value === undefined || value === '') return null;
@@ -175,17 +175,17 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
   return (
     <div className="space-y-4" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <div className="flex flex-wrap items-center justify-between border-b pb-2 gap-4">
-        <div className="flex items-center gap-2 text-gray-600">
+        <div className="flex items-center gap-2 text-[#475569]">
           <History size={20} />
           <h3 className="font-medium">Journal des actions</h3>
         </div>
         {uniqueModules.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 whitespace-nowrap">Filtrer par module :</span>
+            <span className="text-sm text-[#64748B] whitespace-nowrap">Filtrer par module :</span>
             <select
               value={filterModule}
               onChange={(e) => setFilterModule(e.target.value)}
-              className="border rounded-md px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#05668D]"
+              className="border rounded-xl px-3 py-1.5 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#05668D] border-[#E2E8F0]"
             >
               <option value="Tous">Tous les modules</option>
               {uniqueModules.map(m => (
@@ -204,7 +204,7 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
                   {actionLabels[entry.action]}
                 </span>
                 {entry.module && (
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{entry.module}</span>
+                  <span className="text-xs text-[#64748B] bg-gray-100 px-2 py-1 rounded-full">{entry.module}</span>
                 )}
               </div>
               <div className="text-xs text-gray-400 flex items-center gap-1">
@@ -216,24 +216,24 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
             </div>
             <div className="mt-2 text-sm text-gray-700">
               {entry.utilisateur && (
-                <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+                <div className="flex items-center gap-1 text-xs text-[#64748B] mb-1">
                   <User size={12} /> {entry.utilisateur}
                 </div>
               )}
-              {entry.commentaire && <p className="text-gray-600 mt-1">{entry.commentaire}</p>}
+              {entry.commentaire && <p className="text-[#475569] mt-1">{entry.commentaire}</p>}
               {(entry.anciennesValeurs || entry.nouvellesValeurs) && (
                 <details className="mt-3 text-sm bg-gray-50 p-3 rounded-lg border">
                   <summary className="cursor-pointer font-medium text-[#05668D] hover:underline">Voir les détails de l'action</summary>
                   <div className="mt-3 space-y-4">
                     {entry.action === 'modification' && entry.anciennesValeurs && (
                       <div>
-                        <strong className="text-gray-600 block mb-1">Avant modification :</strong>
+                        <strong className="text-[#475569] block mb-1">Avant modification :</strong>
                         {renderDetails(entry.anciennesValeurs)}
                       </div>
                     )}
                     {entry.nouvellesValeurs && (
                       <div>
-                        <strong className="text-gray-600 block mb-1">
+                        <strong className="text-[#475569] block mb-1">
                           {entry.action === 'modification' ? 'Après modification :' : 'Données enregistrées :'}
                         </strong>
                         {renderDetails(entry.nouvellesValeurs)}

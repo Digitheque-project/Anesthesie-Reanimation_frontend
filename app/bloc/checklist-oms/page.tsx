@@ -294,15 +294,15 @@ function ChecklistAvantOpPageContent() {
               <div className="space-y-4">
                 <div className="p-3 bg-surface rounded-lg">
                   <p className="text-xs font-bold text-primary">- Sur le plan chirurgical</p>
-                  <textarea value={form.notesChirurgicales} onChange={e => setForm({...form, notesChirurgicales: e.target.value})} className="w-full text-xs border border-outline-variant/20 bg-white rounded-md p-2 focus:ring-1 focus:ring-primary focus:outline-none h-28 mt-2" placeholder="Notes chirurgie..."></textarea>
+                  <textarea value={form.notesChirurgicales} onChange={e => setForm({...form, notesChirurgicales: e.target.value})} className="w-full text-xs border border-[#E2E8F0] bg-white rounded-xl p-2 focus:ring-1 focus:ring-[#006A8C]/20 focus:outline-none h-28 mt-2" placeholder="Notes chirurgie..."></textarea>
                 </div>
                 <div className="p-3 bg-surface rounded-lg">
                   <p className="text-xs font-bold text-secondary">- Sur le plan anesthésique</p>
-                  <textarea value={form.notesAnesthesiques} onChange={e => setForm({...form, notesAnesthesiques: e.target.value})} className="w-full text-xs border border-outline-variant/20 bg-white rounded-md p-2 focus:ring-1 focus:ring-secondary focus:outline-none h-28 mt-2" placeholder="Notes anesthésie..."></textarea>
+                  <textarea value={form.notesAnesthesiques} onChange={e => setForm({...form, notesAnesthesiques: e.target.value})} className="w-full text-xs border border-[#E2E8F0] bg-white rounded-xl p-2 focus:ring-1 focus:ring-secondary focus:outline-none h-28 mt-2" placeholder="Notes anesthésie..."></textarea>
                 </div>
                 <div className="p-3 bg-surface rounded-lg">
                   <p className="text-xs font-bold text-on-surface-variant">- IDE / IBODE</p>
-                  <textarea value={form.notesIdeIbode} onChange={e => setForm({...form, notesIdeIbode: e.target.value})} className="w-full text-xs border border-outline-variant/20 bg-white rounded-md p-2 focus:ring-1 focus:outline-none h-28 mt-2" placeholder="Notes IDE/IBODE..."></textarea>
+                  <textarea value={form.notesIdeIbode} onChange={e => setForm({...form, notesIdeIbode: e.target.value})} className="w-full text-xs border border-[#E2E8F0] bg-white rounded-xl p-2 focus:ring-1 focus:outline-none h-28 mt-2" placeholder="Notes IDE/IBODE..."></textarea>
                 </div>
               </div>
             </div>
@@ -315,7 +315,7 @@ function ChecklistAvantOpPageContent() {
         {estAnesthesiste && (
         <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
           title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
-          className="flex items-center space-x-2 px-8 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed">
+          className="flex items-center space-x-2 px-8 py-3 bg-primary text-white rounded-xl hover:bg-[#005a76] transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
           <Icone nom="check_circle" className="text-[24px]" />
           <span>{loading ? 'Validation...' : !estAnesthesiste ? 'Accès non autorisé' : 'Valider la check-list'}</span>
         </button>

@@ -116,7 +116,7 @@ export default function PiecesJointesUploader({ value, onChange, disabled }: Pro
         <div className="flex gap-2">
           <input type="text" value={labelEnCours} onChange={(e) => setLabelEnCours(e.target.value)}
             placeholder="Libellé (ex. ECG, Radio pulmonaire...)"
-            className="flex-1 bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm" />
+            className="flex-1 bg-white border rounded-xl px-3 py-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" />
           <button type="button" onClick={declencherSelection} disabled={envoiEnCours}
             className="flex items-center gap-1.5 px-3 py-2 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 disabled:opacity-50">
             <Icone nom="attach_file" className="text-base" />

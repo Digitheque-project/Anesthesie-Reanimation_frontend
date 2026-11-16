@@ -225,7 +225,7 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
           <select
             value={categorieNouveauBouton}
             onChange={(e) => setCategorieNouveauBouton(e.target.value as CategorieMoment)}
-            className="bg-surface-container-low border-none rounded-lg p-2 text-xs font-bold"
+            className="bg-white border rounded-xl p-2 text-xs font-bold border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
           >
             {categoriesVisibles.map((c) => (
               <option key={c} value={c}>{TITRES_CATEGORIE[c]}</option>
@@ -236,9 +236,9 @@ export default function MomentsTimeline({ patientId }: { patientId: string }) {
             onChange={(e) => setNouveauLabel(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && ajouterBouton()}
             placeholder="+ Créer un nouveau bouton…"
-            className="flex-1 bg-white border border-outline-variant/40 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary/30 outline-none"
+            className="flex-1 bg-white border border-outline-variant/40 rounded-xl p-2 text-sm focus:ring-2 focus:ring-primary/30 outline-none"
           />
-          <button type="button" onClick={ajouterBouton} disabled={ajoutEnCours} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 hover:shadow-md transition-all disabled:opacity-60">
+          <button type="button" onClick={ajouterBouton} disabled={ajoutEnCours} className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-[#005a76] transition-all disabled:opacity-60">
             <Icone nom="add" className="text-base" /> Créer
           </button>
         </div>

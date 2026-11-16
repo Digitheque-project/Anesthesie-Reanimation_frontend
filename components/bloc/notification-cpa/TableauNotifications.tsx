@@ -37,7 +37,7 @@ export default function TableauNotifications({
     <div className="bg-white rounded-xl shadow-md border border-outline-variant/30 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50/80 text-xs font-semibold uppercase text-on-surface-variant">
+          <thead className="bg-gray-50/80 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
             <tr>
               <th className="px-4 py-3 text-left">Heure</th>
               <th className="px-4 py-3 text-left">Patient</th>

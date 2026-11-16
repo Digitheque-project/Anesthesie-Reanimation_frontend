@@ -97,7 +97,7 @@ export default function ListeSalleReveil() {
     <RoleGate allowedRoles={[RoleClinique.ANESTHESISTE, RoleClinique.IBODE, RoleClinique.MAJOR]} message="Vous n'avez pas accès à la salle de réveil.">
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Tous les patients en salle de réveil</h1>
+        <h1 className="text-2xl font-bold text-[#0F172A]">Tous les patients en salle de réveil</h1>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setShowProgrammeAVenir(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-primary/10 text-primary rounded-xl text-sm font-bold hover:bg-primary/20 transition-colors">
@@ -113,17 +113,17 @@ export default function ListeSalleReveil() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mb-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+      <div className="flex flex-wrap items-center gap-3 mb-4 bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-sm">
         <input
           value={recherche}
           onChange={(e) => setRecherche(e.target.value)}
           placeholder="Rechercher un patient..."
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm flex-1 min-w-[180px]"
+          className="px-3 py-2 border border-[#E2E8F0] rounded-xl text-sm flex-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
         />
         <select
           value={filtreUrgence}
           onChange={(e) => setFiltreUrgence(e.target.value as typeof filtreUrgence)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="px-3 py-2 border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
         >
           <option value="TOUS">Toutes urgences</option>
           <option value="NORMAL">Normal</option>
@@ -134,7 +134,7 @@ export default function ListeSalleReveil() {
           type="date"
           value={filtreDate}
           onChange={(e) => setFiltreDate(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          className="px-3 py-2 border border-[#E2E8F0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
           title="Filtrer par date d'entrée en salle de réveil"
         />
         {filtreDate && (
@@ -145,35 +145,35 @@ export default function ListeSalleReveil() {
         <select
           value={tri}
           onChange={(e) => setTri(e.target.value as Tri)}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm ml-auto"
+          className="px-3 py-2 border border-[#E2E8F0] rounded-xl text-sm ml-auto focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
         >
           <option value="RECENT">Plus récent d'abord</option>
           <option value="ANCIEN">Plus ancien d'abord</option>
         </select>
-        <span className="text-xs font-bold text-gray-500">{patientsAffiches.length} patient{patientsAffiches.length > 1 ? 's' : ''}</span>
+        <span className="text-xs font-bold text-[#64748B]">{patientsAffiches.length} patient{patientsAffiches.length > 1 ? 's' : ''}</span>
       </div>
 
       {loading ? (
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Chargement des patients...</p>
+          <p className="mt-4 text-[#64748B]">Chargement des patients...</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-[#E2E8F0]">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 border-b border-[#E2E8F0]">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Intervention</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Depuis</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Urgence</th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Action</th>
+                <th className="px-6 py-3 text-left uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Patient</th>
+                <th className="px-6 py-3 text-left uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Intervention</th>
+                <th className="px-6 py-3 text-left uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Depuis</th>
+                <th className="px-6 py-3 text-left uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Urgence</th>
+                <th className="px-6 py-3 text-center uppercase text-[11px] font-bold tracking-wider text-[#64748B]">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {patientsAffiches.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={5} className="px-6 py-8 text-center text-[#64748B]">
                     {patients.length === 0 ? 'Aucun patient en salle de réveil' : 'Aucun résultat pour ces filtres'}
                   </td>
                 </tr>
@@ -181,7 +181,7 @@ export default function ListeSalleReveil() {
                 patientsAffiches.map((patient) => (
                   <tr key={patient.id} className="hover:bg-gray-50 transition">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">{formaterNomPatient(patient)}</p>
+                      <p className="font-medium text-[#0F172A]">{formaterNomPatient(patient)}</p>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">{patient.intervention}</td>
                     <td className="px-6 py-4 text-sm text-gray-700">{patient.depuis}</td>

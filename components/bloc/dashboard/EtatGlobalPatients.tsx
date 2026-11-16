@@ -55,15 +55,15 @@ export default function EtatGlobalPatients({ sections, loading }: EtatGlobalProp
             )}
 
             <div className="space-y-1.5 pt-3 border-t border-slate-50">
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+              <div className="flex items-center justify-between text-[11px] font-bold text-[#475569]">
                 <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-red-600" />Très urgent</span>
                 <span className="text-on-surface">{tresUrgent.toString().padStart(2, '0')}</span>
               </div>
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+              <div className="flex items-center justify-between text-[11px] font-bold text-[#475569]">
                 <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-orange-500" />Urgent</span>
                 <span className="text-on-surface">{urgent.toString().padStart(2, '0')}</span>
               </div>
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+              <div className="flex items-center justify-between text-[11px] font-bold text-[#475569]">
                 <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-600" />Normal</span>
                 <span className="text-on-surface">{normal.toString().padStart(2, '0')}</span>
               </div>

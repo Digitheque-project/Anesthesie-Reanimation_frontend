@@ -126,7 +126,7 @@ export default function ConfirmationRecapModal({
             type="button"
             onClick={onConfirmer}
             disabled={confirmEnCours}
-            className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
           >
             <Icone nom={confirmEnCours ? 'progress_activity' : 'check_circle'} className="text-lg" />
             {confirmEnCours ? 'Enregistrement...' : labelConfirmer}

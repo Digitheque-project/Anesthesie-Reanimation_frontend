@@ -75,7 +75,7 @@ export default function SignatureModal({ medecinNom, onConfirm, onCancel }: Sign
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(""); }}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-outline-variant/30 text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-outline-variant/30 text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none focus:border-primary transition-all"
                 autoFocus
               />
             </div>
@@ -98,7 +98,7 @@ export default function SignatureModal({ medecinNom, onConfirm, onCancel }: Sign
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               <Icone nom="check_circle" className="text-[18px]" />
               Signer & Valider

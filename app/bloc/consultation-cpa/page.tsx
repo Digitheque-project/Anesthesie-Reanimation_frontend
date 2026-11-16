@@ -1128,10 +1128,10 @@ function ConsultationCpaPageContent() {
               <label className="text-xs font-semibold text-on-surface-variant block mb-1">Date et heure prévues de l'opération</label>
               <input type="datetime-local" value={dateInterventionInput} onChange={e => setDateInterventionInput(e.target.value)}
                 min={`${new Date().toISOString().split('T')[0]}T00:00`}
-                className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm font-bold" />
+                className="w-full bg-white border rounded-xl p-2 text-sm font-bold border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" />
             </div>
             <button onClick={handleEnregistrerDateIntervention} disabled={savingDateIntervention || !dateInterventionInput}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50 self-end">
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] transition-all disabled:opacity-50 self-end">
               <Icone nom="save" className="text-lg" />
               {savingDateIntervention ? 'Enregistrement...' : 'Enregistrer'}
             </button>
@@ -1156,10 +1156,10 @@ function ConsultationCpaPageContent() {
               <label className="text-xs font-semibold text-on-surface-variant block mb-1">Salle de bloc prévue</label>
               <input type="text" value={salleOperationInput} onChange={e => setSalleOperationInput(e.target.value)}
                 placeholder="Ex. Salle 3"
-                className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm font-bold" />
+                className="w-full bg-white border rounded-xl p-2 text-sm font-bold border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" />
             </div>
             <button onClick={handleEnregistrerSalleOperation} disabled={savingSalleOperation || !salleOperationInput.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50 self-end">
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#005a76] transition-all disabled:opacity-50 self-end">
               <Icone nom="save" className="text-lg" />
               {savingSalleOperation ? 'Enregistrement...' : 'Enregistrer'}
             </button>
@@ -1203,13 +1203,13 @@ function ConsultationCpaPageContent() {
 
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-on-surface-variant">Histoire actuelle</label>
-                  <textarea disabled={!peutEditerExamenEtDecision} value={form.histoireActuelle} onChange={setField('histoireActuelle')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 disabled:opacity-60" placeholder="Motif de consultation, contexte actuel..."></textarea>
+                  <textarea disabled={!peutEditerExamenEtDecision} value={form.histoireActuelle} onChange={setField('histoireActuelle')} className="w-full h-20 bg-white border rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 disabled:opacity-60 border-[#E2E8F0]" placeholder="Motif de consultation, contexte actuel..."></textarea>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-on-surface-variant">Urgence — Dernier repas / Dernière boisson</label>
-                    <input disabled={!peutEditerExamenEtDecision} value={form.dernierRepasBoisson} onChange={setField('dernierRepasBoisson')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="ex: repas à 19h, eau à 22h" />
+                    <input disabled={!peutEditerExamenEtDecision} value={form.dernierRepasBoisson} onChange={setField('dernierRepasBoisson')} className="w-full bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="ex: repas à 19h, eau à 22h" />
                   </div>
                   <div className="space-y-2">
                     <label className="block text-sm font-semibold text-on-surface-variant">Patient mineur ?<Requis /></label>
@@ -1261,10 +1261,10 @@ function ConsultationCpaPageContent() {
                 </div>
               </div>
               <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD anesthésiques et chirurgicaux</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdChirurgicaux} onChange={setField('atcdChirurgicaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Interventions, anesthésies antérieures..."></textarea>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdChirurgicaux} onChange={setField('atcdChirurgicaux')} className="w-full h-20 bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Interventions, anesthésies antérieures..."></textarea>
               </div>
               <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">Incidents</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.notesIncidents} onChange={setField('notesIncidents')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Décrire tout incident..."></textarea>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.notesIncidents} onChange={setField('notesIncidents')} className="w-full h-20 bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Décrire tout incident..."></textarea>
               </div>
             </div>
 
@@ -1272,10 +1272,10 @@ function ConsultationCpaPageContent() {
                 distincts du bloc anesthésique/chirurgical ci-dessus. */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD médicaux</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdMedicaux} onChange={setField('atcdMedicaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="HTA, diabète..."></textarea>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdMedicaux} onChange={setField('atcdMedicaux')} className="w-full h-20 bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="HTA, diabète..."></textarea>
               </div>
               <div className="space-y-2"><label className="block text-sm font-semibold text-on-surface-variant">ATCD Familiaux</label>
-                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdFamiliaux} onChange={setField('atcdFamiliaux')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="HTA, diabète, asthme..."></textarea>
+                <textarea disabled={!peutEditerExamenEtDecision} value={form.atcdFamiliaux} onChange={setField('atcdFamiliaux')} className="w-full h-20 bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="HTA, diabète, asthme..."></textarea>
               </div>
             </div>
 
@@ -1313,31 +1313,31 @@ function ConsultationCpaPageContent() {
                 DDR = date des dernières règles. Exemple : G3 P2 A1. Laisser vide si sans objet.
               </p>
               <div className="flex flex-wrap items-end gap-2">
-                <div className="w-28" title="Gestité : nombre total de grossesses"><label className="text-[10px] font-bold block mb-1">G (gestité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} placeholder="ex. 3" title="Gestité : nombre total de grossesses" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
-                <div className="w-28" title="Parité : nombre d'accouchements"><label className="text-[10px] font-bold block mb-1">P (parité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} placeholder="ex. 2" title="Parité : nombre d'accouchements" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
-                <div className="w-28" title="Avortements : fausses couches / IVG"><label className="text-[10px] font-bold block mb-1">A (avortements)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} placeholder="ex. 1" title="Avortements : fausses couches / IVG" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm text-center disabled:opacity-60" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-28" title="Gestité : nombre total de grossesses"><label className="text-[10px] font-bold block mb-1">G (gestité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} placeholder="ex. 3" title="Gestité : nombre total de grossesses" className="w-full bg-white border rounded-xl p-2 text-sm text-center disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-28" title="Parité : nombre d'accouchements"><label className="text-[10px] font-bold block mb-1">P (parité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} placeholder="ex. 2" title="Parité : nombre d'accouchements" className="w-full bg-white border rounded-xl p-2 text-sm text-center disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" inputMode="numeric" maxLength={3} /></div>
+                <div className="w-28" title="Avortements : fausses couches / IVG"><label className="text-[10px] font-bold block mb-1">A (avortements)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} placeholder="ex. 1" title="Avortements : fausses couches / IVG" className="w-full bg-white border rounded-xl p-2 text-sm text-center disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" inputMode="numeric" maxLength={3} /></div>
                 <div className="flex-1 min-w-[140px]"><label className="text-[10px] font-bold block mb-1">DDR</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxDdr} max={new Date().toISOString().split('T')[0]} onChange={(e) => { if (e.target.value <= new Date().toISOString().split('T')[0]) setField('atcdObstetricauxDdr')(e); }} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" type="date" /></div>
-                <div className="flex-1 min-w-[160px]"><label className="text-[10px] font-bold block mb-1">Contraception</label><input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} placeholder="ex. pilule, DIU, aucune" className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
+                <div className="flex-1 min-w-[160px]"><label className="text-[10px] font-bold block mb-1">Contraception</label><input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} placeholder="ex. pilule, DIU, aucune" className="w-full bg-white border rounded-xl p-2 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
               </div>
             </div>
 
             <div className="border-t border-outline-variant/20 pt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Allergies médicamenteuses</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.allergiesMedicamenteuses} onChange={setField('allergiesMedicamenteuses')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Aucune / préciser..." /></div>
+                <input disabled={!peutEditerExamenEtDecision} value={form.allergiesMedicamenteuses} onChange={setField('allergiesMedicamenteuses')} className="w-full bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Aucune / préciser..." /></div>
               <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Allergies (autres)</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.allergiesAutres} onChange={setField('allergiesAutres')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Latex, alimentaire..." /></div>
+                <input disabled={!peutEditerExamenEtDecision} value={form.allergiesAutres} onChange={setField('allergiesAutres')} className="w-full bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Latex, alimentaire..." /></div>
             </div>
 
             <div className="border-t border-outline-variant/20 pt-3 space-y-2">
               <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant">Groupe sanguin</label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 <div><label className="text-[10px] font-bold block mb-1">Groupe (A/B/AB/O)</label>
-                  <select disabled={!peutEditerExamenEtDecision} value={form.groupeSanguinCpaGroupe} onChange={setField('groupeSanguinCpaGroupe')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60">
+                  <select disabled={!peutEditerExamenEtDecision} value={form.groupeSanguinCpaGroupe} onChange={setField('groupeSanguinCpaGroupe')} className="w-full bg-white border rounded-xl p-2 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20">
                     <option value="">—</option><option>A</option><option>B</option><option>AB</option><option>O</option>
                   </select>
                 </div>
-                <div><label className="text-[10px] font-bold block mb-1">Phénotype</label><input disabled={!peutEditerExamenEtDecision} value={form.groupeSanguinCpaPhenotype} onChange={setField('groupeSanguinCpaPhenotype')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" /></div>
-                <div><label className="text-[10px] font-bold block mb-1">RAI</label><input disabled={!peutEditerExamenEtDecision} value={form.groupeSanguinCpaRai} onChange={setField('groupeSanguinCpaRai')} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" placeholder="Négative / positive..." /></div>
+                <div><label className="text-[10px] font-bold block mb-1">Phénotype</label><input disabled={!peutEditerExamenEtDecision} value={form.groupeSanguinCpaPhenotype} onChange={setField('groupeSanguinCpaPhenotype')} className="w-full bg-white border rounded-xl p-2 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
+                <div><label className="text-[10px] font-bold block mb-1">RAI</label><input disabled={!peutEditerExamenEtDecision} value={form.groupeSanguinCpaRai} onChange={setField('groupeSanguinCpaRai')} className="w-full bg-white border rounded-xl p-2 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Négative / positive..." /></div>
               </div>
             </div>
 
@@ -1354,7 +1354,7 @@ function ConsultationCpaPageContent() {
                 </div>
               </div>
               <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Incidents transfusionnels</label>
-                <input disabled={!peutEditerExamenEtDecision} value={form.transfusionsIncidents} onChange={setField('transfusionsIncidents')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Aucun / préciser..." /></div>
+                <input disabled={!peutEditerExamenEtDecision} value={form.transfusionsIncidents} onChange={setField('transfusionsIncidents')} className="w-full bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Aucun / préciser..." /></div>
             </div>
               </div>
             </div>
@@ -1370,14 +1370,14 @@ function ConsultationCpaPageContent() {
               <div className="md:col-span-3 bg-surface-container-low rounded-xl p-4 space-y-2">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">CONSTANTES</h3>
                 <div className="space-y-3">
-                  <div><label className="text-[10px] font-bold block mb-1">Fréquence Cardiaque (BPM)</label><input disabled={!peutEditerExamenEtDecision} value={form.frequenceCardiaque} onChange={setField('frequenceCardiaque')} className="w-full bg-white border-none rounded-lg p-2 text-lg font-bold text-primary disabled:opacity-60" type="number" /></div>
+                  <div><label className="text-[10px] font-bold block mb-1">Fréquence Cardiaque (BPM)</label><input disabled={!peutEditerExamenEtDecision} value={form.frequenceCardiaque} onChange={setField('frequenceCardiaque')} className="w-full bg-white border rounded-xl p-2 text-lg font-bold text-primary disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="number" /></div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div><label className="text-[10px] font-bold block mb-1">TA Syst.</label><input disabled={!peutEditerExamenEtDecision} value={form.taSystolique} onChange={setField('taSystolique')} className="w-full bg-white border-none rounded-lg p-2 text-sm font-bold disabled:opacity-60" type="number" /></div>
-                    <div><label className="text-[10px] font-bold block mb-1">TA Diast.</label><input disabled={!peutEditerExamenEtDecision} value={form.taDiastolique} onChange={setField('taDiastolique')} className="w-full bg-white border-none rounded-lg p-2 text-sm font-bold disabled:opacity-60" type="number" /></div>
+                    <div><label className="text-[10px] font-bold block mb-1">TA Syst.</label><input disabled={!peutEditerExamenEtDecision} value={form.taSystolique} onChange={setField('taSystolique')} className="w-full bg-white border rounded-xl p-2 text-sm font-bold disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="number" /></div>
+                    <div><label className="text-[10px] font-bold block mb-1">TA Diast.</label><input disabled={!peutEditerExamenEtDecision} value={form.taDiastolique} onChange={setField('taDiastolique')} className="w-full bg-white border rounded-xl p-2 text-sm font-bold disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="number" /></div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div><label className="text-[10px] font-bold block mb-1">Taille (cm)</label><input disabled={!peutEditerExamenEtDecision} value={form.taille} min={0} onChange={(e) => { if (!e.target.value.startsWith('-')) setField('taille')(e); }} className="w-full bg-white border-none rounded-lg p-2 text-sm font-bold disabled:opacity-60" placeholder="170" type="number" /></div>
-                    <div><label className="text-[10px] font-bold block mb-1">Poids (kg)</label><input disabled={!peutEditerExamenEtDecision} value={form.poids} min={0} onChange={(e) => { if (!e.target.value.startsWith('-')) setField('poids')(e); }} className="w-full bg-white border-none rounded-lg p-2 text-sm font-bold disabled:opacity-60" placeholder="70" type="number" /></div>
+                    <div><label className="text-[10px] font-bold block mb-1">Taille (cm)</label><input disabled={!peutEditerExamenEtDecision} value={form.taille} min={0} onChange={(e) => { if (!e.target.value.startsWith('-')) setField('taille')(e); }} className="w-full bg-white border rounded-xl p-2 text-sm font-bold disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="170" type="number" /></div>
+                    <div><label className="text-[10px] font-bold block mb-1">Poids (kg)</label><input disabled={!peutEditerExamenEtDecision} value={form.poids} min={0} onChange={(e) => { if (!e.target.value.startsWith('-')) setField('poids')(e); }} className="w-full bg-white border rounded-xl p-2 text-sm font-bold disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="70" type="number" /></div>
                   </div>
                 </div>
               </div>
@@ -1414,8 +1414,8 @@ function ConsultationCpaPageContent() {
                   ))}
                 </div>
               </div>
-              <div className="space-y-2"><label className="text-sm font-semibold block">Ouverture buccale</label><input disabled={!peutEditerExamenEtDecision} value={form.ouvertureBuccale} onChange={setField('ouvertureBuccale')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" /></div>
-              <div className="space-y-2"><label className="text-sm font-semibold block">DMTC</label><input disabled={!peutEditerExamenEtDecision} value={form.distanceMentoThyroidienne} onChange={setField('distanceMentoThyroidienne')} className="w-full bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60" /></div>
+              <div className="space-y-2"><label className="text-sm font-semibold block">Ouverture buccale</label><input disabled={!peutEditerExamenEtDecision} value={form.ouvertureBuccale} onChange={setField('ouvertureBuccale')} className="w-full bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
+              <div className="space-y-2"><label className="text-sm font-semibold block">DMTC</label><input disabled={!peutEditerExamenEtDecision} value={form.distanceMentoThyroidienne} onChange={setField('distanceMentoThyroidienne')} className="w-full bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 border-t border-outline-variant/20 pt-4">
               <div className="space-y-2"><label className="text-sm font-semibold uppercase tracking-widest text-[10px]">DENTS</label>
@@ -1445,7 +1445,7 @@ function ConsultationCpaPageContent() {
               <h2 className="text-lg font-bold font-headline text-primary">Traitement médicamenteux</h2>
             </div>
             <div className="space-y-2"><label className="text-sm font-semibold text-on-surface-variant block">Traitement en cours</label>
-              <textarea disabled={!peutEditerExamenEtDecision} value={form.traitementEnCours} onChange={setField('traitementEnCours')} className="w-full h-20 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60"></textarea></div>
+              <textarea disabled={!peutEditerExamenEtDecision} value={form.traitementEnCours} onChange={setField('traitementEnCours')} className="w-full h-20 bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"></textarea></div>
           </section>
 
           {/* Conclusion — section 4 de la fiche papier. Score ASA amené ici, aligné avec le champ
@@ -1460,7 +1460,7 @@ function ConsultationCpaPageContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="md:col-span-2 space-y-2">
             <label className="text-sm font-semibold text-on-surface-variant block">Conclusion</label>
-            <textarea disabled={!peutEditerExamenEtDecision} value={form.conclusion} onChange={setField('conclusion')} className="w-full h-28 bg-surface-container-low border-none rounded-xl p-3 text-sm disabled:opacity-60"></textarea>
+            <textarea disabled={!peutEditerExamenEtDecision} value={form.conclusion} onChange={setField('conclusion')} className="w-full h-28 bg-white border rounded-xl p-3 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"></textarea>
           </div>
           <div className="space-y-2">
             <label className="text-sm font-semibold block">Score ASA</label>
@@ -1597,7 +1597,7 @@ function ConsultationCpaPageContent() {
           <div className="space-y-2">
             <div className="h-full bg-white rounded-xl border border-blue-200 p-4 shadow-sm space-y-2">
                 <h3 className="text-sm font-bold text-blue-800 flex items-center gap-2"><Icone nom="no_food" className="text-blue-600" /> Jeûne</h3>
-                <div className="space-y-2"><textarea disabled={!peutEditerExamenEtDecision} value={form.jeune} onChange={setField('jeune')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Instructions spécifiques..."></textarea></div>
+                <div className="space-y-2"><textarea disabled={!peutEditerExamenEtDecision} value={form.jeune} onChange={setField('jeune')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Instructions spécifiques..."></textarea></div>
                 <div className="bg-blue-50/60 rounded-xl p-4 border-l-4 border-blue-400">
                   <h4 className="text-sm font-bold text-blue-700 flex items-center gap-2 mb-2">Règles de jeûne</h4>
                   <div className="grid grid-cols-2 gap-2">
@@ -1611,8 +1611,8 @@ function ConsultationCpaPageContent() {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Préparation physique</label><textarea disabled={!peutEditerExamenEtDecision} value={form.preparationPhysique} onChange={setField('preparationPhysique')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Douche, dépilation..."></textarea></div>
-                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Tâches soignantes</label><textarea disabled={!peutEditerExamenEtDecision} value={form.tachesInfirmieres} onChange={setField('tachesInfirmieres')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60" placeholder="Surveillance, constantes..."></textarea></div>
+                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Préparation physique</label><textarea disabled={!peutEditerExamenEtDecision} value={form.preparationPhysique} onChange={setField('preparationPhysique')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Douche, dépilation..."></textarea></div>
+                <div className="space-y-2"><label className="text-xs font-bold uppercase tracking-wider text-blue-800">Tâches soignantes</label><textarea disabled={!peutEditerExamenEtDecision} value={form.tachesInfirmieres} onChange={setField('tachesInfirmieres')} className="w-full h-20 bg-blue-50/60 border-none rounded-xl p-3 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Surveillance, constantes..."></textarea></div>
               </div>
             </div>
 
@@ -1627,7 +1627,7 @@ function ConsultationCpaPageContent() {
               <h3 className="text-sm font-bold text-blue-800 mb-2 flex items-center gap-2"><Icone nom="pill" className="text-blue-600" /> Prémédication</h3>
               <div className="overflow-hidden border border-surface-container rounded-xl">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-surface-container text-[10px] uppercase font-bold text-on-surface-variant">
+                  <thead className="bg-surface-container uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
                     <tr><th className="px-4 py-3">Prémédication</th><th className="px-4 py-3">Dose</th><th className="px-4 py-3">Voie d'Admin</th><th className="px-4 py-3">Début</th><th className="px-4 py-3">Fréquence</th><th className="px-4 py-3">Actions</th></tr>
                   </thead>
                   <tbody className="divide-y divide-surface-container">
@@ -1654,15 +1654,15 @@ function ConsultationCpaPageContent() {
                   <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
                     <h3 className="text-lg font-extrabold mb-2">Ajouter un médicament</h3>
                     <div className="space-y-3">
-                      <div><label className="text-xs font-bold block mb-1">Prémédication</label><input type="text" value={nouveauMedicament.premedication} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, premedication: e.target.value })} className="w-full border rounded-lg p-2 text-sm" /></div>
-                      <div><label className="text-xs font-bold block mb-1">Dose</label><input type="text" value={nouveauMedicament.dose} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, dose: e.target.value })} className="w-full border rounded-lg p-2 text-sm" /></div>
-                      <div><label className="text-xs font-bold block mb-1">Voie d'administration</label><input type="text" value={nouveauMedicament.voieAdmin} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, voieAdmin: e.target.value })} className="w-full border rounded-lg p-2 text-sm" /></div>
-                      <div><label className="text-xs font-bold block mb-1">Début</label><input type="text" value={nouveauMedicament.debut} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, debut: e.target.value })} className="w-full border rounded-lg p-2 text-sm" /></div>
-                      <div><label className="text-xs font-bold block mb-1">Fréquence</label><input type="text" value={nouveauMedicament.frequence} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, frequence: e.target.value })} className="w-full border rounded-lg p-2 text-sm" /></div>
+                      <div><label className="text-xs font-bold block mb-1">Prémédication</label><input type="text" value={nouveauMedicament.premedication} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, premedication: e.target.value })} className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
+                      <div><label className="text-xs font-bold block mb-1">Dose</label><input type="text" value={nouveauMedicament.dose} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, dose: e.target.value })} className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
+                      <div><label className="text-xs font-bold block mb-1">Voie d'administration</label><input type="text" value={nouveauMedicament.voieAdmin} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, voieAdmin: e.target.value })} className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
+                      <div><label className="text-xs font-bold block mb-1">Début</label><input type="text" value={nouveauMedicament.debut} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, debut: e.target.value })} className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
+                      <div><label className="text-xs font-bold block mb-1">Fréquence</label><input type="text" value={nouveauMedicament.frequence} onChange={(e) => setNouveauMedicament({ ...nouveauMedicament, frequence: e.target.value })} className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
                       <button onClick={() => setShowMedicamentModal(false)} className="px-6 py-2 border rounded-lg text-sm font-bold">Annuler</button>
-                      <button onClick={ajouterMedicament} className="px-6 py-2 bg-primary text-white rounded-lg text-sm font-bold">Ajouter</button>
+                      <button onClick={ajouterMedicament} className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-bold">Ajouter</button>
                     </div>
                   </div>
                 </div>,
@@ -1779,9 +1779,9 @@ function ConsultationCpaPageContent() {
                       <div className="mt-2">
                         <label className="text-xs font-bold text-orange-700 block mb-1">Nouvelle date et heure d'opération</label>
                         <div className="flex flex-col md:flex-row md:items-center gap-2">
-                          <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-lg p-2 text-sm disabled:opacity-60" type="date"
+                          <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date"
                             value={dateOperationReportee} onChange={e => setDateOperationReportee(e.target.value)} min={new Date().toISOString().split('T')[0]} />
-                          <input disabled={!peutEditerExamenEtDecision} className="flex-none w-32 bg-orange-50 border border-orange-200 rounded-lg p-2 text-sm disabled:opacity-60" type="time"
+                          <input disabled={!peutEditerExamenEtDecision} className="flex-none w-32 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="time"
                             value={heureOperationReportee} onChange={e => setHeureOperationReportee(e.target.value)} />
                         </div>
                         <p className="text-[11px] text-orange-700 mt-1">Dès la validation, la date en haut de page est mise à jour et le service demandeur est notifié. Facultatif : laissez vide si la nouvelle date n'est pas encore connue.</p>
@@ -1805,8 +1805,8 @@ function ConsultationCpaPageContent() {
                       className="w-full h-20 bg-orange-50 border border-orange-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-300 outline-none disabled:opacity-60" placeholder="Ex : bilan biologique complémentaire nécessaire avant de statuer sur l'aptitude..." />
                     <label className="text-xs font-bold text-orange-700 block mt-3 mb-1">Date de report (facultatif — pour refaire la CPA)</label>
                     <div className="flex flex-col md:flex-row md:items-center gap-2">
-                      <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-lg p-2 text-sm disabled:opacity-60" type="date" value={dateReportCpa} onChange={e => setDateReportCpa(e.target.value)} min={new Date().toISOString().split('T')[0]} />
-                      <input disabled={!peutEditerExamenEtDecision} className="flex-none w-32 bg-orange-50 border border-orange-200 rounded-lg p-2 text-sm disabled:opacity-60" type="time" value={heureReportCpa} onChange={e => setHeureReportCpa(e.target.value)} />
+                      <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date" value={dateReportCpa} onChange={e => setDateReportCpa(e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                      <input disabled={!peutEditerExamenEtDecision} className="flex-none w-32 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="time" value={heureReportCpa} onChange={e => setHeureReportCpa(e.target.value)} />
                     </div>
                   </div>
                 )}
@@ -1861,8 +1861,8 @@ function ConsultationCpaPageContent() {
                   : "Date d'opération pas encore connue : renseignez-la vous-même, ou laissez vide — le patient restera visible dans le Fil de travail en attendant."}
               </p>
               <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <input className="flex-1 bg-white border-none rounded-lg p-2 text-sm" type="date" value={dateVPA} onChange={e => setDateVPA(e.target.value)} min={new Date().toISOString().split('T')[0]} />
-                <input className="flex-none w-32 bg-white border-none rounded-lg p-2 text-sm" type="time" value={heureVPA} onChange={e => setHeureVPA(e.target.value)} />
+                <input className="flex-1 bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date" value={dateVPA} onChange={e => setDateVPA(e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                <input className="flex-none w-32 bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="time" value={heureVPA} onChange={e => setHeureVPA(e.target.value)} />
               </div>
             </div>
           )}
@@ -1909,12 +1909,12 @@ function ConsultationCpaPageContent() {
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs font-bold text-on-surface-variant mb-1 block">Email</label>
-                    <input type="email" className="w-full border border-outline-variant/30 rounded-lg p-2.5 text-sm" placeholder="professeur@exemple.mg"
+                    <input type="email" className="w-full border border-outline-variant/30 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="professeur@exemple.mg"
                       value={destinataireEmailSaisi} onChange={e => setDestinataireEmailSaisi(e.target.value)} />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-on-surface-variant mb-1 block">Téléphone WhatsApp</label>
-                    <input type="tel" className="w-full border border-outline-variant/30 rounded-lg p-2.5 text-sm" placeholder="+261 34 00 000 00"
+                    <input type="tel" className="w-full border border-outline-variant/30 rounded-xl p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="+261 34 00 000 00"
                       value={destinataireTelephoneSaisi} onChange={e => setDestinataireTelephoneSaisi(e.target.value)} />
                   </div>
                 </div>
@@ -1922,7 +1922,7 @@ function ConsultationCpaPageContent() {
                   <button type="button" onClick={() => { setShowDestinataireModal(false); setDestinataireActionEnAttente(null); }}
                     className="px-4 py-2 border border-outline-variant/30 rounded-lg text-sm font-bold hover:bg-surface-container-low">Annuler</button>
                   <button type="button" onClick={handleConfirmerDestinataire} disabled={!destinataireEmailSaisi.trim() && !destinataireTelephoneSaisi.trim()}
-                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold disabled:opacity-50">Enregistrer</button>
+                    className="px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold disabled:opacity-50">Enregistrer</button>
                 </div>
               </div>
             </div>,
@@ -1941,7 +1941,7 @@ function ConsultationCpaPageContent() {
                     : 'Valider la CPA';
               return (
                 <button onClick={handleOuvrirRecap} disabled={loading || chargementCpa}
-                  className="px-8 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 shadow-sm transition-all disabled:opacity-50">
+                  className="px-8 py-2 bg-primary text-white font-bold rounded-xl hover:bg-[#005a76] shadow-sm transition-all disabled:opacity-50">
                   {libelle}
                 </button>
               );

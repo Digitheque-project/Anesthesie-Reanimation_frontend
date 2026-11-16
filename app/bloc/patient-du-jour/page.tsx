@@ -137,7 +137,7 @@ export default function PatientDuJourPage() {
       />
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Chargement des patients...</div>
+        <div className="text-center py-12 text-[#64748B]">Chargement des patients...</div>
       ) : (
         <PatientsListTable patients={patientsFiltres} />
       )}

@@ -161,19 +161,19 @@ export default function MedicamentTable({
         <table className="w-full text-left">
           <thead className="border-b border-outline-variant/20 bg-surface-container-low">
             <tr>
-              <th className="w-12 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <th className="w-12 px-4 py-3 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
                 Select
               </th>
-              <th className="px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <th className="px-4 py-3 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
                 Médicament / Matériel
               </th>
-              <th className="w-72 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <th className="w-72 px-4 py-3 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
                 Unité
               </th>
-              <th className="w-24 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <th className="w-24 px-4 py-3 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
                 Nombre
               </th>
-              <th className="w-32 px-4 py-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+              <th className="w-32 px-4 py-3 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">
                 Prix total
               </th>
             </tr>

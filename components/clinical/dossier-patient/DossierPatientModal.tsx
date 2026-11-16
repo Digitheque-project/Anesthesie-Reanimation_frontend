@@ -70,7 +70,7 @@ export default function DossierPatientModal({
           onClick={onClose}
           title="Fermer le dossier patient"
           aria-label="Fermer le dossier patient"
-          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-slate-500 shadow-md ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-700"
+          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#64748B] shadow-md ring-1 ring-slate-200 transition-colors hover:bg-slate-50 hover:text-slate-700"
         >
           <X className="h-5 w-5" strokeWidth={2} />
         </button>

@@ -238,8 +238,8 @@ function ActivitePendantOperationPageContent() {
             <h3 className="font-headline font-bold text-emerald-900 uppercase tracking-wide text-sm">Apports (entrées)</h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">PERFUSIONS</label><textarea className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" rows={3} placeholder="Saisir les détails..." value={form.perfusions} onChange={e => setForm({...form, perfusions: e.target.value})}></textarea></div>
-            <div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">TRANSFUSIONS</label><textarea className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" rows={3} placeholder="Saisir les détails..." value={form.transfusions} onChange={e => setForm({...form, transfusions: e.target.value})}></textarea></div>
+            <div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">PERFUSIONS</label><textarea className="w-full bg-surface-container-lowest border border-[#E2E8F0] rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" rows={3} placeholder="Saisir les détails..." value={form.perfusions} onChange={e => setForm({...form, perfusions: e.target.value})}></textarea></div>
+            <div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">TRANSFUSIONS</label><textarea className="w-full bg-surface-container-lowest border border-[#E2E8F0] rounded-xl p-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" rows={3} placeholder="Saisir les détails..." value={form.transfusions} onChange={e => setForm({...form, transfusions: e.target.value})}></textarea></div>
           </div>
         </section>
 
@@ -249,7 +249,7 @@ function ActivitePendantOperationPageContent() {
             <Icone nom="output" className="text-amber-600 text-xl" />
             <h3 className="font-headline font-bold text-amber-900 uppercase tracking-wide text-sm">Sorties</h3>
           </div>
-          <div className="p-6"><div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">JOURNAL DES SORTIES</label><textarea className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-4 text-sm focus:ring-2 focus:ring-amber-500 outline-none" rows={4} placeholder="Quantifier et décrire..." value={form.journalSorties} onChange={e => setForm({...form, journalSorties: e.target.value})}></textarea></div></div>
+          <div className="p-6"><div className="space-y-2"><label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider">JOURNAL DES SORTIES</label><textarea className="w-full bg-surface-container-lowest border border-[#E2E8F0] rounded-xl p-4 text-sm focus:ring-2 focus:ring-amber-500 outline-none" rows={4} placeholder="Quantifier et décrire..." value={form.journalSorties} onChange={e => setForm({...form, journalSorties: e.target.value})}></textarea></div></div>
         </section>
 
         {/* Section 3: SURVEILLANCE DES CONSTANTES */}
@@ -315,7 +315,7 @@ function ActivitePendantOperationPageContent() {
                   </button>
                   {actif && (
                     <input
-                      className="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs focus:ring-2 focus:ring-blue-500 outline-none"
+                      className="w-full h-9 px-3 bg-surface-container-lowest border border-[#E2E8F0] rounded-xl text-xs focus:ring-2 focus:ring-[#006A8C]/20 outline-none"
                       placeholder="Détail (optionnel)..."
                       type="text"
                       value={form[item.key as keyof typeof form] as string}

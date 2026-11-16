@@ -205,13 +205,13 @@ export default function RapportsPage() {
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/20 flex flex-wrap items-end gap-3 print:hidden">
         <div>
           <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Date début</label>
-          <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)} className="bg-surface-container-low border-none rounded-lg p-2 text-sm" />
+          <input type="date" value={dateDebut} onChange={e => setDateDebut(e.target.value)} className="bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" />
         </div>
         <div>
           <label className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest block mb-1">Date fin</label>
-          <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)} className="bg-surface-container-low border-none rounded-lg p-2 text-sm" />
+          <input type="date" value={dateFin} onChange={e => setDateFin(e.target.value)} className="bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" />
         </div>
-        <button onClick={() => charger()} className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
+        <button onClick={() => charger()} className="flex items-center gap-2 px-5 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-[#005a76] transition-all">
           <Icone nom="filter_alt" className="text-lg" /> Appliquer
         </button>
         {(dateDebut || dateFin) && (
@@ -448,7 +448,7 @@ export default function RapportsPage() {
           <div className="relative print:hidden">
             <Icone nom="search" className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" />
             <input value={rechercheDetail} onChange={e => setRechercheDetail(e.target.value)} placeholder="Filtrer (dossier, intervention, personnel...)"
-              className="pl-9 pr-4 py-2 bg-surface-container-low rounded-lg text-xs border-none focus:ring-2 focus:ring-primary/20 w-72" />
+              className="pl-9 pr-4 py-2 bg-white rounded-xl text-xs border focus:ring-2 focus:ring-primary/20 w-72 border-[#E2E8F0]" />
           </div>
         </div>
         <div className="overflow-x-auto max-h-[500px] overflow-y-auto">

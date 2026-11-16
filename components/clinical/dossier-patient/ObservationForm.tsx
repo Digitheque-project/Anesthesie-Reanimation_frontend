@@ -318,7 +318,7 @@ export function ObservationForm({
                   {section.title}
                 </div>
                 {!section.isOpen ? (
-                  <p className="mt-1 text-[12px] font-normal text-slate-500">
+                  <p className="mt-1 text-[12px] font-normal text-[#64748B]">
                     Cliquez pour ouvrir
                   </p>
                 ) : null}
@@ -405,7 +405,7 @@ export function ObservationForm({
                 )}
 ​
                 {section.id === '01' && !loadingPatient && !errorPatient && !patientInfo && (
-                  <div className="text-center py-6 text-slate-500 text-[14px] font-medium">
+                  <div className="text-center py-6 text-[#64748B] text-[14px] font-medium">
                     Aucune donnée d'identification disponible pour ce patient.
                   </div>
                 )}
@@ -459,38 +459,38 @@ export function ObservationForm({
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       <div>
-                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Terme de naissance (SA)</label>
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-[#64748B]">Terme de naissance (SA)</label>
                         <input
                           type="number"
-                          className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-[14px]"
+                          className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
                           placeholder="Ex: 38"
                           value={section.content?.termeSA || ''}
                           onChange={e => updateSectionContent('01', { ...section.content, termeSA: e.target.value })}
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">+ jours</label>
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-[#64748B]">+ jours</label>
                         <input
                           type="number"
-                          className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-[14px]"
+                          className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
                           placeholder="0-6"
                           value={section.content?.termeJours || ''}
                           onChange={e => updateSectionContent('01', { ...section.content, termeJours: e.target.value })}
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Âge corrigé actuel</label>
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-[#64748B]">Âge corrigé actuel</label>
                         <input
                           type="text"
                           readOnly
-                          className="w-full rounded border border-slate-200 bg-slate-50 px-3 py-2 text-[14px] text-slate-500"
+                          className="w-full rounded-xl border border-[#E2E8F0] bg-slate-50 px-3 py-2 text-[14px] text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
                           placeholder="Calcul automatique"
                         />
                       </div>
                       <div>
-                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-slate-500">Terme : statut</label>
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-[#64748B]">Terme : statut</label>
                         <select
-                          className="w-full rounded border border-slate-200 bg-white px-3 py-2 text-[14px]"
+                          className="w-full rounded-xl border border-[#E2E8F0] bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20"
                           value={section.content?.statutTerme || ''}
                           onChange={e => updateSectionContent('01', { ...section.content, statutTerme: e.target.value })}
                         >
@@ -536,21 +536,21 @@ export function ObservationForm({
 ​
                 {section.id === '06' && (
                   <div className="flex flex-col gap-6">
-                    <div className="rounded border border-slate-200 p-4">
+                    <div className="rounded border border-[#E2E8F0] p-4">
                       <h4 className="mb-3 text-[12px] font-bold uppercase text-slate-800">Constantes & Croissance</h4>
                       <ExamenPhysiquePanel
                         value={section.content?.physique || defaultExamenPhysique()}
                         onChange={next => updateSectionContent('06', { ...section.content, physique: next })}
                       />
                     </div>
-                    <div className="rounded border border-slate-200 p-4">
+                    <div className="rounded border border-[#E2E8F0] p-4">
                       <h4 className="mb-3 text-[12px] font-bold uppercase text-slate-800">État général et Conscience</h4>
                       <EtatGeneralPanel
                         value={section.content?.etatGeneral || defaultEtatGeneral()}
                         onChange={next => updateSectionContent('06', { ...section.content, etatGeneral: next })}
                       />
                     </div>
-                    <div className="rounded border border-slate-200 p-4">
+                    <div className="rounded border border-[#E2E8F0] p-4">
                       <h4 className="mb-3 text-[12px] font-bold uppercase text-slate-800">Examen par appareil</h4>
                       <ExamenAppareilPanel
                         value={section.content?.appareil || defaultExamenAppareil()}

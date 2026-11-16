@@ -239,9 +239,9 @@ export default function RendezVousPage() {
   const TYPE_LABELS: Record<string, string> = { CPA: 'CPA', VERIFICATION_VEILLE: 'Vérif. veille', VERIFICATION_MEDICAMENTS: 'Vérif. médicaments' };
 
   // Présentation : même style que la consultation externe (cartes blanches arrondies, bleu
-  // #005b82, badges arrondis, petites capitales grises).
+  // #006A8C, badges arrondis, petites capitales grises).
   const carte = 'bg-white rounded-2xl shadow-[0px_4px_16px_rgba(17,17,26,0.05)] border border-gray-100';
-  const champDate = 'px-3.5 py-2 border border-gray-200 rounded-xl text-[13px] font-semibold text-slate-700 bg-white cursor-pointer w-fit disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#005b82]/20';
+  const champDate = 'px-3.5 py-2 border border-gray-200 rounded-xl text-[13px] font-semibold text-slate-700 bg-white cursor-pointer w-fit disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20';
   const badgeUrgence: Record<string, string> = {
     TRES_URGENT: 'bg-red-50 text-red-700',
     URGENT: 'bg-amber-50 text-amber-700',
@@ -254,14 +254,14 @@ export default function RendezVousPage() {
   };
 
   return (
-    <div className="min-h-full bg-slate-50">
+    <div className="min-h-full bg-[#F8F9FB]">
       <div className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
         {/* En-tête */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-[22px] font-extrabold text-gray-900 leading-tight">Fil de travail</h1>
-            <p className="text-[13px] text-slate-500 mt-0.5 capitalize">
+            <h1 className="text-[22px] font-extrabold text-[#0F172A] leading-tight">Fil de travail</h1>
+            <p className="text-[13px] text-[#64748B] mt-0.5 capitalize">
               {onglet === 'VERIFICATION_VEILLE' ? 'Tous les patients CPA validée, en attente de vérification' : voirTousCpa ? 'Toutes les CPA : en retard, aujourd\'hui et à venir' : formaterDate(selectedDate)}
             </p>
           </div>
@@ -272,27 +272,27 @@ export default function RendezVousPage() {
                   className={champDate} />
                 {/* Retards (toujours fusionnés, voir creneauxAvecRetards), aujourd'hui et à venir. */}
                 <button type="button" onClick={() => setVoirTousCpa(v => !v)} aria-pressed={voirTousCpa}
-                  className={`px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors ${voirTousCpa ? 'bg-[#CFE9EF] text-[#005b82] hover:bg-[#bfe0e8]' : 'bg-white text-[#005b82] border border-slate-200 hover:bg-slate-50'}`}>
+                  className={`px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors ${voirTousCpa ? 'bg-[#F0F7FF] text-[#006A8C] hover:bg-[#E0EEFB]' : 'bg-white text-[#006A8C] border border-[#E2E8F0] hover:bg-slate-50'}`}>
                   {voirTousCpa ? 'Revenir à la date' : 'Voir tout'}
                 </button>
               </>
             ) : (
               <div className="flex items-center gap-2">
-                <label className="text-[12px] font-bold text-slate-500 flex items-center gap-1.5">
+                <label className="text-[12px] font-bold text-[#64748B] flex items-center gap-1.5">
                   <Icone nom="filter_alt" className="text-[15px]" />
                   Date d&apos;intervention
                 </label>
                 <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
                   className={champDate} />
                 {filtreDateVerif && !voirTousVerif && (
-                  <button onClick={() => setFiltreDateVerif('')} className="text-[12px] font-bold text-[#005b82] hover:underline">
+                  <button onClick={() => setFiltreDateVerif('')} className="text-[12px] font-bold text-[#006A8C] hover:underline">
                     Effacer
                   </button>
                 )}
               </div>
             )}
             <button type="button" onClick={() => setShowProgrammeAVenir(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#005b82] text-white rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#004a6b] transition-colors">
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#006A8C] text-white rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#005a76] transition-colors">
               <Icone nom="calendar_month" className="text-[16px]" />
               Programme à venir
             </button>
@@ -392,14 +392,14 @@ export default function RendezVousPage() {
 
         {/* Liste */}
         <div className={`${carte} overflow-hidden flex flex-col`}>
-          <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
+          <div className="px-5 py-4 border-b border-[#F1F5F9] flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-1">
               {ONGLETS.map(o => (
                 <button
                   key={o.type}
                   onClick={() => setOnglet(o.type)}
                   className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-bold transition-colors ${
-                    onglet === o.type ? 'bg-[#CFE9EF] text-[#005b82]' : 'text-slate-500 hover:bg-slate-100'
+                    onglet === o.type ? 'bg-[#F0F7FF] text-[#006A8C]' : 'text-[#64748B] hover:bg-slate-100'
                   }`}
                 >
                   <Icone nom={o.icone} className="text-[14px]" />
@@ -408,7 +408,7 @@ export default function RendezVousPage() {
               ))}
             </div>
             <div className="flex gap-3 items-center">
-              <span className="text-[11px] font-semibold text-[#005b82]">{creneauxFiltres.length} patient{creneauxFiltres.length > 1 ? 's' : ''}</span>
+              <span className="text-[11px] font-semibold text-[#006A8C]">{creneauxFiltres.length} patient{creneauxFiltres.length > 1 ? 's' : ''}</span>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
                   <Icone nom="search" className="text-[15px]" />
@@ -416,7 +416,7 @@ export default function RendezVousPage() {
                 <input
                   value={recherche}
                   onChange={(e) => setRecherche(e.target.value)}
-                  className="pl-9 pr-4 py-2 text-[12px] border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-[#005b82]/20 outline-none w-64"
+                  className="pl-9 pr-4 py-2 text-[12px] border border-[#E2E8F0] bg-white rounded-xl focus:ring-2 focus:ring-[#006A8C]/20 outline-none w-64"
                   placeholder="Rechercher (patient, type, chirurgien)…"
                   type="text"
                 />
@@ -427,11 +427,11 @@ export default function RendezVousPage() {
           <div className="overflow-y-auto max-h-[600px]">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10 bg-slate-50">
-                <tr className="border-b border-gray-100">
+                <tr className="border-b border-[#F1F5F9]">
                   {['Date', 'Patient', 'Type', 'Chirurgien', 'Urgence', 'Statut'].map((t) => (
-                    <th key={t} className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">{t}</th>
+                    <th key={t} className="px-5 py-3 uppercase text-[11px] font-bold tracking-wider text-[#64748B]">{t}</th>
                   ))}
-                  <th className="px-5 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center">Action</th>
+                  <th className="px-5 py-3 uppercase text-center text-[11px] font-bold tracking-wider text-[#64748B]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -470,7 +470,7 @@ export default function RendezVousPage() {
                           {TYPE_LABELS[c.type] || c.type || '—'}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-[13px] text-slate-600">{c.chirurgien?.nom || '—'}</td>
+                      <td className="px-5 py-3.5 text-[13px] text-[#475569]">{c.chirurgien?.nom || '—'}</td>
                       <td className="px-5 py-3.5">
                         <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase tracking-wider ${badgeUrgence[niveau]}`}>
                           {niveau === 'TRES_URGENT' ? 'Très urgent' : niveau === 'URGENT' ? 'Urgent' : 'Normal'}
@@ -487,7 +487,7 @@ export default function RendezVousPage() {
                             c.statut === 'PLANIFIE' ? 'bg-blue-50 text-blue-700' :
                             c.statut === 'TERMINE' ? 'bg-emerald-50 text-emerald-700' :
                             c.statut === 'VERIF_MEDICAMENT' || c.statut === 'EN_ATTENTE' ? 'bg-amber-50 text-amber-700' :
-                            c.statut === 'VPA_URGENTE' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-slate-500'
+                            c.statut === 'VPA_URGENTE' ? 'bg-red-50 text-red-700' : 'bg-slate-100 text-[#64748B]'
                           }`}>{c.statut === 'VERIF_MEDICAMENT' ? 'Médicaments à vérifier' : c.statut === 'EN_ATTENTE' ? 'En attente' : c.statut === 'VPA_URGENTE' ? 'VPA immédiate' : c.statut === 'PLANIFIE' ? 'Planifié' : (c.statut || '—')}</span>
                         </div>
                       </td>
@@ -495,7 +495,7 @@ export default function RendezVousPage() {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => router.push(lienAction)}
-                            className={`px-4 py-2 text-white rounded-xl text-[12px] font-bold transition-colors whitespace-nowrap shadow-sm ${vpa ? 'bg-red-600 hover:bg-red-700' : 'bg-[#005b82] hover:bg-[#004a6b]'}`}
+                            className={`px-4 py-2 text-white rounded-xl text-[12px] font-bold transition-colors whitespace-nowrap shadow-sm ${vpa ? 'bg-red-600 hover:bg-red-700' : 'bg-[#006A8C] hover:bg-[#005a76]'}`}
                           >
                             {vpa ? 'Faire la VPA' : c.sousType === 'VERIF_MEDICAMENT' ? 'Vérifier médicament' : ongletActif.actionLabel}
                           </button>

@@ -3,7 +3,6 @@
 import { PastilleAutresServices } from "@/components/ActionsCompte";
 import { useState, useEffect, useRef } from 'react';
 import { notificationService } from '@/lib/api/notification.service';
-import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import NotificationModal from '@/components/bloc/notification-cpa/NotificationModal';
 import { connecterNotificationsTempsReel, NotificationTempsReel } from '@/lib/notifications/socket';
@@ -21,7 +20,7 @@ import { lienSurveillance, lieuSurveillance, useSurveillancesEchues } from '@/co
 import { formaterNomPatient } from '@/lib/patient';
 import { useRole } from '@/lib/hooks/useRole';
 
-export default function TopBar() {
+export default function TopBar({ onMenuClick }: { onMenuClick?: () => void } = {}) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -202,9 +201,21 @@ export default function TopBar() {
     // Même barre que la consultation externe : blanche, sur toute la largeur, collée en haut (h-16).
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-[#F1F5F9] bg-white px-4 shadow-[0px_4px_10px_rgba(0,0,0,0.015)] sm:px-6 lg:px-7">
       <div className="flex min-w-0 items-center gap-3">
-        <Image src="/images/chu.jpeg" alt="CHU" width={36} height={36} className="h-9 w-9 shrink-0 rounded-full border border-[#CFE9EF] object-cover" />
-        <div className="truncate text-[18px] font-black tracking-tight text-[#004A66] lg:text-[20px]">
-          Anesthésie-Réanimation
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 md:hidden"
+          aria-label="Ouvrir la navigation"
+        >
+          <Icone nom="list" className="text-[20px]" />
+        </button>
+        {/* Logo du CHU : vient du jeton (fiche CHU du registre central), jamais figé en dur. */}
+        {session?.acces.chu?.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={session.acces.chu.logoUrl} alt="Logo CHU" className="h-8 w-8 shrink-0 rounded-full border border-[#CFE9EF] object-cover sm:h-9 sm:w-9" />
+        ) : null}
+        <div className="truncate text-[16px] font-black tracking-tight text-[#004A66] sm:text-[18px] lg:text-[20px]">
+          Anesthésie - Réanimation
         </div>
       </div>
 
@@ -215,7 +226,7 @@ export default function TopBar() {
         <Clock />
       </div>
 
-      <div className="flex items-center gap-5 lg:gap-10">
+      <div className="flex items-center gap-4 sm:gap-5 lg:gap-10">
         {/* Wrapper `relative` : ancre la pop-up de notifications juste sous la cloche
             (NotificationModal se positionne en `absolute right-0 top-full`), au lieu d'un
             tiroir plein écran indépendant du bouton qui l'ouvre. */}
@@ -274,22 +285,21 @@ export default function TopBar() {
           />
         </div>
 
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-col text-right">
-            <span className="truncate text-[13px] font-extrabold leading-tight text-gray-900">
-              <PointServeur />{session ? `${session.payload.firstname} ${session.payload.name}` : '—'}
+            <span className="max-w-[140px] truncate text-[12px] font-extrabold leading-tight text-gray-900 sm:max-w-[180px] sm:text-[12.5px] lg:max-w-none lg:text-[13px]">
+              {session ? `${session.payload.firstname} ${session.payload.name}` : '—'}
             </span>
             <span className="mt-0.5 hidden truncate text-[10px] font-bold uppercase leading-tight tracking-widest text-gray-400 sm:block">
               {session?.acces.roleName || ''}
             </span>
           </div>
-          {/* Avatar par initiales — /images/avatar-default.png n'a jamais existé dans public/images/
-              (fichier manquant, jamais commité), ce qui faisait échouer l'optimiseur d'image
-              Next.js sur CHAQUE page (erreur 400) et laissait un mot tronqué "Avata" à la place.
-              Même langage visuel que les initiales patient de PatientsListTable, sans dépendance
-              à un fichier qui peut manquer. */}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#CFE9EF] bg-[#F0F7FF] text-sm font-bold text-[#006A8C]">
-            {session ? `${session.payload.firstname?.charAt(0) || ''}${session.payload.name?.charAt(0) || ''}`.toUpperCase() : ''}
+          {/* Avatar par initiales (aucun fichier image requis) + point d'état du serveur. */}
+          <div className="relative h-8 w-8 shrink-0 sm:h-10 sm:w-10">
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-[#CFE9EF] bg-[#F0F7FF] text-xs font-bold text-[#006A8C] sm:text-sm">
+              {session ? `${session.payload.firstname?.charAt(0) || ''}${session.payload.name?.charAt(0) || ''}`.toUpperCase() : ''}
+            </div>
+            <span className="absolute -bottom-0.5 -right-2 flex leading-none"><PointServeur /></span>
           </div>
         </div>
       </div>

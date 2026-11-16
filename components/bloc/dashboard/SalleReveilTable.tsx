@@ -53,7 +53,7 @@ export default function SalleReveilTable({ patients }: SalleReveilTableProps) {
                     {patient.dureePrevue}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                    <span className="bg-slate-100 text-[#475569] px-3 py-1 rounded-full text-[10px] font-bold uppercase">
                       {patient.statut}
                     </span>
                   </td>

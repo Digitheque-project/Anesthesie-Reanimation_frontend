@@ -170,7 +170,7 @@ export default function ResultatsParacliniquesTab({ patientId }: Props) {
                   <div>
                     <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{selectedResult.examen}</h2>
                     <div style={{ fontSize: 13, color: ehr.textMuted, fontWeight: 600, marginTop: 2 }}>
-                      {typeLabels[selectedResult.type]} · ID: {selectedResult.id}
+                      {typeLabels[selectedResult.type]}
                     </div>
                   </div>
                 </div>

@@ -65,7 +65,7 @@ export default function TacheCard({ icon, titre, count, accent, items, ctaLabel,
                 >
                   <span className="font-semibold text-on-surface truncate">{item.label}</span>
                   <span className="flex items-center gap-1.5 flex-shrink-0">
-                    {item.urgent && <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[9px] font-black uppercase">Urgent</span>}
+                    {item.urgent && <span className="px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9px] font-black uppercase">Urgent</span>}
                     <span className="text-on-surface-variant">{item.sublabel}</span>
                     {item.href && <Icone nom="chevron_right" className="text-[14px] text-on-surface-variant" />}
                   </span>

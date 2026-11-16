@@ -219,9 +219,9 @@ export default function InstructionsPostOpForm({ value, onChange }: Props) {
               <div key={item.key} className="bg-surface-container-low p-2 rounded-lg mb-1">
                 <span className="text-xs font-medium block mb-1">{item.label}</span>
                 <div className="flex gap-2">
-                  <input className="flex-1 bg-white border-none rounded px-2 py-1 text-xs focus:ring-1 focus:ring-primary/30" placeholder="Valeur..." type="text"
+                  <input className="flex-1 bg-white border rounded-xl px-2 py-1 text-xs focus:ring-1 focus:ring-primary/30 border-[#E2E8F0]" placeholder="Valeur..." type="text"
                     value={value.prescriptions[item.key].valeur} onChange={(e) => setPerfusion(item.key, { valeur: e.target.value })} />
-                  <input className="flex-1 bg-white border-none rounded px-2 py-1 text-xs focus:ring-1 focus:ring-secondary/30" placeholder="En Y..." type="text"
+                  <input className="flex-1 bg-white border rounded-xl px-2 py-1 text-xs focus:ring-1 focus:ring-secondary/30 border-[#E2E8F0]" placeholder="En Y..." type="text"
                     value={value.prescriptions[item.key].enY} onChange={(e) => setPerfusion(item.key, { enY: e.target.value })} />
                 </div>
               </div>

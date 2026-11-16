@@ -232,12 +232,12 @@ function ProtocoleAnesthesiquePageContent() {
             <span className="bg-secondary-container text-on-secondary-container px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase">Édition Libre</span>
           </div>
           <label className="text-xs font-bold text-on-surface-variant mb-2 block">Compte-rendu anesthésique</label>
-          <textarea className="w-full h-56 bg-surface-container-low rounded-lg p-4 text-sm text-on-surface border-none resize-none leading-relaxed overflow-y-auto focus:ring-2 focus:ring-primary/20 focus:outline-none"
+          <textarea className="w-full h-56 bg-white rounded-xl p-4 text-sm text-on-surface border resize-none leading-relaxed overflow-y-auto focus:ring-2 focus:ring-primary/20 focus:outline-none border-[#E2E8F0]"
             placeholder="Saisissez ici la technique d'anesthésie réalisée, les produits/doses administrés et les éventuels incidents per-opératoires..."
             value={compteRenduAnesthesique} onChange={e => setCompteRenduAnesthesique(e.target.value)}></textarea>
 
           <label className="text-xs font-bold text-on-surface-variant mb-2 mt-4 block">Personnel pendant l'intervention</label>
-          <textarea className="w-full h-24 bg-surface-container-low rounded-lg p-4 text-sm text-on-surface border-none resize-none leading-relaxed overflow-y-auto focus:ring-2 focus:ring-primary/20 focus:outline-none"
+          <textarea className="w-full h-24 bg-white rounded-xl p-4 text-sm text-on-surface border resize-none leading-relaxed overflow-y-auto focus:ring-2 focus:ring-primary/20 focus:outline-none border-[#E2E8F0]"
             placeholder="Chirurgien, aide opératoire, IBODE, IDE... noms du personnel ayant participé à l'intervention"
             value={personnelIntervention} onChange={e => setPersonnelIntervention(e.target.value)}></textarea>
         </section>
@@ -253,7 +253,7 @@ function ProtocoleAnesthesiquePageContent() {
             {estAnesthesiste && (
             <button onClick={handleOuvrirRecap} disabled={loading || !estAnesthesiste}
               title={!estAnesthesiste ? 'Réservé à l\'anesthésiste' : undefined}
-              className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center space-x-3 shadow-lg shadow-primary/20 hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+              className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center space-x-3 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
               <Icone nom="save" />
               <span>{loading ? 'Enregistrement...' : 'Valider et enregistrer'}</span>
             </button>

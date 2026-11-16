@@ -270,7 +270,7 @@ export default function NotificationCPAPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Chargement des notifications...</div>
+        <div className="text-center py-12 text-[#64748B]">Chargement des notifications...</div>
       ) : (
         <TableauNotifications
           notifications={notificationsFiltrees}

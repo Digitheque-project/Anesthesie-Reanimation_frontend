@@ -30,7 +30,7 @@ export default function ModalPlanifierRDV({
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-2xl p-8 w-full max-w-lg shadow-2xl">
         <h3 className="text-xl font-extrabold mb-2">Planifier Rendez-vous</h3>
-        <p className="text-sm text-gray-500 mb-6">
+        <p className="text-sm text-[#64748B] mb-6">
           Patient : <strong>{patientNom}</strong> — {intervention}
         </p>
 
@@ -39,11 +39,11 @@ export default function ModalPlanifierRDV({
               « Vérification veille » qui figurait ici n'avait aucun effet : elle se planifie
               depuis son onglet dédié de /bloc/rendez-vous. */}
           <div>
-            <label className="text-xs font-bold text-gray-600 block mb-2">Type de consultation</label>
+            <label className="text-xs font-bold text-[#475569] block mb-2">Type de consultation</label>
             <div className="flex gap-2">
               <button onClick={() => setTypeRDV('CPA')}
                 className={`flex-1 py-2 rounded-lg text-sm font-bold border transition-all ${
-                  typeRDV === 'CPA' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                  typeRDV === 'CPA' ? 'bg-blue-100 border-blue-500 text-blue-700' : 'border-gray-300 text-[#475569] hover:bg-gray-50'
                 }`}>
                 CPA (Consultation Pré-Anesthésique)
               </button>
@@ -53,25 +53,25 @@ export default function ModalPlanifierRDV({
           {/* Date */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-bold text-gray-600 block">Date *</label>
+              <label className="text-xs font-bold text-[#475569] block">Date *</label>
               <CalendrierAgenda type={typeRDV} onSelectDate={setDateRDV} />
             </div>
             <input type="date" value={dateRDV} onChange={e => setDateRDV(e.target.value)} min={new Date().toISOString().split('T')[0]}
-              className="w-full border rounded-lg p-2 text-sm" required />
+              className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" required />
           </div>
 
           {/* Heure */}
           <div>
-            <label className="text-xs font-bold text-gray-600 block mb-1">Heure *</label>
+            <label className="text-xs font-bold text-[#475569] block mb-1">Heure *</label>
             <input type="time" value={heureRDV} onChange={e => setHeureRDV(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm" required />
+              className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" required />
           </div>
 
           {/* Lieu */}
           <div>
-            <label className="text-xs font-bold text-gray-600 block mb-1">Lieu</label>
+            <label className="text-xs font-bold text-[#475569] block mb-1">Lieu</label>
             <input type="text" value={lieuRDV} onChange={e => setLieuRDV(e.target.value)}
-              className="w-full border rounded-lg p-2 text-sm" placeholder="Salle de consultation (optionnel)..." />
+              className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" placeholder="Salle de consultation (optionnel)..." />
           </div>
 
         </div>
