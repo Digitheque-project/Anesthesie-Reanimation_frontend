@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, startTransition } from 'react';
-import { getPrescriptionsPatient, checkPremierSoinEligibility, getHistoriquePatient, getQuotaPremierSoin, creerPrescriptionMedicale, arreterPlanningItem } from '@/features/prescription/lib/api';
+import { getPrescriptionsPatient, checkPremierSoinEligibility, getHistoriquePatient, getQuotaPremierSoin, creerPrescriptionMedicale, arreterPlanningItem, creerOrdonnanceMedicale } from '@/features/prescription/lib/api';
 import { usePrescriptionPanier } from '@/features/prescription/contexts/PrescriptionPanierContext';
 import { useAuth } from '@/features/prescription/contexts/AuthContext';
 import { Medicament, CocktailPrescription, PrescriptionEnCours, Props } from './types';
@@ -51,7 +51,7 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
 
 export default function MedicaleForm({ patient, prescripteur, patientType }: Props) {
   const { containerRef, handleKeyDown } = useKeyboardNavigation();
-  const { addToPanier, setPatientId, panier, sendAll } = usePrescriptionPanier();
+  const { addToPanier, setPatientId, panier, sendAll, resolveServiceId } = usePrescriptionPanier();
   const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chuId = (user?.services as any[])?.[0]?.chu?.id || process.env.NEXT_PUBLIC_CHU_ID;
@@ -72,6 +72,8 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
   const [prescriptionsEnCours, setPrescriptionsEnCours] = useState<PrescriptionEnCours[]>([]);
   const [arretCible, setArretCible] = useState<{ kind: 'medicament' | 'cocktail'; id: string; label: string } | null>(null);
   const [arretBusy, setArretBusy] = useState(false);
+  // Prescription pour laquelle une ordonnance est en cours de création (bouton occupé).
+  const [ordonnanceEnCours, setOrdonnanceEnCours] = useState<string | null>(null);
   const [showValidationPopup, setShowValidationPopup] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [quotaRefreshKey, setQuotaRefreshKey] = useState(0);
@@ -195,6 +197,61 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
   useEffect(() => subscribeSoinsMaj(detail => {
     if (!detail.patientId || detail.patientId === patient.id) void refreshPrescriptionsEnCours();
   }), [patient.id]);
+
+  // Ordonnance pour une prescription DÉJÀ enregistrée qui n'en a pas encore :
+  // même appel que l'onglet Ordonnance, avec les médicaments et les composants de
+  // cocktail encore actifs (les éléments arrêtés ne partent pas à la pharmacie).
+  async function handleCreerOrdonnanceExistante(p: PrescriptionEnCours) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meds = (p.medicaments || []).filter((m: any) => m.planningActif !== false).map((m: any) => ({
+      nom: m.nom,
+      dose: m.dose,
+      quantite: m.quantite ?? 1,
+      quantiteType: m.quantiteType || undefined,
+      voie: m.voie,
+      frequenceType: m.frequenceType,
+      frequenceValeur: m.frequenceValeur,
+      dureeJours: m.dureeJours,
+      instructions: m.instructions,
+      remarques: m.remarques,
+      dateDebut: m.dateDebut || undefined,
+      heureDebut: m.heureDebut || undefined,
+      prixUnitaire: m.prixUnitaire || undefined,
+      premierSoin: m.premierSoin ?? false,
+    }));
+    const composants = (p.cocktails || []).filter(c => c.planningActif !== false).flatMap(c =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (c.composants || []).map((comp: any) => ({
+        nom: comp.nom,
+        dose: comp.dose,
+        quantite: comp.quantite ?? 1,
+        quantiteType: comp.quantiteType || undefined,
+        voie: c.voie,
+        frequenceType: c.frequenceType,
+        frequenceValeur: c.frequenceValeur,
+        dureeJours: c.dureeJours,
+        instructions: c.instructions,
+        remarques: c.remarques,
+        dateDebut: c.dateDebut || undefined,
+        heureDebut: c.heureDebut || undefined,
+        prixUnitaire: comp.prixUnitaire || undefined,
+        premierSoin: comp.premierSoin ?? c.premierSoin ?? false,
+      })));
+    const lignes = [...meds, ...composants];
+    if (lignes.length === 0) return;
+    setOrdonnanceEnCours(p.id);
+    try {
+      const destination = resolveServiceId('medicale');
+      await creerOrdonnanceMedicale(p.id, lignes, undefined, destination.serviceId || prescripteur.serviceId);
+      window.dispatchEvent(new CustomEvent('prescriptions-envoyees', { detail: { types: ['medicale'] } }));
+      showToast('Ordonnance créée et envoyée à la pharmacie');
+      await refreshPrescriptionsEnCours();
+    } catch (e) {
+      showToast((e as Error)?.message || "Erreur lors de la création de l'ordonnance.");
+    } finally {
+      setOrdonnanceEnCours(null);
+    }
+  }
 
   async function handleConfirmArret(motif: string) {
     if (!arretCible) return;
@@ -561,6 +618,37 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
                   }}>
                     <Icone nom="description" />
                     Ordonnance créée · {p.ordonnance.statut}
+                  </div>
+                )}
+                {!p.ordonnance && ((p.medicaments || []).some(m => m.planningActif !== false) || (p.cocktails || []).some(c => c.planningActif !== false)) && (
+                  <div style={{
+                    background: 'var(--amber-lt, #FEF3C7)',
+                    padding: '4px 4px 4px 8px',
+                    borderRadius: 4,
+                    marginBottom: 4,
+                    fontSize: 11,
+                    color: 'var(--amber-dk, #92400E)',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}>
+                    <span className="ms">description</span>
+                    Pas encore d&apos;ordonnance
+                    <button
+                      type="button"
+                      onClick={() => handleCreerOrdonnanceExistante(p)}
+                      disabled={ordonnanceEnCours === p.id}
+                      title="Créer l'ordonnance de cette prescription et l'envoyer à la pharmacie"
+                      style={{
+                        marginLeft: 'auto', background: 'var(--navy, #006A8C)', border: 'none', color: '#fff',
+                        fontSize: 11, fontWeight: 700, borderRadius: 8, padding: '4px 10px',
+                        cursor: ordonnanceEnCours === p.id ? 'wait' : 'pointer', opacity: ordonnanceEnCours === p.id ? 0.7 : 1,
+                        display: 'flex', alignItems: 'center', gap: 4,
+                      }}>
+                      <span className="ms" style={{ fontSize: 14 }}>receipt_long</span>
+                      {ordonnanceEnCours === p.id ? 'Envoi…' : "Créer l'ordonnance"}
+                    </button>
                   </div>
                 )}
                 {p.medicaments?.map((med, idx) => {
