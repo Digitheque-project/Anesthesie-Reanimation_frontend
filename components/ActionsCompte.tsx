@@ -13,8 +13,11 @@ if (typeof window !== "undefined") {
   const w = window as unknown as { __chuOuvertureNotif?: boolean };
   if (!w.__chuOuvertureNotif) {
     w.__chuOuvertureNotif = true;
-    window.addEventListener("chu-notification-ouverte", () => {
-      if (window.location.pathname !== PAGE_DES_NOTIFICATIONS) window.location.assign(PAGE_DES_NOTIFICATIONS);
+    window.addEventListener("chu-notification-ouverte", (e) => {
+      e.preventDefault(); // pris en charge ici : la bulle n'affiche pas son détail
+      // Déjà sur la liste : on la recharge, pour y voir la demande qui vient d'arriver.
+      if (window.location.pathname === PAGE_DES_NOTIFICATIONS) window.location.reload();
+      else window.location.assign(PAGE_DES_NOTIFICATIONS);
     });
   }
 }
