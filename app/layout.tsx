@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import localFont from "next/font/local";
+// Police hébergée dans le projet : la construction ne dépend plus de Google Fonts
+// (téléchargement qui échoue parfois, et impossible sur un réseau fermé).
 import "./globals.css";
 
 import Script from "next/script";
@@ -7,7 +9,12 @@ import Script from "next/script";
 // Police de la consultation externe (unification des interfaces du CHU). --font-manrope
 // était référencée dans globals.css sans jamais être chargée : le navigateur prenait sa
 // police système.
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
+const manrope = localFont({
+  src: "./fonts/manrope-latin.woff2",
+  variable: "--font-manrope",
+  weight: "200 800",
+  display: "swap",
+});
 export const metadata: Metadata = {
   title: "SIH Anesthésie-Réanimation",
   description: "Plateforme médicale CHU",
