@@ -457,6 +457,24 @@ export async function creerPrescriptionMedicale(data: unknown) {
   return handleResponse(res);
 }
 
+// Une prescription par consultation : les médicaments validés plus tard s'ajoutent à
+// la prescription encore sans ordonnance (une seule ordonnance les contient tous).
+export async function ajouterLignesMedicale(prescriptionId: string, data: unknown) {
+  const d = (data as Record<string, unknown>) || {};
+  const res = await fetch(`${API_URL}/prescriptions/medicale/${encodeURIComponent(prescriptionId)}/lignes`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      patientId: d.patientId,
+      medicaments: d.medicaments ?? [],
+      cocktails: d.cocktails ?? [],
+      remarques: d.remarques,
+      notifierInfirmier: d.notifierInfirmier,
+    }),
+  });
+  return handleResponse(res);
+}
+
 export async function creerOrdonnanceMedicale(
   prescriptionId: string,
   medicaments?: unknown[],

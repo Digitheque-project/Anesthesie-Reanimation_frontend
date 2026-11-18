@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, startTransition } from 'react';
-import { getPrescriptionsPatient, checkPremierSoinEligibility, getHistoriquePatient, getQuotaPremierSoin, creerPrescriptionMedicale, arreterPlanningItem, creerOrdonnanceMedicale } from '@/features/prescription/lib/api';
+import { getPrescriptionsPatient, checkPremierSoinEligibility, getHistoriquePatient, getQuotaPremierSoin, creerPrescriptionMedicale, arreterPlanningItem, creerOrdonnanceMedicale, ajouterLignesMedicale } from '@/features/prescription/lib/api';
 import { usePrescriptionPanier } from '@/features/prescription/contexts/PrescriptionPanierContext';
 import { useAuth } from '@/features/prescription/contexts/AuthContext';
 import { Medicament, CocktailPrescription, PrescriptionEnCours, Props } from './types';
@@ -51,7 +51,7 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
 
 export default function MedicaleForm({ patient, prescripteur, patientType }: Props) {
   const { containerRef, handleKeyDown } = useKeyboardNavigation();
-  const { addToPanier, setPatientId, panier, sendAll, resolveServiceId } = usePrescriptionPanier();
+  const { addToPanier, setPatientId, panier, sendAll, resolveServiceId, removeFromPanier } = usePrescriptionPanier();
   const { user } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chuId = (user?.services as any[])?.[0]?.chu?.id || process.env.NEXT_PUBLIC_CHU_ID;
@@ -243,6 +243,8 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
     try {
       const destination = resolveServiceId('medicale');
       await creerOrdonnanceMedicale(p.id, lignes, undefined, destination.serviceId || prescripteur.serviceId);
+      // Ordonnance faite : cette prescription est close, la suivante en ouvrira une nouvelle.
+      panier.items.filter((it) => it.payload?.prescriptionId === p.id).forEach((it) => removeFromPanier(it.localId));
       window.dispatchEvent(new CustomEvent('prescriptions-envoyees', { detail: { types: ['medicale'] } }));
       showToast('Ordonnance créée et envoyée à la pharmacie');
       await refreshPrescriptionsEnCours();
@@ -354,13 +356,29 @@ export default function MedicaleForm({ patient, prescripteur, patientType }: Pro
       const prescriptionData = buildPrescriptionData(true);
 
       // Create prescription on backend immediately so it survives a "Retirer" on ordonnance tab
-      const created = await creerPrescriptionMedicale(prescriptionData);
-      if (created?.id) {
-        prescriptionData.prescriptionId = created.id;
+      // Une prescription par consultation : si une prescription de ce patient est déjà
+      // ouverte (validée, sans ordonnance), les nouveaux médicaments s'y ajoutent.
+      const ouverte = panier.items.find(
+        (it) => it.type === 'medicale' && it.status === 'draft' && it.payload?.prescriptionId && it.payload?.patientId === prescriptionData.patientId,
+      );
+      if (ouverte) {
+        await ajouterLignesMedicale(ouverte.payload.prescriptionId, prescriptionData);
+        const fusion = {
+          ...ouverte.payload,
+          medicaments: [...(ouverte.payload.medicaments || []), ...(prescriptionData.medicaments || [])],
+          cocktails: [...(ouverte.payload.cocktails || []), ...(prescriptionData.cocktails || [])],
+        };
+        const nbCocktails = fusion.cocktails.length;
+        removeFromPanier(ouverte.localId);
+        addToPanier('medicale', `${fusion.medicaments.length} médicament(s)${nbCocktails > 0 ? ` + ${nbCocktails} cocktail(s)` : ''}`, fusion);
+      } else {
+        const created = await creerPrescriptionMedicale(prescriptionData);
+        if (created?.id) {
+          prescriptionData.prescriptionId = created.id;
+        }
+        const summary = `${medicaments.length} médicament(s)${cocktails.length > 0 ? ` + ${cocktails.length} cocktail(s)` : ''}`;
+        addToPanier('medicale', summary, prescriptionData);
       }
-
-      const summary = `${medicaments.length} médicament(s)${cocktails.length > 0 ? ` + ${cocktails.length} cocktail(s)` : ''}`;
-      addToPanier('medicale', summary, prescriptionData);
       clearDraft();
       setMedicaments([]);
       setCocktails([]);

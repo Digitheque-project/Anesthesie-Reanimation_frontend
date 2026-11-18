@@ -240,6 +240,13 @@ function PrescriptionModuleInner({
     .replace(/\/prescriptions$/, "");
   const [pendingEcg, setPendingEcg] = useState(false);
   const [pendingEcgAutoNav, setPendingEcgAutoNav] = useState(false);
+  // Relance la vérification quand une interprétation est enregistrée (EcgSection).
+  const [ecgVerif, setEcgVerif] = useState(0);
+  useEffect(() => {
+    const relancer = () => setEcgVerif((n) => n + 1);
+    window.addEventListener("ecg-interprete", relancer);
+    return () => window.removeEventListener("ecg-interprete", relancer);
+  }, []);
 
   useEffect(() => {
     if (stomatologieOnly || !patientId || !canCreatePrescription) {
@@ -263,12 +270,12 @@ function PrescriptionModuleInner({
         if (cancelled) return;
         const items = Array.isArray(data) ? data : [];
         const hasPending = items.some(
+          // Même règle que l'onglet Interprétation : un ECG est en attente tant
+          // qu'il n'a pas d'interprétation (son statut reste CREEE après).
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (p: any) =>
-            p.statut === "CREEE" ||
-            p.statut === "EN_COURS" ||
-            p.statut === "PRISE_EN_CHARGE" ||
-            p.statut === "EN_ATTENTE",
+            !String(p.interpretation ?? "").trim() &&
+            !["ANNULEE", "REFUSEE", "TERMINEE"].includes(String(p.statut ?? "").toUpperCase()),
         );
         setPendingEcg(hasPending);
         if (hasPending) setPendingEcgAutoNav(true);
@@ -277,7 +284,7 @@ function PrescriptionModuleInner({
     return () => {
       cancelled = true;
     };
-  }, [patientId, canCreatePrescription, stomatologieOnly]);
+  }, [patientId, canCreatePrescription, stomatologieOnly, ecgVerif]);
 
   // When pending ECG + paraServices loaded → auto-navigate to ECG
   useEffect(() => {
