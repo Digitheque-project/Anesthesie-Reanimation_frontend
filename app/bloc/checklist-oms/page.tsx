@@ -62,7 +62,7 @@ function ChecklistAvantOpPageContent() {
     notesAnesthesiques: string
     notesIdeIbode: string
   }>({
-    dateCreation: new Date().toISOString().split('T')[0],
+    dateCreation: new Date().toLocaleDateString('sv-SE'),
     // Aucune réponse pré-cochée pour les items Oui/Non : l'utilisateur doit choisir activement
     // (le vert n'apparaît qu'après un clic), jamais "Non" par défaut.
     identiteConfirmee: null, interventionSiteConfirmes: null, documentationDisponible: null,

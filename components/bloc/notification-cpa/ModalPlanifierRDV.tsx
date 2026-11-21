@@ -16,7 +16,7 @@ export default function ModalPlanifierRDV({
   isOpen, onClose, onValider, patientNom, intervention, estUrgent
 }: ModalPlanifierRDVProps) {
   const [typeRDV, setTypeRDV] = useState<'CPA'>('CPA')
-  const [dateRDV, setDateRDV] = useState(new Date().toISOString().split('T')[0])
+  const [dateRDV, setDateRDV] = useState(new Date().toLocaleDateString('sv-SE'))
   const [heureRDV, setHeureRDV] = useState(estUrgent ? new Date().toTimeString().split(' ')[0].substring(0,5) : '')
   const [lieuRDV, setLieuRDV] = useState(estUrgent ? 'Bloc Opératoire - Urgence' : '')
 
@@ -56,7 +56,7 @@ export default function ModalPlanifierRDV({
               <label className="text-xs font-bold text-[#475569] block">Date *</label>
               <CalendrierAgenda type={typeRDV} onSelectDate={setDateRDV} />
             </div>
-            <input type="date" value={dateRDV} onChange={e => setDateRDV(e.target.value)} min={new Date().toISOString().split('T')[0]}
+            <input type="date" value={dateRDV} onChange={e => setDateRDV(e.target.value)} min={new Date().toLocaleDateString('sv-SE')}
               className="w-full border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" required />
           </div>
 

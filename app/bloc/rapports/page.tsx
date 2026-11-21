@@ -11,6 +11,8 @@ import ExportToolbar from '@/components/bloc/layout/ExportToolbar'
 import { exporterCSV, exporterExcel, exporterPDF, imprimerSection, Colonne } from '@/lib/export/export'
 import { libelleUrgence, styleUrgence } from '@/lib/urgence'
 import { Icone } from '@/components/ui/Icone'
+import { libelleStatut } from '@/lib/libelle-statut';
+import { STATUT_LABEL } from '@/lib/statut';
 
 const fmtDate = (v: any) => (v ? new Date(v).toLocaleDateString('fr-FR') : '—')
 
@@ -42,7 +44,7 @@ function cleEtLabel(dateStr: string, granularite: Granularite): { cle: string; l
     const debutSemaine = new Date(d)
     const jourSemaine = (d.getDay() + 6) % 7 // lundi = 0
     debutSemaine.setDate(d.getDate() - jourSemaine)
-    const cle = debutSemaine.toISOString().split('T')[0]
+    const cle = debutSemaine.toLocaleDateString('sv-SE')
     return { cle, label: `Sem. ${debutSemaine.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}` }
   }
   return { cle: dateStr, label: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }
@@ -126,7 +128,7 @@ export default function RapportsPage() {
     fill: DECISION_STYLE[d.decision]?.hex || '#94a3b8',
   }))
   const patientsParStatutGraph = patientsParStatut.map((s: any, i: number) => ({
-    name: s.statut, value: Number(s.count) || 0, fill: PALETTE_DONUT[i % PALETTE_DONUT.length],
+    name: libelleStatut(s.statut, STATUT_LABEL), value: Number(s.count) || 0, fill: PALETTE_DONUT[i % PALETTE_DONUT.length],
   }))
   const urgencesParNiveauGraph = urgencesParNiveau.map((u: any) => ({
     name: libelleUrgence(u.niveauUrgence), value: Number(u.count) || 0, fill: PALETTE_URGENCE[u.niveauUrgence] || '#94a3b8',
@@ -484,7 +486,7 @@ export default function RapportsPage() {
                     <td className="px-4 py-3 font-medium">{o.libelle}</td>
                     <td className="px-4 py-3 text-on-surface-variant">{o.typeChirurgie}</td>
                     <td className="px-4 py-3"><span className={`text-[10px] font-bold uppercase ${styleUrgence(o.niveauUrgence).texte}`}>{libelleUrgence(o.niveauUrgence)}</span></td>
-                    <td className="px-4 py-3 text-on-surface-variant">{o.statut}</td>
+                    <td className="px-4 py-3 text-on-surface-variant">{libelleStatut(o.statut, STATUT_LABEL)}</td>
                     <td className="px-4 py-3 text-xs text-on-surface-variant">{fmtDate(o.dateOperation)}</td>
                     <td className="px-4 py-3">{o.chirurgien}</td>
                     <td className="px-4 py-3">{o.anesthesiste}</td>

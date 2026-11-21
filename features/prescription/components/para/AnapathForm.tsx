@@ -93,7 +93,7 @@ export default function AnapathForm({ patient, prescripteur }: Props) {
   const sexeLabel = patient?.sexe === 'M' ? 'Masculin' : patient?.sexe === 'F' ? 'Féminin' : patient?.sexe;
 
   // Current form state - simplified to use single state object per tab
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toLocaleDateString('sv-SE');
   function defaultFormData(): Record<string, string> {
     return { bioDatePrelev: todayStr, bioFaitLe: todayStr, extDatePrevue: todayStr, fcvMenarche: age != null ? String(age) : "" };
   }

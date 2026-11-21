@@ -56,7 +56,7 @@ function ApresOperationPageContent() {
     etiquetageVerifie: boolean | null
     signalementsEffectues: boolean | null
   }>({
-    dateCreation: new Date().toISOString().split('T')[0],
+    dateCreation: new Date().toLocaleDateString('sv-SE'),
     // Aucune réponse pré-cochée : chaque item doit être choisi activement.
     interventionEnregistree: null, compteFinalCorrect: null, etiquetageVerifie: null,
     signalementsEffectues: null,

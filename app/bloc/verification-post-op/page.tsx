@@ -60,7 +60,7 @@ function VerificationPostOpPageContent() {
   useEffect(() => { chargerPatient() }, [patientId])
 
   const [form, setForm] = useState<{ dateCreation: string; [key: string]: string | boolean | null }>({
-    dateCreation: new Date().toISOString().split('T')[0],
+    dateCreation: new Date().toLocaleDateString('sv-SE'),
     // Aucune réponse pré-cochée : chaque item doit être choisi activement, jamais "Non" par défaut.
     identiteUltimeConfirmee: null, interventionConfirmee: null, siteOperatoireConfirme: null, installationCorrecte: null,
     documentsDisponibles: null, antibioprophylaxieFaite: null, constantesStables: null, ventilationOK: null,

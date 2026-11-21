@@ -64,10 +64,10 @@ export default function ProgrammeAVenirModal({ open, onClose, nonOperatoire = fa
     ])
       .then(([pretRes, encoursRes, notifsRes]) => {
         const notifsData = notifsRes.data || []
-        const aujourdhui = new Date().toISOString().split('T')[0]
+        const aujourdhui = new Date().toLocaleDateString('sv-SE')
         const data = [...(pretRes.data || []), ...(encoursRes.data || [])]
           .filter((p: any) => (vueNonOperatoire ? estServiceNonOperatoire(p.serviceOrigine) : !estServiceNonOperatoire(p.serviceOrigine)))
-          .filter((p: any) => p.dateIntervention && new Date(p.dateIntervention).toISOString().split('T')[0] >= aujourdhui)
+          .filter((p: any) => p.dateIntervention && new Date(p.dateIntervention).toLocaleDateString('sv-SE') >= aujourdhui)
 
         const liste: PatientAVenir[] = data.map((p: any) => {
           const notif = notifsData.find((n: any) => n.patientId === p.id || n.patient?.id === p.id)
@@ -93,7 +93,7 @@ export default function ProgrammeAVenirModal({ open, onClose, nonOperatoire = fa
   const groupes = useMemo(() => {
     const map = new Map<string, PatientAVenir[]>()
     for (const p of patients) {
-      const cle = new Date(p.dateIntervention).toISOString().split('T')[0]
+      const cle = new Date(p.dateIntervention).toLocaleDateString('sv-SE')
       if (!map.has(cle)) map.set(cle, [])
       map.get(cle)!.push(p)
     }
@@ -146,7 +146,7 @@ export default function ProgrammeAVenirModal({ open, onClose, nonOperatoire = fa
               <div key={date} className="rounded-2xl bg-white border border-outline-variant/10 shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between gap-3 px-5 py-3 bg-primary-fixed/30 border-b border-outline-variant/10">
                   <h4 className="text-sm font-extrabold text-primary">
-                    {date === new Date().toISOString().split('T')[0] ? "Aujourd'hui" : formaterDateGroupe(date)}
+                    {date === new Date().toLocaleDateString('sv-SE') ? "Aujourd'hui" : formaterDateGroupe(date)}
                   </h4>
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wide">

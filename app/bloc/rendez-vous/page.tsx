@@ -27,7 +27,7 @@ let derniersRetards: Retards | null = null;
 export default function RendezVousPage() {
   const router = useRouter();
   const [onglet, setOnglet] = useState<Onglet>('CPA');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('sv-SE'));
   const [creneaux, setCreneaux] = useState<any[]>([]);
   // Retards : CPA/vérification veille/opération dont la date prévue est dépassée sans que
   // l'étape correspondante soit faite (voir PlanningService.getRetards) — fusionnés dans la
@@ -40,7 +40,7 @@ export default function RendezVousPage() {
   // uniquement — cette liste n'est plus liée à un créneau à date fixe (voir plus bas), mais on
   // veut pouvoir se limiter aux patients opérés tel jour, sans devoir chercher parmi tous les
   // patients CPA validée en attente de vérification.
-  const [filtreDateVerif, setFiltreDateVerif] = useState(new Date().toISOString().split('T')[0]);
+  const [filtreDateVerif, setFiltreDateVerif] = useState(new Date().toLocaleDateString('sv-SE'));
   // Patients déjà planifiés (retirés du fil de prescription dès qu'un créneau CPA leur est
   // réservé, voir PlanningService.reserverCreneau) : sans cette alerte, il fallait parcourir le
   // calendrier jour par jour pour se rendre compte qu'un RDV existait déjà à une autre date.
@@ -206,7 +206,7 @@ export default function RendezVousPage() {
       // Un patient en retard a par définition une date déjà passée : il ne correspondra jamais
       // au filtre "date du jour" et disparaîtrait sinon silencieusement (voir commentaire plus
       // haut sur creneauxAvecRetards) — on l'exempte donc de ce filtre de date.
-      filtres = filtres.filter((c: any) => c.enRetard || (c.dateIntervention && new Date(c.dateIntervention).toISOString().split('T')[0] === filtreDateVerif));
+      filtres = filtres.filter((c: any) => c.enRetard || (c.dateIntervention && new Date(c.dateIntervention).toLocaleDateString('sv-SE') === filtreDateVerif));
     }
     const q = recherche.trim().toLowerCase();
     if (!q) return filtres;
@@ -222,9 +222,9 @@ export default function RendezVousPage() {
     if (onglet !== 'VERIFICATION_VEILLE') return null;
     const total = creneaux.length;
     if (total === 0) return null;
-    const aujourdhui = new Date().toISOString().split('T')[0];
+    const aujourdhui = new Date().toLocaleDateString('sv-SE');
     const dates = creneaux
-      .map((c: any) => (c.dateIntervention ? new Date(c.dateIntervention).toISOString().split('T')[0] : null))
+      .map((c: any) => (c.dateIntervention ? new Date(c.dateIntervention).toLocaleDateString('sv-SE') : null))
       .filter((d: string | null): d is string => d !== null)
       .sort();
     const prochaine = dates.find((d) => d >= aujourdhui) ?? dates[0] ?? null;

@@ -68,7 +68,7 @@ function VerificationVeillePageContent() {
     examensComplementaires: string
     heureDepart: string
   }>({
-    dateVisite: new Date().toISOString().split('T')[0],
+    dateVisite: new Date().toLocaleDateString('sv-SE'),
     // Aucune réponse pré-cochée : chaque item de sécurité doit être choisi explicitement par
     // l'anesthésiste (le vert n'apparaît qu'après un clic), pas de "OUI" par défaut.
     identiteConfirmee: null, jeuneRespected: null, instructionsRespectees: null, premedicationFaite: null,

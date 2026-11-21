@@ -40,10 +40,10 @@ export default function PatientFiltersNonOp({ onFilterChange, date, onDateChange
               onChange={(e) => onDateChange(e.target.value)}
               className="text-sm font-bold text-on-surface bg-transparent border-none outline-none cursor-pointer"
             />
-            {date !== new Date().toISOString().split('T')[0] && (
+            {date !== new Date().toLocaleDateString('sv-SE') && (
               <button
                 type="button"
-                onClick={() => onDateChange(new Date().toISOString().split('T')[0])}
+                onClick={() => onDateChange(new Date().toLocaleDateString('sv-SE'))}
                 className="text-[10px] font-bold text-primary uppercase hover:underline whitespace-nowrap"
               >
                 Aujourd'hui

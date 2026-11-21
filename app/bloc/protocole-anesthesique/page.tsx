@@ -52,7 +52,7 @@ function ProtocoleAnesthesiquePageContent() {
 
   useEffect(() => { chargerPatient() }, [patientId])
 
-  const [dateOperation, setDateOperation] = useState(new Date().toISOString().split('T')[0])
+  const [dateOperation, setDateOperation] = useState(new Date().toLocaleDateString('sv-SE'))
   const [compteRenduAnesthesique, setCompteRenduAnesthesique] = useState('')
   const [personnelIntervention, setPersonnelIntervention] = useState('')
   const [instructions, setInstructions] = useState<InstructionsPostOpData>(DEFAULT_INSTRUCTIONS_POST_OP)

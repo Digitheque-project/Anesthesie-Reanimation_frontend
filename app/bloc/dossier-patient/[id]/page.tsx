@@ -142,7 +142,7 @@ function DossierPatientPageContent() {
 
       await planningService.reserverCreneau({
         patientId,
-        date: formData.dateRDV || new Date().toISOString().split('T')[0],
+        date: formData.dateRDV || new Date().toLocaleDateString('sv-SE'),
         heureDebut: formData.heureRDV || '09:00',
         heureFin,
         salle: formData.lieuRDV || 'Salle CPA',

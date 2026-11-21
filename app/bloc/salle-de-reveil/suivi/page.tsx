@@ -142,7 +142,7 @@ function SalleDeReveilPageContent() {
     try {
       const { data } = await apiClient.post('/scores-sccre', {
         patientId: patientId || patient?.id,
-        heureArrivee, dateEvaluation: new Date().toISOString().split('T')[0],
+        heureArrivee, dateEvaluation: new Date().toLocaleDateString('sv-SE'),
         motricite: scores.motricite ?? 0,
         respiration: scores.respiration ?? 0,
         pressionArterielle: scores.pressionArterielle ?? 0,

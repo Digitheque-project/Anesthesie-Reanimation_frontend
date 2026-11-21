@@ -61,7 +61,7 @@ export default function CalendrierAgenda({ type, onSelectDate }: CalendrierAgend
 
   const premierJourSemaine = (new Date(mois.getFullYear(), mois.getMonth(), 1).getDay() + 6) % 7 // lundi = 0
   const nbJours = new Date(mois.getFullYear(), mois.getMonth() + 1, 0).getDate()
-  const aujourdhui = new Date().toISOString().split('T')[0]
+  const aujourdhui = new Date().toLocaleDateString('sv-SE')
 
   const cases: (number | null)[] = [...Array(premierJourSemaine).fill(null), ...Array.from({ length: nbJours }, (_, i) => i + 1)]
 

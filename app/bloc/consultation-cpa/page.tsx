@@ -125,7 +125,7 @@ function restaurerMedicamentsAnesthesieRows(items: any[] | undefined | null): Me
 
 function formatDateInput(valeur: string | Date | null | undefined): string {
   if (!valeur) return '';
-  return new Date(valeur).toISOString().split('T')[0];
+  return new Date(valeur).toLocaleDateString('sv-SE');
 }
 
 function ConsultationCpaPageContent() {
@@ -567,7 +567,7 @@ function ConsultationCpaPageContent() {
       if (!cpaDejaRemplie) {
         const payload = {
           patientId: patientIdFinal,
-          dateConsultation: new Date().toISOString().split('T')[0],
+          dateConsultation: new Date().toLocaleDateString('sv-SE'),
           histoireActuelle: form.histoireActuelle || undefined,
           dernierRepasBoisson: form.dernierRepasBoisson || undefined,
           patientMineur: form.patientMineur,
@@ -891,7 +891,7 @@ function ConsultationCpaPageContent() {
 
   const genererPdfCpa = async (): Promise<{ blob: Blob; nomFichier: string }> => {
     const nomComplet = formaterNomPatient(patient) || patientNom;
-    const nomFichier = `CPA-${nomComplet.replace(/[^a-zA-Z0-9]+/g, '-')}-${new Date().toISOString().split('T')[0]}`;
+    const nomFichier = `CPA-${nomComplet.replace(/[^a-zA-Z0-9]+/g, '-')}-${new Date().toLocaleDateString('sv-SE')}`;
     const sessionActuelle = obtenirSessionValide();
     const blob = await exporterFichePdf(
       "Fiche d'Anesthésie – Réanimation",
@@ -1127,7 +1127,7 @@ function ConsultationCpaPageContent() {
             <div className="flex-1 min-w-[220px]">
               <label className="text-xs font-semibold text-on-surface-variant block mb-1">Date et heure prévues de l'opération</label>
               <input type="datetime-local" value={dateInterventionInput} onChange={e => setDateInterventionInput(e.target.value)}
-                min={`${new Date().toISOString().split('T')[0]}T00:00`}
+                min={`${new Date().toLocaleDateString('sv-SE')}T00:00`}
                 className="w-full bg-white border rounded-xl p-2 text-sm font-bold border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" />
             </div>
             <button onClick={handleEnregistrerDateIntervention} disabled={savingDateIntervention || !dateInterventionInput}
@@ -1316,7 +1316,7 @@ function ConsultationCpaPageContent() {
                 <div className="w-28" title="Gestité : nombre total de grossesses"><label className="text-[10px] font-bold block mb-1">G (gestité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxG} onChange={setField('atcdObstetricauxG')} placeholder="ex. 3" title="Gestité : nombre total de grossesses" className="w-full bg-white border rounded-xl p-2 text-sm text-center disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" inputMode="numeric" maxLength={3} /></div>
                 <div className="w-28" title="Parité : nombre d'accouchements"><label className="text-[10px] font-bold block mb-1">P (parité)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxP} onChange={setField('atcdObstetricauxP')} placeholder="ex. 2" title="Parité : nombre d'accouchements" className="w-full bg-white border rounded-xl p-2 text-sm text-center disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" inputMode="numeric" maxLength={3} /></div>
                 <div className="w-28" title="Avortements : fausses couches / IVG"><label className="text-[10px] font-bold block mb-1">A (avortements)</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxA} onChange={setField('atcdObstetricauxA')} placeholder="ex. 1" title="Avortements : fausses couches / IVG" className="w-full bg-white border rounded-xl p-2 text-sm text-center disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" inputMode="numeric" maxLength={3} /></div>
-                <div className="flex-1 min-w-[140px]"><label className="text-[10px] font-bold block mb-1">DDR</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxDdr} max={new Date().toISOString().split('T')[0]} onChange={(e) => { if (e.target.value <= new Date().toISOString().split('T')[0]) setField('atcdObstetricauxDdr')(e); }} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" type="date" /></div>
+                <div className="flex-1 min-w-[140px]"><label className="text-[10px] font-bold block mb-1">DDR</label><input disabled={!peutEditerExamenEtDecision} value={form.atcdObstetricauxDdr} max={new Date().toLocaleDateString('sv-SE')} onChange={(e) => { if (e.target.value <= new Date().toLocaleDateString('sv-SE')) setField('atcdObstetricauxDdr')(e); }} className="w-full bg-surface-container-low border-none rounded-lg p-2 text-sm disabled:opacity-60" type="date" /></div>
                 <div className="flex-1 min-w-[160px]"><label className="text-[10px] font-bold block mb-1">Contraception</label><input disabled={!peutEditerExamenEtDecision} value={form.contraception} onChange={setField('contraception')} placeholder="ex. pilule, DIU, aucune" className="w-full bg-white border rounded-xl p-2 text-sm disabled:opacity-60 border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" /></div>
               </div>
             </div>
@@ -1780,7 +1780,7 @@ function ConsultationCpaPageContent() {
                         <label className="text-xs font-bold text-orange-700 block mb-1">Nouvelle date et heure d'opération</label>
                         <div className="flex flex-col md:flex-row md:items-center gap-2">
                           <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date"
-                            value={dateOperationReportee} onChange={e => setDateOperationReportee(e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                            value={dateOperationReportee} onChange={e => setDateOperationReportee(e.target.value)} min={new Date().toLocaleDateString('sv-SE')} />
                           <input disabled={!peutEditerExamenEtDecision} className="flex-none w-32 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="time"
                             value={heureOperationReportee} onChange={e => setHeureOperationReportee(e.target.value)} />
                         </div>
@@ -1805,7 +1805,7 @@ function ConsultationCpaPageContent() {
                       className="w-full h-20 bg-orange-50 border border-orange-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-300 outline-none disabled:opacity-60" placeholder="Ex : bilan biologique complémentaire nécessaire avant de statuer sur l'aptitude..." />
                     <label className="text-xs font-bold text-orange-700 block mt-3 mb-1">Date de report (facultatif — pour refaire la CPA)</label>
                     <div className="flex flex-col md:flex-row md:items-center gap-2">
-                      <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date" value={dateReportCpa} onChange={e => setDateReportCpa(e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                      <input disabled={!peutEditerExamenEtDecision} className="flex-1 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date" value={dateReportCpa} onChange={e => setDateReportCpa(e.target.value)} min={new Date().toLocaleDateString('sv-SE')} />
                       <input disabled={!peutEditerExamenEtDecision} className="flex-none w-32 bg-orange-50 border border-orange-200 rounded-xl p-2 text-sm disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="time" value={heureReportCpa} onChange={e => setHeureReportCpa(e.target.value)} />
                     </div>
                   </div>
@@ -1861,7 +1861,7 @@ function ConsultationCpaPageContent() {
                   : "Date d'opération pas encore connue : renseignez-la vous-même, ou laissez vide — le patient restera visible dans le Fil de travail en attendant."}
               </p>
               <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <input className="flex-1 bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date" value={dateVPA} onChange={e => setDateVPA(e.target.value)} min={new Date().toISOString().split('T')[0]} />
+                <input className="flex-1 bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="date" value={dateVPA} onChange={e => setDateVPA(e.target.value)} min={new Date().toLocaleDateString('sv-SE')} />
                 <input className="flex-none w-32 bg-white border rounded-xl p-2 text-sm border-[#E2E8F0] focus:outline-none focus:ring-2 focus:ring-[#006A8C]/20" type="time" value={heureVPA} onChange={e => setHeureVPA(e.target.value)} />
               </div>
             </div>

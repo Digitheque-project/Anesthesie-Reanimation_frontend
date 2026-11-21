@@ -163,7 +163,7 @@ export default function NotificationCPAPage() {
 
         await planningService.reserverCreneau({
           patientId: patientId,
-          date: formData.dateRDV || new Date().toISOString().split('T')[0],
+          date: formData.dateRDV || new Date().toLocaleDateString('sv-SE'),
           heureDebut: formData.heureRDV || '09:00',
           heureFin: heureFin,
           salle: formData.lieuRDV || 'Salle CPA',

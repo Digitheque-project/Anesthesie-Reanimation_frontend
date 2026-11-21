@@ -56,7 +56,7 @@ function ActivitePendantOperationPageContent() {
 
   // État du formulaire (hors constantes, gérées par SurveillancePanel)
   const [form, setForm] = useState({
-    dateOperation: new Date().toISOString().split('T')[0],
+    dateOperation: new Date().toLocaleDateString('sv-SE'),
     perfusions: '', transfusions: '', journalSorties: '',
     intubationOT: false, sArme: false, masqueLarynge: false,
     ventilationSpontanee: '', ventilationAssistee: '', ventilationControlee: '', ventilationPEEP: '', ventilationCircuitFerme: '',
@@ -98,7 +98,7 @@ function ActivitePendantOperationPageContent() {
         if (existante) { setActiviteId(existante.id); return }
         const { data: creee } = await apiClient.post('/activites-per-op', {
           patientId,
-          dateOperation: new Date().toISOString().split('T')[0],
+          dateOperation: new Date().toLocaleDateString('sv-SE'),
           intubationOT: false,
           sArme: false,
           masqueLarynge: false,

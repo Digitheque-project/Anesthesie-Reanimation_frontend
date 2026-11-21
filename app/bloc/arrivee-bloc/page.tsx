@@ -96,7 +96,7 @@ function ArriveeBlocPageContent() {
         }
         const { data: creee } = await apiClient.post('/activites-per-op', {
           patientId,
-          dateOperation: new Date().toISOString().split('T')[0],
+          dateOperation: new Date().toLocaleDateString('sv-SE'),
           intubationOT: false,
           sArme: false,
           masqueLarynge: false,

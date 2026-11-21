@@ -9,6 +9,8 @@ import { fmtDate, fmtDateHeure, fmtHeure, nomPersonne, collecterEquipe, construi
 import PiecesJointesUploader from '@/components/bloc/pieces-jointes/PiecesJointesUploader'
 import { formaterNomPatient } from '@/lib/patient'
 import { Icone } from '@/components/ui/Icone'
+import { libelleStatut } from '@/lib/libelle-statut';
+import { STATUT_LABEL } from '@/lib/statut';
 
 export default function ArchiveDetailPage() {
   const params = useParams()
@@ -98,7 +100,7 @@ export default function ArchiveDetailPage() {
                 <span>Groupe sanguin : <strong>{p.groupeSanguin || '—'}</strong></span>
               </p>
             </div>
-            <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase">{p.statut || '—'}</span>
+            <span className="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase">{libelleStatut(p.statut, STATUT_LABEL)}</span>
           </div>
 
           {/* Équipe intervenue — reconstituée à partir des données réelles de chaque étape */}
@@ -137,7 +139,7 @@ export default function ArchiveDetailPage() {
                   <LigneDetail key={n.id}
                     gauche={n.intervention || 'Intervention'}
                     droite={fmtDateHeure(n.createdAt)}
-                    badges={[n.estUrgent ? { texte: 'Urgent', couleur: 'red' } : null, { texte: n.statut, couleur: 'sky' }]}
+                    badges={[n.estUrgent ? { texte: 'Urgent', couleur: 'red' } : null, { texte: libelleStatut(n.statut), couleur: 'sky' }]}
                     personnel={nomPersonne(n.chirurgien, n.chirurgienNom)}
                   />
                 ))}
@@ -145,7 +147,7 @@ export default function ArchiveDetailPage() {
                   <LigneDetail key={e.id}
                     gauche={`${e.motif || e.typeAnesthesie || 'Demande externe'} (${e.sourceServiceName || e.sourceServiceId})`}
                     droite={fmtDateHeure(e.createdAt)}
-                    badges={[{ texte: e.statut, couleur: 'sky' }]}
+                    badges={[{ texte: libelleStatut(e.statut), couleur: 'sky' }]}
                   />
                 ))}
               </div>
@@ -194,7 +196,7 @@ export default function ArchiveDetailPage() {
             {!dossier.verificationVeille ? <VideMessage texte="Non applicable ou non encore réalisée." /> : (
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  <Badge texte={dossier.verificationVeille.statut} couleur="indigo" />
+                  <Badge texte={libelleStatut(dossier.verificationVeille.statut)} couleur="indigo" />
                   <span className="text-xs text-on-surface-variant ml-auto">{fmtDate(dossier.verificationVeille.dateVisite)}</span>
                 </div>
                 <ChampsGrid champs={[
@@ -213,7 +215,7 @@ export default function ArchiveDetailPage() {
             {(dossier.checklistsAvantOp?.length || 0) === 0 ? <VideMessage texte="Non encore réalisée." /> : (
               dossier.checklistsAvantOp.map((c: any) => (
                 <LigneDetail key={c.id} gauche={`Check-list Sign In — ${fmtDate(c.dateCreation)}`} droite=""
-                  badges={[{ texte: c.statut, couleur: 'blue' }]} personnel={c.validateurNom} />
+                  badges={[{ texte: libelleStatut(c.statut), couleur: 'blue' }]} personnel={c.validateurNom} />
               ))
             )}
           </SectionEtape>
@@ -223,7 +225,7 @@ export default function ArchiveDetailPage() {
             {(dossier.checklistsPendantOp?.length || 0) === 0 ? <VideMessage texte="Non encore réalisée." /> : (
               dossier.checklistsPendantOp.map((c: any) => (
                 <LigneDetail key={c.id} gauche={`Time Out — ${fmtDate(c.dateCreation)}`} droite=""
-                  badges={[{ texte: c.statut, couleur: 'teal' }]} personnel={c.validateurNom} />
+                  badges={[{ texte: libelleStatut(c.statut), couleur: 'teal' }]} personnel={c.validateurNom} />
               ))
             )}
           </SectionEtape>
@@ -282,7 +284,7 @@ export default function ArchiveDetailPage() {
             {(dossier.checklistsApresOp?.length || 0) === 0 ? <VideMessage texte="Non encore réalisée." /> : (
               dossier.checklistsApresOp.map((c: any) => (
                 <div key={c.id} className="space-y-1">
-                  <LigneDetail gauche={`Sign Out — ${fmtDate(c.dateCreation)}`} droite="" badges={[{ texte: c.statut, couleur: 'blue' }]} personnel={c.validateurNom} />
+                  <LigneDetail gauche={`Sign Out — ${fmtDate(c.dateCreation)}`} droite="" badges={[{ texte: libelleStatut(c.statut), couleur: 'blue' }]} personnel={c.validateurNom} />
                 </div>
               ))
             )}
