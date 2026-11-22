@@ -20,9 +20,14 @@ export function useLogoAuthentifie(url?: string | null, jeton?: string | null): 
       setSrc(url);
       return;
     }
+    // Sans jeton, le service des fichiers répond 401 : on attend qu'il soit lu.
+    if (!jeton) {
+      setSrc(null);
+      return;
+    }
     let objet: string | null = null;
     let annule = false;
-    fetch(url, { headers: jeton ? { Authorization: `Bearer ${jeton}` } : {} })
+    fetch(url, { headers: { Authorization: `Bearer ${jeton}` } })
       .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
       .then((b) => {
         if (annule) return;
