@@ -2,6 +2,18 @@ import { getStoredToken } from "@/features/prescription/lib/auth";
 import { getActiveSession } from "@/features/prescription/platform/session-store";
 import { notifierMajSoins } from "@/features/prescription/platform/soins-realtime";
 import { gatewayUrl } from "@/features/prescription/platform/gateway";
+
+/**
+ * Incidence « AUTRE » : le texte écrit dans « Préciser l'incidence… »
+ * (rxIncidencesAutre) remplace « AUTRE » dans la liste envoyée. Avant, il
+ * n'était jamais envoyé et l'Imagerie ne voyait que « AUTRE ».
+ */
+function incidencesAvecAutre(liste: unknown, autre: unknown): unknown {
+  if (!Array.isArray(liste)) return liste;
+  const texte = typeof autre === "string" ? autre.trim() : "";
+  if (!texte) return liste;
+  return liste.map((i) => (String(i).toUpperCase() === "AUTRE" ? `Autre : ${texte}` : i));
+}
 export { authFetch } from "@/features/prescription/lib/auth";
 
 // Origine de la passerelle : les routes ajoutent deja "/prescriptions".
@@ -224,7 +236,7 @@ export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
       moyenDeplacement: body.moyenDeplacement,
       // Radiographie-specific fields (flat)
       type: body.rxType || body.type,
-      incidences: body.rxIncidences || body.incidences,
+      incidences: incidencesAvecAutre(body.rxIncidences || body.incidences, body.rxIncidencesAutre),
       precisions: body.rxPrecisions || body.precisions,
     };
     delete normalized.examens;
@@ -234,6 +246,7 @@ export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
     delete normalized.renseignement;
     delete normalized.rxType;
     delete normalized.rxIncidences;
+    delete normalized.rxIncidencesAutre;
     delete normalized.rxPrecisions;
     return normalized;
   }
@@ -374,7 +387,7 @@ export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
         key = "radio";
         item = {
           type: extractedType,
-          incidences: ex.rxIncidences,
+          incidences: incidencesAvecAutre(ex.rxIncidences, ex.rxIncidencesAutre),
           precisions: ex.rxPrecisions,
         };
       } else if (modality === "geste" || modality === "geste-interventionnel") {
