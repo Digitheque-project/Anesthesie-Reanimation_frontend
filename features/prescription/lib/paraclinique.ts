@@ -170,14 +170,26 @@ export async function fetchParacliniqueServices(
   if (!base) return [];
 
   const token = getStoredToken();
-  const response = await axios.get<RawService[]>(
-    resolveServicesEndpoint(base),
-    {
+  // Le registre des services peut être en veille (hébergement gratuit) : un
+  // premier appel qui échoue n'est pas définitif, on retente deux fois.
+  const appeler = () =>
+    axios.get<RawService[]>(resolveServicesEndpoint(base), {
       params: chuId ? { chuId } : {},
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       timeout: 20_000,
-    },
-  );
+    });
+  let response: Awaited<ReturnType<typeof appeler>> | null = null;
+  for (let essai = 0; essai < 3 && !response; essai++) {
+    try {
+      response = await appeler();
+    } catch (err) {
+      const statut = (err as { response?: { status?: number } })?.response?.status;
+      // Refus d'accès ou requête invalide : inutile de retenter.
+      if (essai === 2 || (statut && statut < 500)) throw err;
+      await new Promise((r) => setTimeout(r, essai === 0 ? 3000 : 8000));
+    }
+  }
+  if (!response) return [];
 
   const list = Array.isArray(response.data) ? response.data : [];
 
