@@ -405,6 +405,11 @@ export function normalizePayloadForEndpoint(endpoint: string, data: unknown) {
         };
       }
 
+      // Renseignement clinique (obligatoire) et question au radiologue sont
+      // propres à chaque examen : avant, ils étaient perdus dès qu'une
+      // prescription contenait plusieurs examens (25/11/2026).
+      if (ex.renseignementsCliniques) item.renseignementsCliniques = ex.renseignementsCliniques;
+      if (ex.questionRadio) item.questionRadio = ex.questionRadio;
       if (!groupedExamens[key]) groupedExamens[key] = [];
       groupedExamens[key].push(item);
     });
