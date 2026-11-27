@@ -11,6 +11,11 @@ import { useDraftPersistence, loadDraft } from '@/features/prescription/hooks/us
 import { fetchTypesProduitTransfusion, addTypeProduitTransfusion } from '@/features/prescription/lib/api';
 import { useKeyboardNavigation } from '@/features/prescription/hooks/useKeyboardNavigation';
 import { Icone } from '@/components/ui/Icone';
+import { authFetch } from '@/features/prescription/lib/auth';
+
+// Stock de la Banque de sang affiché au prescripteur (27/11/2026).
+type LigneStock = { groupe_sanguin: string; produit: string; unites_dispo: number };
+const cleProduit = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
 
 const PRODUITS_SANGUINS: { value: string; label: string }[] = [
   { value: 'sang-total', label: 'Sang total' },
@@ -61,6 +66,17 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
   const [atcd, setAtcd] = useState(false);
   const [incident, setIncident] = useState('');
   const [groupage, setGroupage] = useState('');
+  const [stocks, setStocks] = useState<LigneStock[] | null>(null);
+  useEffect(() => {
+    authFetch(`${(process.env.NEXT_PUBLIC_GATEWAY_URL ?? '').replace(/\/+$/, '')}/banque-sang/stocks/detail`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setStocks(Array.isArray(d) ? d : null))
+      .catch(() => setStocks(null));
+  }, []);
+  const stockGroupe = (stocks ?? []).filter((l) => l.groupe_sanguin === groupage);
+  const totalGroupe = stockGroupe.reduce((t, l) => t + Number(l.unites_dispo || 0), 0);
+  const stockProduit = (code: string) =>
+    stockGroupe.filter((l) => cleProduit(l.produit) === cleProduit(code)).reduce((t, l) => t + Number(l.unites_dispo || 0), 0);
   const [hb, setHb] = useState('');
   const [produits, setProduits] = useState<Produit[]>([{ id: '1', produit: '', quantite: '', datePrevue: '', plaquettes: '' }]);
   const [notes, setNotes] = useState('');
@@ -237,6 +253,13 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
         <div className="card" style={{ padding: 12 }}>
           <div className="mb12 rc-field"><label className="lbl">Renseignements cliniques <span className="req">*</span></label><textarea rows={3} placeholder="Pathologie, contexte, motif de la transfusion..." value={renseignements} onChange={e => setRenseignements(e.target.value)} /></div>
           <div className="mb12"><label className="lbl">Groupage sanguin <span className="req">*</span></label><select value={groupage} onChange={e => setGroupage(e.target.value)}><option value="">— Sélectionner —</option>{['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(g => <option key={g}>{g}</option>)}</select></div>
+          {groupage && stocks && (
+            <div className="mb12" style={{ borderRadius: 8, padding: '8px 12px', fontSize: 12.5, fontWeight: 600, background: totalGroupe === 0 ? '#FEF2F2' : '#F0F9FF', color: totalGroupe === 0 ? '#B91C1C' : '#075985', border: `1px solid ${totalGroupe === 0 ? '#FECACA' : '#BAE6FD'}` }}>
+              {totalGroupe === 0
+                ? `Rupture : aucune poche du groupe ${groupage} disponible à la Banque de sang.`
+                : `Stock ${groupage} à la Banque de sang : ${stockGroupe.filter((l) => l.unites_dispo > 0).map((l) => `${l.produit.replace(/_/g, ' ').toLowerCase()} ${l.unites_dispo}`).join(' · ')}`}
+            </div>
+          )}
           <div className="mb12"><label className="lbl">Hémoglobine — Hb (g/l)</label><input type="number" min={0} step={0.1} placeholder="Ex : 7.5" value={hb} onChange={e => setHb(e.target.value)} /></div>
           
           <div className="mb12">
@@ -260,6 +283,15 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
                 {p.produit ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)' }}>{PRODUIT_LABELS[p.produit] || p.produit}</span>
+                    {groupage && stocks && (() => {
+                      const dispo = stockProduit(p.produit);
+                      const manque = dispo === 0 || (Number(p.quantite) > 0 && dispo < Number(p.quantite));
+                      return (
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: manque ? '#FEE2E2' : '#DCFCE7', color: manque ? '#B91C1C' : '#166534' }}>
+                          {dispo === 0 ? 'rupture' : `stock : ${dispo}`}
+                        </span>
+                      );
+                    })()}
                     <button onClick={() => updateProduit(p.id, 'produit', '')} style={{ padding: 4, background: 'none', border: 'none', color: 'var(--txt3)', cursor: 'pointer', borderRadius: 6, lineHeight: 1 }}><Icone nom="close" style={{ fontSize: 16 }} /></button>
                   </div>
                 ) : (
