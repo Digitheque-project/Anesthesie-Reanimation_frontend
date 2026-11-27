@@ -502,3 +502,71 @@
   outline: 3px solid rgba(244, 63, 94, 0.22) !important;
   outline-offset: 2px;
 }
+
+
+/* Styles de base des boutons du module de prescription (repris de front-clinique,
+   absents du Bloc : le bouton « Valider » s'affichait sans fond — 27/11/2026). */
+.bp {
+  display: flex; align-items: center; gap: 8px;
+  justify-content: center; width: 100%;
+  padding: 12px 18px; border-radius: 11px;
+  background: linear-gradient(135deg, var(--navy, #006A8C) 0%, var(--navy-hover, #04556F) 100%);
+  color: #fff; border: none;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px 0 rgba(5, 102, 141, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bp:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 18px 0 rgba(5, 102, 141, 0.35);
+}
+.bp:active {
+  transform: translateY(0);
+}
+.bok {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 10px;
+  background: var(--navy, #006A8C); color: #fff;
+  border: none; font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(5, 102, 141, 0.15);
+  transition: all 0.2s ease;
+}
+.bok:hover {
+  background: var(--navy-hover, #04556F);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 102, 141, 0.25);
+}
+.badd {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; justify-content: center;
+  padding: 10px 16px; border-radius: 10px;
+  background: var(--navy-lt, #EBF5FB);
+  color: var(--navy, #006A8C);
+  border: 1px dashed var(--navy, #006A8C);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.badd:hover {
+  background: #d6eaf2;
+  color: var(--navy-hover, #04556F);
+  transform: translateY(-1px);
+}
+.badd:active {
+  transform: translateY(0);
+}
+.bca {
+  padding: 10px 18px; border-radius: 10px;
+  border: 1px solid var(--bdr, #e2e8f0);
+  background: #fff; color: var(--txt2, #64748b);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.bca:hover {
+  background: var(--bdr-soft, #f1f5f9);
+  color: var(--txt, #1e293b);
+  border-color: rgba(0, 0, 0, 0.15);
+}
