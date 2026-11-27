@@ -54,6 +54,16 @@ const URGENCE_CONFIG: Record<NiveauUrgence, {
 // ou, à défaut, le booléen `estUrgent` transmis par les notifications internes CPA)
 const getNiveauUrgence = niveauUrgenceNotification;
 
+function tempsRelatif(d: string | number | Date): string {
+  const min = Math.round((Date.now() - new Date(d).getTime()) / 60000);
+  if (min < 1) return "À l'instant";
+  if (min < 60) return `Il y a ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `Il y a ${h} h`;
+  const j = Math.round(h / 24);
+  return j === 1 ? 'Hier' : `Il y a ${j} jours`;
+}
+
 export default function NotificationModal({
   isOpen,
   onClose,
@@ -195,95 +205,50 @@ export default function NotificationModal({
               <p className="text-sm font-bold text-green-700 mt-2">Toutes les notifications sont lues</p>
             </div>
           ) : (
-          <div className="p-3 space-y-2.5">
+          // Liste compacte, une notification sur deux lignes, comme dans les
+          // autres modules (27/11/2026) : plusieurs notifications visibles d'un coup.
+          <ul className="divide-y divide-slate-100">
             {notificationsAffichees.map((notification, index) => {
               const niveau = getNiveauUrgence(notification);
               const config = URGENCE_CONFIG[niveau];
+              const patient = (notification.patientNom || formaterNomPatient(notification.patient) || 'Patient').toString();
+              const recue = notification.receivedAt || notification.createdAt;
+              const intervention = notification.dateIntervention || notification.patient?.dateIntervention;
+              const service = notification.sourceServiceName || notification.serviceSourceNom;
+              const detail = [
+                notification.motif || notification.message || notification.type || 'Demande',
+                service ? `de ${service}` : '',
+                intervention
+                  ? `opération le ${new Date(intervention).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}`
+                  : '',
+              ].filter(Boolean).join(' · ');
               return (
-                <div
-                  key={notification.id || index}
-                  className={`bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow ${config.cardClass}`}
-                >
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${config.iconWrapClass}`}>
-                      <Icone nom={config.icon} className="text-lg" />
-                    </div>
-                    <div className="flex-1 flex flex-wrap items-center justify-between gap-2">
-                      <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold">
-                        {notification.type || 'Notification'}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${config.badgeClass}`}>
-                          {libelleUrgence(niveau)}
-                        </span>
-                        <span className={`w-2 h-2 rounded-full animate-pulse ${config.dotClass}`}></span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-sm font-semibold text-gray-800 mb-3">
-                    {notification.motif || notification.message || 'Aucun motif'}
-                  </p>
-
-                  <div className="grid grid-cols-1 gap-3 bg-gray-50 p-3 rounded-lg border border-[#F1F5F9] mb-3">
-                    <div>
-                      <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Patient</p>
-                      <p className="text-sm font-medium text-gray-800">
-                        {notification.patientNom || formaterNomPatient(notification.patient)}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold text-[#64748B] uppercase tracking-wide">Reçue le</p>
-                      <p className="text-sm font-medium text-gray-800">
-                        {(notification.receivedAt || notification.createdAt)
-                          ? new Date(notification.receivedAt || notification.createdAt).toLocaleString('fr-FR', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mb-3 bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-center gap-2">
-                    <Icone nom="event" className="text-blue-600" />
-                    <div>
-                      <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Date et heure prévues de l'opération</p>
-                      <p className="text-sm font-bold text-gray-800">
-                        {(notification.dateIntervention || notification.patient?.dateIntervention)
-                          ? new Date(notification.dateIntervention || notification.patient?.dateIntervention).toLocaleString('fr-FR', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })
-                          : 'Non communiquée'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mb-3">
-                    <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wide">Service source</p>
-                    <p className="text-sm font-medium text-gray-800">
-                      {notification.sourceServiceName || notification.serviceSourceNom || notification.serviceSourceId || 'N/A'}
-                    </p>
-                  </div>
-
+                <li key={notification.id || index}>
                   <button
+                    type="button"
                     onClick={() => handleVoirPrescription(notification)}
-                    className="w-full py-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800"
+                    className="flex w-full items-start gap-3 bg-[#F0F7FB] px-4 py-3 text-left transition-colors hover:bg-[#E3F0F7]"
                   >
-                    <Icone nom="description" className="text-lg" />
-                    Voir prescription
+                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${config.dotClass}`} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline justify-between gap-2">
+                        <span className="truncate text-[13px] font-extrabold uppercase text-slate-900">{patient}</span>
+                        <span className="shrink-0 text-[11px] text-slate-500">{recue ? tempsRelatif(recue) : ''}</span>
+                      </span>
+                      <span className="mt-0.5 flex items-center gap-2">
+                        <span className="truncate text-[12px] text-slate-600">{detail}</span>
+                        {niveau !== 'NORMAL' && (
+                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold ${config.badgeClass}`}>
+                            {libelleUrgence(niveau)}
+                          </span>
+                        )}
+                      </span>
+                    </span>
                   </button>
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
           )}
         </div>
 
