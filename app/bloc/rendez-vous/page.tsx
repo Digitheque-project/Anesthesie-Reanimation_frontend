@@ -40,7 +40,6 @@ export default function RendezVousPage() {
   // uniquement — cette liste n'est plus liée à un créneau à date fixe (voir plus bas), mais on
   // veut pouvoir se limiter aux patients opérés tel jour, sans devoir chercher parmi tous les
   // patients CPA validée en attente de vérification.
-  const [filtreDateVerif, setFiltreDateVerif] = useState(new Date().toLocaleDateString('sv-SE'));
   // Patients déjà planifiés (retirés du fil de prescription dès qu'un créneau CPA leur est
   // réservé, voir PlanningService.reserverCreneau) : sans cette alerte, il fallait parcourir le
   // calendrier jour par jour pour se rendre compte qu'un RDV existait déjà à une autre date.
@@ -49,8 +48,7 @@ export default function RendezVousPage() {
   // Même mécanique côté « Vérification veille » : le calendrier ci-dessus démarre sur la date du
   // jour, or les vérifications à faire peuvent être échelonnées sur d'autres jours (la veille de
   // chaque intervention) — on prévient du total + de la prochaine, avec un bouton pour tout
-  // afficher d'un coup (voirTousVerif), exactement comme l'alerte RDV CPA.
-  const [voirTousVerif, setVoirTousVerif] = useState(false);
+  // afficher d'un coup (voirTousCpa), exactement comme l'alerte RDV CPA.
   // Vue d'ensemble de la charge à venir (tous patients à opérer, triés par date) — même popup
   // que sur Programme opératoire / non-chirurgical, utile ici pour anticiper sans devoir changer
   // d'écran pendant qu'on traite les rendez-vous CPA ou les vérifications veille.
@@ -76,7 +74,7 @@ export default function RendezVousPage() {
   // Bouton « Traiter » de la bande rouge : ouvre l'endroit où ce patient se prend en charge.
   const traiterRetard = (p: any) => {
     if (p.statut === 'EN_ATTENTE_VERIFICATION_VEILLE' || p.statut === 'CPA_REALISE') {
-      setVoirTousVerif(true);
+      setVoirTousCpa(true);
       setOnglet('VERIFICATION_VEILLE');
     } else if (p.statut === 'EN_ATTENTE_CPA') {
       setVoirTousCpa(true);
@@ -202,18 +200,18 @@ export default function RendezVousPage() {
   // app/bloc/rapports/page.tsx.
   const creneauxFiltres = useMemo(() => {
     let filtres = creneauxAvecRetards;
-    if (onglet === 'VERIFICATION_VEILLE' && !voirTousVerif && filtreDateVerif) {
+    if (onglet === 'VERIFICATION_VEILLE' && !voirTousCpa && selectedDate) {
       // Un patient en retard a par définition une date déjà passée : il ne correspondra jamais
       // au filtre "date du jour" et disparaîtrait sinon silencieusement (voir commentaire plus
       // haut sur creneauxAvecRetards) — on l'exempte donc de ce filtre de date.
-      filtres = filtres.filter((c: any) => c.enRetard || (c.dateIntervention && new Date(c.dateIntervention).toLocaleDateString('sv-SE') === filtreDateVerif));
+      filtres = filtres.filter((c: any) => c.enRetard || (c.dateIntervention && new Date(c.dateIntervention).toLocaleDateString('sv-SE') === selectedDate));
     }
     const q = recherche.trim().toLowerCase();
     if (!q) return filtres;
     return filtres.filter((c: any) =>
       [formaterNomPatient(c.patient), c.type, c.chirurgien?.nom].some((v) => String(v || '').toLowerCase().includes(q))
     );
-  }, [creneauxAvecRetards, recherche, onglet, filtreDateVerif, voirTousVerif]);
+  }, [creneauxAvecRetards, recherche, onglet, selectedDate, voirTousCpa]);
 
   // Alerte « vérifications la veille à faire » : calculée à partir de la liste déjà chargée
   // (tous les patients CPA validée, non urgents, en attente de vérification) — le total, et la
@@ -266,8 +264,8 @@ export default function RendezVousPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {onglet === 'CPA' ? (
-              <>
+            {/* Un seul filtre, partagé par les deux onglets (27/11/2026) : passer
+                de « Rendez-vous CPA » à « Vérification veille » ne le change plus. */}
                 <input type="date" value={selectedDate} onChange={(e) => { setSelectedDate(e.target.value); setVoirTousCpa(false); }} disabled={voirTousCpa}
                   className={champDate} />
                 {/* Retards (toujours fusionnés, voir creneauxAvecRetards), aujourd'hui et à venir. */}
@@ -275,22 +273,6 @@ export default function RendezVousPage() {
                   className={`px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors ${voirTousCpa ? 'bg-[#F0F7FF] text-[#006A8C] hover:bg-[#E0EEFB]' : 'bg-white text-[#006A8C] border border-[#E2E8F0] hover:bg-slate-50'}`}>
                   {voirTousCpa ? 'Revenir à la date' : 'Voir tout'}
                 </button>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <label className="text-[12px] font-bold text-[#64748B] flex items-center gap-1.5">
-                  <Icone nom="filter_alt" className="text-[15px]" />
-                  Date d&apos;intervention
-                </label>
-                <input type="date" value={filtreDateVerif} onChange={(e) => setFiltreDateVerif(e.target.value)} disabled={voirTousVerif}
-                  className={champDate} />
-                {filtreDateVerif && !voirTousVerif && (
-                  <button onClick={() => setFiltreDateVerif('')} className="text-[12px] font-bold text-[#006A8C] hover:underline">
-                    Effacer
-                  </button>
-                )}
-              </div>
-            )}
             <button type="button" onClick={() => setShowProgrammeAVenir(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#006A8C] text-white rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#005a76] transition-colors">
               <Icone nom="calendar_month" className="text-[16px]" />
@@ -381,11 +363,11 @@ export default function RendezVousPage() {
               <Icone nom="event_available" className="text-[17px]" />
               {alerteVerif.total} vérification{alerteVerif.total > 1 ? 's' : ''} la veille à faire
               {alerteVerif.prochaine && ` — la prochaine est le ${new Date(alerteVerif.prochaine + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`}
-              {voirTousVerif ? '.' : '. Changez la date ci-dessus pour la voir, ou :'}
+              {voirTousCpa ? '.' : '. Changez la date ci-dessus pour la voir, ou :'}
             </span>
-            <button onClick={() => setVoirTousVerif(v => !v)}
+            <button onClick={() => setVoirTousCpa(v => !v)}
               className="px-3.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-[12px] font-bold transition-colors whitespace-nowrap">
-              {voirTousVerif ? 'Revenir à la date sélectionnée' : 'Voir toutes les vérifications à faire'}
+              {voirTousCpa ? 'Revenir à la date sélectionnée' : 'Voir toutes les vérifications à faire'}
             </button>
           </div>
         )}
@@ -516,7 +498,7 @@ export default function RendezVousPage() {
         onClose={() => setShowProgrammeAVenir(false)}
         onChoisirDate={(date) => {
           if (onglet === 'CPA') { setSelectedDate(date); setVoirTousCpa(false); }
-          else { setFiltreDateVerif(date); setVoirTousVerif(false); }
+          else { setSelectedDate(date); setVoirTousCpa(false); }
         }}
       />
     </div>
