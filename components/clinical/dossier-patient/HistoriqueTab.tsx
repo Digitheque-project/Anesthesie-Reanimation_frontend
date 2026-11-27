@@ -53,8 +53,24 @@ export default function HistoriqueTab({ patientId, chuId }: Props) {
   const fetchHistorique = async () => {
     try {
       setLoading(true);
-      const res = await api.get(`/patients/${patientId}/historique`, { params: { chuId } });
-      setHistorique(Array.isArray(res.data) ? res.data : []);
+      // Le serveur renvoie { module, date, valeurs } : converti en entrées du journal.
+      const res = await api.get(`/patients/${patientId}/historique/complet`, { params: { chuId } });
+      const LIB: Record<string, string> = { observation: 'Observation médicale', examenPhysique: 'Examen physique', examenComplementaire: 'Examen complémentaire', diagnostic: 'Diagnostic', suivi: 'Suivi / évolution', parametre: 'Paramètres', sortie: 'Sortie' };
+      const brut = (Array.isArray(res.data) ? res.data : []) as any[];
+      setHistorique(
+        brut
+          .map((e) => (e.dateAction ? e : {
+            id: String(e.id),
+            action: e.module === 'sortie' ? 'sortie' : 'creation',
+            module: LIB[e.module] ?? e.module,
+            anciennesValeurs: null,
+            nouvellesValeurs: e.valeurs ?? null,
+            utilisateur: '',
+            commentaire: '',
+            dateAction: e.date,
+          }))
+          .sort((a: any, b: any) => new Date(b.dateAction).getTime() - new Date(a.dateAction).getTime()),
+      );
     } catch (err: any) {
       // L'endpoint d'historique n'est pas encore disponible côté backend (404) :
       // on affiche un état vide au lieu de faire échouer l'onglet.
