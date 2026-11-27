@@ -68,6 +68,15 @@ export default function PatientFilters({ onFilterChange, date, onDateChange }: P
                 Aujourd'hui
               </button>
             )}
+            {date && (
+              <button
+                type="button"
+                onClick={() => onDateChange('')}
+                className="text-[10px] font-bold text-primary uppercase hover:underline whitespace-nowrap"
+              >
+                Tout
+              </button>
+            )}
           </div>
         </div>
 

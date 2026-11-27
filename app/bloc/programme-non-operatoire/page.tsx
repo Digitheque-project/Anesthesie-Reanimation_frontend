@@ -22,7 +22,8 @@ export default function ProgrammeNonOperatoirePage() {
   const [patients, setPatients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filtres, setFiltres] = useState<FiltresPatient>({ statut: '', specialite: '', recherche: '', sexe: '', heureDebut: '', heureFin: '' })
-  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('sv-SE'))
+  // Tout le programme par défaut ; une date choisie filtre ce jour-là (27/11/2026).
+  const [selectedDate, setSelectedDate] = useState('')
   const [showProgrammeAVenir, setShowProgrammeAVenir] = useState(false)
   // Le loading plein écran n'apparaît qu'au tout premier chargement : les rafraîchissements
   // d'arrière-plan (temps réel, retour de focus) ne doivent pas faire clignoter "Chargement...".
@@ -42,7 +43,7 @@ export default function ProgrammeNonOperatoirePage() {
       // Date dépassée et patient toujours pas opéré : visible quel que soit le jour affiché.
       const aujourdhui = new Date().toLocaleDateString('sv-SE')
       const estEnRetard = (p: any) => !!p.dateIntervention && new Date(p.dateIntervention).toLocaleDateString('sv-SE') < aujourdhui
-      const estDateSelectionnee = (p: any) => !p.dateIntervention || estEnRetard(p) || new Date(p.dateIntervention).toLocaleDateString('sv-SE') === selectedDate
+      const estDateSelectionnee = (p: any) => !selectedDate || !p.dateIntervention || estEnRetard(p) || new Date(p.dateIntervention).toLocaleDateString('sv-SE') === selectedDate
       const data = [...(pretRes.data || []), ...(encoursRes.data || [])]
         .filter(estDateSelectionnee)
         .filter((p: any) => estServiceNonOperatoire(p.serviceOrigine))
@@ -113,7 +114,7 @@ export default function ProgrammeNonOperatoirePage() {
             Programme non-chirurgical
           </h1>
           <p className="text-on-surface-variant text-sm font-medium mt-1">
-            Patients pris en charge par l'anesthésiste hors du Bloc (Imagerie, Endoscopie, Urgence...) — {new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            Patients pris en charge par l'anesthésiste hors du Bloc (Imagerie, Endoscopie, Urgence...) — {selectedDate ? new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'tout le programme'}
           </p>
         </div>
         <button type="button" onClick={() => setShowProgrammeAVenir(true)}

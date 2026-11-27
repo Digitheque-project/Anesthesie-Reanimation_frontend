@@ -16,7 +16,8 @@ export default function PatientDuJourPage() {
   const [patients, setPatients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filtres, setFiltres] = useState<FiltresPatient>({ statut: '', specialite: '', recherche: '', sexe: '', heureDebut: '', heureFin: '' })
-  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('sv-SE'))
+  // Tout le programme par défaut ; une date choisie filtre ce jour-là (27/11/2026).
+  const [selectedDate, setSelectedDate] = useState('')
   const [showProgrammeAVenir, setShowProgrammeAVenir] = useState(false)
   // Le loading plein écran n'apparaît qu'au tout premier chargement : les rafraîchissements
   // d'arrière-plan (temps réel, retour de focus) ne doivent pas faire clignoter "Chargement...".
@@ -39,7 +40,7 @@ export default function PatientDuJourPage() {
       // Date dépassée et patient toujours pas opéré : visible quel que soit le jour affiché.
       const aujourdhui = new Date().toLocaleDateString('sv-SE')
       const estEnRetard = (p: any) => !!p.dateIntervention && new Date(p.dateIntervention).toLocaleDateString('sv-SE') < aujourdhui
-      const estDateSelectionnee = (p: any) => !p.dateIntervention || estEnRetard(p) || new Date(p.dateIntervention).toLocaleDateString('sv-SE') === selectedDate
+      const estDateSelectionnee = (p: any) => !selectedDate || !p.dateIntervention || estEnRetard(p) || new Date(p.dateIntervention).toLocaleDateString('sv-SE') === selectedDate
       // Les patients venus par une demande de CPA externe d'un service qui n'opère pas au Bloc
       // (Imagerie, Endoscopie, Urgence...) ne font pas partie du programme opératoire du Bloc —
       // ils vivent dans une liste séparée, "Programme non-chirurgical" (voir
@@ -119,7 +120,7 @@ export default function PatientDuJourPage() {
             Programme Opératoire
           </h1>
           <p className="text-on-surface-variant text-sm font-medium mt-1">
-            Liste des patients à opérer — {new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            Liste des patients à opérer — {selectedDate ? new Date(selectedDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'tout le programme'}
           </p>
         </div>
         <button type="button" onClick={() => setShowProgrammeAVenir(true)}
