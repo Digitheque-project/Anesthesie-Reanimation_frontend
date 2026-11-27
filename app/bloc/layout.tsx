@@ -19,7 +19,10 @@ export default function BlocLayout({ children }: { children: ReactNode }) {
         <AlarmeSurveillance />
         <div className="flex">
           <Sidebar isOpen={menuOuvert} onClose={() => setMenuOuvert(false)} />
-          <main className="min-w-0 flex-1 overflow-x-hidden bg-[#F8F9FB]">{children}</main>
+          {/* overflow-x-clip (et non hidden) : hidden faisait de <main> un conteneur de défilement,
+              les en-têtes collants (patient en cours, sommaire CPA) se décalaient et masquaient
+              le haut du contenu (27/11/2026). */}
+          <main className="min-w-0 flex-1 overflow-x-clip bg-[#F8F9FB]">{children}</main>
         </div>
       </div>
     </AuthGate>
