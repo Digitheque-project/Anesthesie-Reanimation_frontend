@@ -10,6 +10,7 @@ import Checkbox from '@/components/ui/Checkbox'
 import RoleGate from '@/components/bloc/auth/RoleGate'
 import { RoleClinique } from '@/lib/auth/role-clinique'
 import PatientIdentityHeader from '@/components/bloc/patient/PatientIdentityHeader'
+import PrisePhoto from '@/components/ui/PrisePhoto'
 import BackButton from '@/components/bloc/layout/BackButton'
 import PasserButton from '@/components/bloc/layout/PasserButton'
 import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
@@ -194,6 +195,11 @@ function VerificationVeillePageContent() {
   const importerFichiers = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selection = Array.from(event.target.files || [])
     event.target.value = ''
+    await envoyerFichiers(selection)
+  }
+
+  // Fichiers importés ou photo prise directement : même envoi.
+  const envoyerFichiers = async (selection: File[]) => {
     if (!selection.length) return
     if (!patientIdEffectif) {
       alert('⚠️ Patient non identifié, impossible d importer des fichiers.')
@@ -511,16 +517,24 @@ function VerificationVeillePageContent() {
             onChange={importerFichiers}
           />
 
-          <button
-            type="button"
-            onClick={() => inputFichierRef.current?.click()}
-            disabled={uploadEnCours}
-            className="w-full border-2 border-dashed border-primary/30 rounded-xl py-8 flex flex-col items-center gap-2 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Icone nom="upload_file" className="text-4xl" />
-            <span className="text-sm font-bold">{uploadEnCours ? 'Import en cours...' : 'Cliquez pour importer un ou plusieurs fichiers'}</span>
-            <span className="text-[11px] text-on-surface-variant">Texte, PDF, image... 20 Mo maximum par fichier</span>
-          </button>
+          {/* Deux choix : importer un fichier, ou photographier le document. */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => inputFichierRef.current?.click()}
+              disabled={uploadEnCours}
+              className="w-full border-2 border-dashed border-primary/30 rounded-xl py-8 flex flex-col items-center gap-2 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Icone nom="upload_file" className="text-4xl" />
+              <span className="text-sm font-bold">{uploadEnCours ? 'Import en cours...' : 'Importer un ou plusieurs fichiers'}</span>
+              <span className="text-[11px] text-on-surface-variant">Texte, PDF, image... 20 Mo maximum par fichier</span>
+            </button>
+            <PrisePhoto
+              disabled={uploadEnCours}
+              onPhoto={(f) => void envoyerFichiers([f])}
+              className="w-full border-2 border-dashed border-primary/30 rounded-xl py-8 flex flex-col items-center gap-2 text-primary hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
 
           {fichiers.length > 0 ? (
             <ul className="mt-4 space-y-2">
