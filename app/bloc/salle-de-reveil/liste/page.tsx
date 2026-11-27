@@ -56,7 +56,13 @@ export default function ListeSalleReveil() {
           intervention: p.libelle || p.typeChirurgie || 'Non spécifiée',
           niveauUrgence: p.niveauUrgence || 'NORMAL',
           entree,
-          depuis: entree ? entree.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—',
+          // Entrée un autre jour : la date précède l'heure (27/11/2026).
+          depuis: entree
+            ? (entree.toDateString() === new Date().toDateString()
+                ? ''
+                : `${entree.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })} à `) +
+              entree.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            : '—',
         };
       }));
     } catch (err) {
