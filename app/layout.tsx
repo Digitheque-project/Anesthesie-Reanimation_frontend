@@ -33,6 +33,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             IP : cumulées, ces interrogations faisaient bloquer la passerelle par le
             pare-feu de l'hébergeur (test « Just a moment… », 429) — connexion,
             envois et messagerie impossibles. Les horloges (1 s) ne sont pas touchées. */}
+        {/* Toast « action terminée » commun à tous les modules (27/11/2026). */}
+        <Script id="chu-toast" src="/chu-toast.js" strategy="afterInteractive" />
         <Script id="chu-onglet-cache" strategy="beforeInteractive">
           {`(function(){if(window.__chuOngletCache)return;window.__chuOngletCache=1;var origine=window.setInterval,PAS_CACHE=120000;window.setInterval=function(action,ms){if(typeof action!=='function'||!(ms>=5000))return origine.apply(window,arguments);var args=[].slice.call(arguments,2),dernier=0;return origine.call(window,function(){var t=Date.now();if(document.hidden&&t-dernier<PAS_CACHE)return;dernier=t;return action.apply(this,args);},ms);};})();`}
         </Script>
