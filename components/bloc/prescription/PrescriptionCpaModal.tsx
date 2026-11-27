@@ -12,12 +12,14 @@ interface PrescriptionCpaModalProps {
   onClose: () => void
   patientId: string
   serviceDestOverride?: ServiceDestOverride
+  /** Titre de la fenêtre (par défaut : CPA). */
+  titre?: string
 }
 
 // Ouvre le module de prescription (porté depuis front-clinique) en modal, depuis la CPA du
 // bloc opératoire — pour que l'anesthésiste/responsable CPA/major puisse prescrire au cas où
 // il en a besoin, avant la décision finale, sans quitter la page de consultation.
-export default function PrescriptionCpaModal({ open, onClose, patientId, serviceDestOverride }: PrescriptionCpaModalProps) {
+export default function PrescriptionCpaModal({ open, onClose, patientId, serviceDestOverride, titre = 'Prescrire pendant la CPA' }: PrescriptionCpaModalProps) {
   // La modale est rendue dans un portail attaché à <body> : le composant est posé dans un
   // conteneur `lg:sticky` de la CPA, et `position: sticky` crée un stacking context qui
   // piégeait le z-index de la modale (effectivement 0) — la Sidebar (z-50), la TopBar (z-40)
@@ -43,7 +45,7 @@ export default function PrescriptionCpaModal({ open, onClose, patientId, service
               <Icone nom="clinical_notes" className="text-2xl" />
             </span>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Prescrire pendant la CPA</h3>
+              <h3 className="text-lg font-extrabold text-white">{titre}</h3>
               <p className="text-xs text-white/80 mt-0.5">
                 {serviceDestOverride ? `Sera envoyée à ${serviceDestOverride.serviceName}` : 'Service d’origine du patient inconnu'}
               </p>

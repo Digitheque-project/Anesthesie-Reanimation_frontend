@@ -14,6 +14,7 @@ import BackButton from '@/components/bloc/layout/BackButton'
 import PasserButton from '@/components/bloc/layout/PasserButton'
 import ErreurChargementBanner from '@/components/bloc/layout/ErreurChargementBanner'
 import VoirDossierButton from '@/components/bloc/patient/VoirDossierButton'
+import PrescriptionCpaModal from '@/components/bloc/prescription/PrescriptionCpaModal'
 import ConfirmationRecapModal, { RecapSection } from '@/components/ui/ConfirmationRecapModal'
 import { useDraftAutosave, chargerBrouillon, effacerBrouillon, type Brouillon } from '@/lib/hooks/useDraftAutosave'
 import { useRole } from '@/lib/hooks/useRole'
@@ -40,6 +41,7 @@ function ActivitePendantOperationPageContent() {
   const patientNom = searchParams.get('patientNom') || 'Patient'
   const intervention = searchParams.get('intervention') || ''
   const [patient, setPatient] = useState<any>(null)
+  const [prescrireOuvert, setPrescrireOuvert] = useState(false)
   const [erreurPatient, setErreurPatient] = useState(false)
   // Pendant l'opération, seul l'anesthésiste a une interface active ici (formulaire clinique et
   // boutons de chronologie) — l'IBODE n'a aucune interface à ce stade (voir MomentsTimeline),
@@ -213,11 +215,31 @@ function ActivitePendantOperationPageContent() {
               médicale : au bloc, ce qu'on vient vérifier en cours d'intervention, c'est le
               parcours du patient (CPA, vérification veille, actes déjà posés), pas la rédaction
               d'une observation. Les autres écrans gardent l'onglet par défaut. */}
+          {/* Prescrire pendant l'opération : même interface que pendant la CPA (27/11/2026). */}
+          <button
+            type="button"
+            onClick={() => setPrescrireOuvert(true)}
+            disabled={!patientId}
+            className="flex items-center gap-2 rounded-xl bg-[#006A8C] px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-[#005A76] disabled:opacity-50"
+          >
+            <Icone nom="edit_note" className="text-[18px]" /> Prescrire
+          </button>
           <VoirDossierButton
             patientId={patientId}
             variant="icon"
             chuId={patient?.chuId}
             initialTab="historique"
+          />
+          <PrescriptionCpaModal
+            open={prescrireOuvert}
+            onClose={() => setPrescrireOuvert(false)}
+            patientId={patientId || patient?.id || ''}
+            titre="Prescrire pendant l'opération"
+            serviceDestOverride={
+              patient?.serviceOrigineId && patient?.serviceOrigine
+                ? { serviceId: patient.serviceOrigineId, serviceName: patient.serviceOrigine }
+                : undefined
+            }
           />
         </div>
       </header>
