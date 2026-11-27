@@ -30,12 +30,8 @@ export default function ListeSalleReveil() {
   const [loading, setLoading] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [filtreUrgence, setFiltreUrgence] = useState<'TOUS' | 'TRES_URGENT' | 'URGENT' | 'NORMAL'>('TOUS');
-  const [filtreDate, setFiltreDate] = useState(() => {
-    const d = new Date();
-    const mois = String(d.getMonth() + 1).padStart(2, '0');
-    const jour = String(d.getDate()).padStart(2, '0');
-    return `${d.getFullYear()}-${mois}-${jour}`;
-  });
+  // Aucun filtre de date par défaut : tous les patients en salle de réveil (27/11/2026).
+  const [filtreDate, setFiltreDate] = useState('');
   const [tri, setTri] = useState<Tri>('RECENT');
   // Vue d'ensemble de la charge à venir (patients à opérer, triés par date) — même popup que sur
   // Programme opératoire / non-chirurgical et Fil de travail : utile ici pour anticiper les
