@@ -174,7 +174,13 @@ export default function NotificationCPAPage() {
 
         // Bascule la notification en RDV_PLANIFIE et notifie automatiquement le service d'origine
         if (selectedNotif.id) {
-          await notificationService.planifierRDV(selectedNotif.id)
+          // Date, heure et lieu transmis au service demandeur avec le rendez-vous.
+          await notificationService.planifierRDV(selectedNotif.id, {
+            date: formData.dateRDV || new Date().toLocaleDateString('sv-SE'),
+            heureDebut: formData.heureRDV || '09:00',
+            salle: formData.lieuRDV || 'Salle CPA',
+            responsable,
+          })
         }
       }
 
