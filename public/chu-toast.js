@@ -18,18 +18,32 @@
     return 'Modifications enregistrées';
   }
 
-  // La page a-t-elle déjà affiché son propre message de confirmation ?
-  function dejaConfirme() {
-    var sel = '[role="status"],[role="alert"],[aria-live="polite"],[aria-live="assertive"],[data-sonner-toast],.Toastify__toast,[class*="toast" i],[class*="Toast"],[class*="snackbar" i]';
-    var els = document.querySelectorAll(sel);
-    for (var i = 0; i < els.length; i++) {
-      var e = els[i];
-      if (e.id === 'chu-toast') continue;
-      if (e.closest && e.closest('#chu-toast')) continue;
-      var r = e.getBoundingClientRect();
-      if (r.width > 0 && r.height > 0 && (e.textContent || '').trim()) return true;
-    }
-    return false;
+  // La page vient-elle d'afficher SA propre confirmation ? Seuls les messages
+  // apparus depuis peu comptent : un bandeau permanent (alarme de surveillance,
+  // zone « aria-live » du site) ne doit pas faire taire le toast.
+  var SEL = '[role="status"],[role="alert"],[data-sonner-toast],.Toastify__toast,[class*="toast" i],[class*="Toast"],[class*="snackbar" i]';
+  var dernierMessagePage = 0;
+  function estMessage(n) {
+    return n && n.nodeType === 1 && n.id !== 'chu-toast' && !(n.closest && n.closest('#chu-toast')) &&
+      ((n.matches && n.matches(SEL)) || (n.querySelector && n.querySelector(SEL)));
+  }
+  function surveiller() {
+    try {
+      new MutationObserver(function (muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var m = muts[i];
+          for (var j = 0; j < m.addedNodes.length; j++) {
+            if (estMessage(m.addedNodes[j])) { dernierMessagePage = Date.now(); return; }
+          }
+          var t = m.target && (m.target.nodeType === 1 ? m.target : m.target.parentElement);
+          if (t && t.closest && !t.closest('#chu-toast') && t.closest(SEL) && (t.textContent || '').trim()) { dernierMessagePage = Date.now(); return; }
+        }
+      }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    } catch (e) { /* navigateur ancien : toast toujours affiché */ }
+  }
+  surveiller();
+  function dejaConfirme(depuis) {
+    return dernierMessagePage >= depuis - 200;
   }
 
   function afficher(texte) {
@@ -67,7 +81,7 @@
     if (dernier[cle] && maintenant - dernier[cle] < 8000) { dernier[cle] = maintenant; return; }
     dernier[cle] = maintenant;
     setTimeout(function () {
-      if (!dejaConfirme()) afficher(libelle(methode));
+      if (!dejaConfirme(maintenant)) afficher(libelle(methode));
     }, 450);
   }
 
