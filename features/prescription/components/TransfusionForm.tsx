@@ -16,6 +16,8 @@ import { authFetch } from '@/features/prescription/lib/auth';
 // Stock de la Banque de sang affiché au prescripteur (27/11/2026).
 type LigneStock = { groupe_sanguin: string; produit: string; unites_dispo: number };
 const cleProduit = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+// Code du formulaire → codes des poches en stock (même règle que la Banque de sang).
+const POCHES_PRODUIT: Record<string, string[]> = { 'sang-total': ['SANG_TOTAL'], cgr: ['CULOT_GLOBULAIRE'], pfc: ['PFC'], prp: ['CPA', 'MCP'] };
 
 const PRODUITS_SANGUINS: { value: string; label: string }[] = [
   { value: 'sang-total', label: 'Sang total' },
@@ -76,7 +78,7 @@ export default function TransfusionForm({ patient, prescripteur }: Props) {
   const stockGroupe = (stocks ?? []).filter((l) => l.groupe_sanguin === groupage);
   const totalGroupe = stockGroupe.reduce((t, l) => t + Number(l.unites_dispo || 0), 0);
   const stockProduit = (code: string) =>
-    stockGroupe.filter((l) => cleProduit(l.produit) === cleProduit(code)).reduce((t, l) => t + Number(l.unites_dispo || 0), 0);
+    stockGroupe.filter((l) => (POCHES_PRODUIT[code] ?? [cleProduit(code)]).includes(cleProduit(l.produit))).reduce((t, l) => t + Number(l.unites_dispo || 0), 0);
   const [hb, setHb] = useState('');
   const [produits, setProduits] = useState<Produit[]>([{ id: '1', produit: '', quantite: '', datePrevue: '', plaquettes: '' }]);
   const [notes, setNotes] = useState('');
